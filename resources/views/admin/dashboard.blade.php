@@ -1,0 +1,12 @@
+<x-admin-layout>
+    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquam, ea adipisci quaerat ratione delectus explicabo cumque iste reiciendis optio repellendus recusandae provident pariatur debitis maxime, totam ipsam nisi maiores libero!</p>
+    <p>Quod ex architecto nihil sint aliquam recusandae ipsum quo molestias hic et? Unde ullam temporibus odit in quisquam consequuntur praesentium aperiam magnam sint autem animi at dignissimos velit, quos est?</p>
+    <p>Dolor illo velit iusto obcaecati minima fugiat itaque quae mollitia. Magni veritatis qui in, fugit nostrum dolores! Iure similique, modi exercitationem quas praesentium et maxime vitae nisi incidunt deleniti ab!</p>
+    <p>Perspiciatis iure velit optio molestiae voluptate, ad commodi quisquam illum hic ipsum suscipit cum eos repudiandae repellendus aperiam quaerat porro non necessitatibus dolorum sit explicabo alias aliquid! Quidem, minima recusandae!</p>
+    <p>Sapiente voluptates laudantium quia nihil debitis nostrum blanditiis aspernatur animi hic? Rerum quos praesentium quam fuga quibusdam quisquam asperiores soluta aliquid. Omnis voluptates iure atque et enim delectus, temporibus mollitia!</p>
+    <p>Dicta libero minima quidem facilis, amet consequuntur! Dolore quam repellat incidunt nihil in iusto corrupti! Corrupti eius saepe labore assumenda, cumque modi dicta omnis. Ipsam enim soluta dolorum non sed.</p>
+    <p>Eveniet culpa quae beatae magnam distinctio dolorum ipsum velit magni, accusantium maiores, et at labore, consequatur dignissimos ullam ex inventore exercitationem possimus provident earum temporibus. Ducimus sunt quo dignissimos nulla.</p>
+    <p>Impedit adipisci pariatur deleniti. Necessitatibus dolorum quas similique obcaecati magni dolorem veritatis sequi velit dicta consequuntur reprehenderit iste ipsa voluptate vero incidunt praesentium at consectetur quisquam omnis ea, inventore nulla?</p>
+    <p>Rem,  laudantium, dolore sapiente quam corporis enim id placeat expedita nam obcaecati quod quasi. Doloremque odit, officiis numquam quisquam ratione, sint corporis obcaecati aspernatur dolorum ullam dignissimos placeat consectetur cum.</p>
+    <p>Distinctio, eaque. Necessitatibus, facere unde quibusdam debitis delectus mollitia inventore perspiciatis quas tempore impedit magni deleniti nisi culpa error quo laudantium? Excepturi ad officiis repudiandae assumenda fuga recusandae nostrum consectetur.</p>
+</x-admin-layout>
