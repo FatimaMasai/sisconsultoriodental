@@ -2,62 +2,63 @@
     <div class="flex justify-between items-center mb-6">
         <div class="">
             <x-label class="text-black text-xl font-semibold">
-                Listado de Especialidades
+                Historial Médico
             </x-label>
-        </div>
-        <div class="">
-            <a href="{{route('admin.specialities.create')}}" class="btn btn-green">
-                Nuevo
-            </a>
-        </div>
+        </div> 
     </div> 
-
-    
-
-    @if ($specialities->count())
+ 
+    @if ($histories->count())
 
         <div class="relative overflow-x-auto">
             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
-                        <th scope="col" class="px-3 py-2">
+                        <th scope="col" class="px-1 py-1">
                             ID
                         </th>
                         <th scope="col" class="px-3 py-2">
-                            Nombre
+                            Paciente
                         </th> 
+                        <th scope="col" class="px-3 py-2">
+                            Servicio
+                        </th>  
+                        <th scope="col" class="px-3 py-2">
+                            Fecha
+                        </th> 
+                        <th scope="col" class="px-3 py-2">
+                            Doctor
+                        </th>  
                         <th scope="col" class="px-3 py-2">
                             Acciones
                         </th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($specialities as $speciality) 
+                    @foreach ($histories as $history) 
 
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
-                            <th scope="row" class="px-3 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {{$speciality->id}}
+                            <th scope="row" class="px-1 py-1 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                {{$history->id}}
                             </th>
                             <td class="px-3 py-2">
-                                {{$speciality->name}}
+                                {{$history->patient->person->name}} {{$history->patient->person->last_name_father}} {{$history->patient->person->last_name_mother}}  
                             </td>  
+                            <td class="px-3 py-2">
+                                {{ $history->service->name }} 
+                            </td> 
+                            <td class="px-3 py-2">
+                                {{ $history->date }} 
+                            </td>
+                            <td class="px-3 py-2">
+                                {{ $history->doctor->person->name }}  {{$history->doctor->person->last_name_father}} {{$history->doctor->person->last_name_mother}} 
+                            </td>   
 
                             <td class="px-3 py-2" >
-                                <div class="flex space-x-2">
+                                <div class="flex space-x-2"> 
+                                    <a href="{{ route('admin.histories.show', $history->id) }}" class="btn btn-blue text-xs">Ver Historial</a>
+                                    <a href="{{ route('admin.histories.pdf', $history->id) }}" class="btn btn-orange text-xs" target="_blank">PDF</a>
 
-                                
-                                    <a href="{{route('admin.specialities.edit', $speciality)}}" class="btn btn-blue text-xs">Editar</a>
-                                    <form class="delete-form" action="{{route('admin.specialities.destroy', $speciality)}}" method="POST">
-
-                                        @csrf
-                                        @method('DELETE')
-        
-                                        <button class="btn btn-red text-xs">
-                                            Eliminar
-                                        </button>
-
-                                    </form>
-
+                                    
                                 </div>
 
                             </td>
@@ -68,7 +69,7 @@
             </table>
 
             <div class="mt-4">
-                {{$specialities->links()}}
+                {{$histories->links()}}
             </div>
 
         </div>
@@ -82,7 +83,7 @@
 
             <span class="sr-only">Info</span>
             <div>
-                <span class="font-medium">Info alert!</span> Todavia no hay especialidades registradas.
+                <span class="font-medium">Info alert!</span> Todavia no hay historiales médicos registrados.
             </div>
         </div>
 
@@ -122,3 +123,7 @@
 
  
 </x-admin-layout>
+
+
+
+

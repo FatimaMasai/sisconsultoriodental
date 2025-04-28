@@ -39,7 +39,7 @@
                             Celular
                         </th>  
                         <th scope="col" class="px-3 py-2">
-                            Editar
+                            Acciones
                         </th>
                     </tr>
                 </thead>

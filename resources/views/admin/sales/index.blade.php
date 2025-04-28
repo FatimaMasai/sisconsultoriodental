@@ -36,7 +36,7 @@
                             Pago
                         </th>  
                         <th scope="col" class="px-3 py-2">
-                            Editar
+                            Acciones
                         </th>
                     </tr>
                 </thead>
@@ -64,21 +64,7 @@
  
 
                             <td class="px-3 py-2" >
-                                <div class="flex space-x-2">
-
-                                
-                                    {{-- <a href="{{route('admin.sales.edit', $sale)}}" class="btn btn-blue text-xs">Editar</a> --}}
-                                    <form class="delete-form" action="{{route('admin.sales.destroy', $sale)}}" method="POST">
-
-                                        @csrf
-                                        @method('DELETE')
-        
-                                        <button class="btn btn-red text-xs">
-                                            Eliminar
-                                        </button>
-
-                                    </form>
-
+                                <div class="flex space-x-2"> 
                                     <a href="{{ route('admin.sales.print', $sale->id) }}" class="btn btn-orange text-xs" target="_blank">PDF</a>
 
                                     

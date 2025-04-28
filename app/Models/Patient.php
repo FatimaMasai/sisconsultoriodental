@@ -34,4 +34,10 @@ class Patient extends Model
     {
         return $this->belongsTo(Doctor::class);
     }
+
+    //uno a muchos
+    public function histories()
+    {
+        return $this->hasMany(History::class);
+    }
 }

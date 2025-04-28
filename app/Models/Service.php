@@ -23,4 +23,10 @@ class Service extends Model
     {
         return $this->hasMany(SaleDetail::class);
     }
+
+    //uno a muchos
+    public function histories()
+    {
+        return $this->hasMany(History::class);
+    }
 }

@@ -1,56 +1,63 @@
 @php
     $links = [
+        // [  
+        //     'icon' => 'fa-solid fa-gauge',
+        //     'name' => 'Dashboard fa',
+        //     'route' => route('dashboard'),
+        //     'active' => request()->routeIs('dashboard'),
+        // ],
         [  
-            'icon' => 'fa-solid fa-gauge',
-            'name' => 'Dashboard fa',
-            'route' => route('dashboard'),
-            'active' => request()->routeIs('dashboard'),
-        ],
-        [  
-            'icon' => 'fa-solid fa-gauge',
+            'icon' => 'fa-solid fa-cogs',
             'name' => 'Categoria de Servicio',
             'route' => route('admin.service_categories.index'),
             'active' => request()->routeIs('service_categories.*'),
         ],
         [
-            'icon' => 'fa-solid fa-gauge',
+            'icon' => 'fa-solid fa-box',
             'name' => 'Servicio',
             'route' => route('admin.services.index'),
             'active' => request()->routeIs('services.*'),
         ],
         [
-            'icon' => 'fa-solid fa-gauge',
+            'icon' => 'fa-solid fa-users',
             'name' => 'Personas',
             'route' => route('admin.persons.index'),
             'active' => request()->routeIs('persons.*'),
             
         ],
         [
-            'icon' => 'fa-solid fa-gauge',
+            'icon' => 'fa-solid fa-user-injured',
             'name' => 'Pacientes',
             'route' => route('admin.patients.index'),
             'active' => request()->routeIs('patients.*'),
             
         ],
         [
-            'icon' => 'fa-solid fa-gauge',
+            'icon' => 'fa-solid fa-stethoscope',
             'name' => 'Especialidad',
             'route' => route('admin.specialities.index'),
             'active' => request()->routeIs('specialities.*'),
             
         ],
         [
-            'icon' => 'fa-solid fa-gauge',
+            'icon' => 'fa-solid fa-user-md',
             'name' => 'Doctor',
             'route' => route('admin.doctors.index'),
             'active' => request()->routeIs('doctors.*'),
             
         ],
         [
-            'icon' => 'fa-solid fa-gauge',
+            'icon' => 'fa-solid fa-dollar-sign',
             'name' => 'Ventas',
             'route' => route('admin.sales.index'),
             'active' => request()->routeIs('sales.*'),
+            
+        ],
+        [
+            'icon' => 'fa-solid fa-notes-medical',
+            'name' => 'Historial Médico',
+            'route' => route('admin.histories.index'),
+            'active' => request()->routeIs('histories.*'),
             
         ]
 

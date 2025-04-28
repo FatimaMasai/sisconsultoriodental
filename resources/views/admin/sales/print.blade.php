@@ -1,4 +1,3 @@
-<!-- resources/views/admin/sales/print.blade.php -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -71,17 +70,27 @@
 
     <!-- Datos del paciente -->
     <div class="details">
-        <p><strong>Paciente:</strong> {{ $sale->patient->person->name }} {{ $sale->patient->person->last_name_father }} {{ $sale->patient->person->last_name_mother }}</p>
-        
-        <!-- Datos adicionales del paciente -->
-        <p><strong>Edad:</strong> {{ \Carbon\Carbon::parse($sale->patient->person->birth_date)->age }} años</p> <!-- Calcular edad -->
-        <p><strong>Teléfono:</strong> {{ $sale->patient->person->phone }}</p> <!-- Teléfono -->
-        <p><strong>Carnet:</strong> {{ $sale->patient->person->identity_card }}</p> <!-- Carnet -->
 
-        <p><strong>Doctor:</strong> {{ $sale->doctor->person->name }} {{ $sale->doctor->person->last_name_father }} {{ $sale->doctor->person->last_name_mother }}</p>
-        <p><strong>Especialidad:</strong> {{ $sale->doctor->speciality->name }} </p>
-        <p><strong>Fecha de Venta:</strong> {{ $sale->sale_date }} </p>
+        <!-- Datos del paciente -->
+        <p style="margin: 0; padding: 0;"><strong>Paciente:</strong> {{ $sale->patient->person->name }} {{ $sale->patient->person->last_name_father }} {{ $sale->patient->person->last_name_mother }}</p>       
+        <p style="margin: 0; padding: 0;"><strong>Edad:</strong> {{ \Carbon\Carbon::parse($sale->patient->person->birth_date)->age }} años</p> <!-- Calcular edad -->
+        <p style="margin: 0; padding: 0;"><strong>Teléfono:</strong> {{ $sale->patient->person->phone }}</p> <!-- Teléfono -->
+        <p style="margin: 0; padding: 0;"><strong>Carnet:</strong> {{ $sale->patient->person->identity_card }}</p> <!-- Carnet -->
+        
+        <hr>
+    
+        <!-- Datos Doctor -->
+        <p style="margin: 0; padding: 0;"><strong>Doctor:</strong> {{ $sale->doctor->person->name }} {{ $sale->doctor->person->last_name_father }} {{ $sale->doctor->person->last_name_mother }}</p>
+        <p style="margin: 0; padding: 0;"><strong>Especialidad:</strong> {{ $sale->doctor->speciality->name }} </p>
+    
+        <hr>
+    
+        <!-- Datos pagos -->
+        <p style="margin: 0; padding: 0;"><strong>Fecha de Venta:</strong> {{ $sale->sale_date }} </p>
+        <p style="margin: 0; padding: 0;"><strong>Método de pago:</strong> {{ $payment->payment_method }} </p>
+        <p style="margin: 0; padding: 0;"><strong>Forma de pago:</strong> {{ $payment->payment_status }} </p>
     </div>
+    
 
     <!-- Detalle de los servicios -->
     <table class="table">
@@ -109,7 +118,7 @@
 
     <!-- Total de la venta -->
     <div class="total">
-        <p><strong>Importe Total: Bs. {{ $sale->total }}</strong></p> <!-- Total en números -->
+        <p style="margin: 0; padding: 0;"><strong>Importe Total: Bs. {{ $sale->total }}</strong></p> <!-- Total en números -->
         {{-- <p><strong>Son:</strong> {{ $totalLiteral }} 00/100 BOLIVIANOS</p>    --}}
     </div>
 
@@ -118,9 +127,10 @@
 
 
     <!-- Firma -->
+   <br> 
     <div class="footer">
-        <p><strong>Procesado por:</strong> {{ $user->name }}</p> 
-        <p><strong>Fecha de Impresión:</strong> {{ now()->format('d/m/Y H:i:s') }} </p>
+        <p style="margin: 0; padding: 0;"><strong>Procesado por:</strong> {{ $user->name }}</p> 
+        <p style="margin: 0; padding: 0;"><strong>Fecha de Impresión:</strong> {{ now()->format('d/m/Y H:i:s') }} </p>
 
     </div>
 

@@ -11,7 +11,7 @@
         <div class="grid gap-6 mb-6 md:grid-cols-2">
             <div>
                 <x-label class="form-label">Paciente</x-label>
-                <x-select name="patient_id" class="w-full" >
+                <x-select name="patient_id" class="w-full">
                     <option value="">Seleccione un paciente</option>
                     @foreach ($patients as $patient)
                         <option value="{{ $patient->id }}" @selected(old('patient_id') == $patient->id)>
@@ -23,7 +23,7 @@
 
             <div>
                 <x-label class="form-label">Doctor</x-label>
-                <x-select name="doctor_id" class="w-full" >
+                <x-select name="doctor_id" class="w-full">
                     <option value="">Seleccione un doctor</option>
                     @foreach ($doctors as $doctor)
                         <option value="{{ $doctor->id }}" @selected(old('doctor_id') == $doctor->id)>
@@ -48,23 +48,23 @@
                 <tbody id="services">
                     <tr class="bg-white dark:bg-gray-800 service-row">
                         <td class="px-6 py-4">
-                            <x-select name="services[0][service_id]" class="form-control service-select" >
+                            <x-select name="services[0][service_id]" class="form-control service-select">
                                 <option value="">Seleccione un servicio</option>
                                 @foreach ($services as $service)
-                                    <option value="{{ $service->id }}" data-price="{{ $service->price }}" >
+                                    <option value="{{ $service->id }}" data-price="{{ $service->price }}">
                                         {{ $service->name }} - Bs. {{ $service->price }}
                                     </option>
                                 @endforeach
                             </x-select>
                         </td>
-                        <td class="px-6 py-4 ">
-                            <input type="number" name="services[0][quantity]" class="form-control service-quantity rounded-lg"  min="1" value="1">
+                        <td class="px-6 py-4">
+                            <input type="number" name="services[0][quantity]" class="form-control service-quantity rounded-lg" min="1" value="1">
                         </td>
                         <td class="px-6 py-4">
-                            <span class="service-price">Bs. 0</span>
+                            <span class="service-price">Bs. 0.00</span> <!-- Precio inicial como 0.00 -->
                         </td>
                         <td class="px-6 py-4">
-                            <span class="service-subtotal">Bs. 0</span>
+                            <span class="service-subtotal">Bs. 0.00</span> <!-- Subtotal inicial como 0.00 -->
                         </td>
                         <td class="px-6 py-4">
                             <button type="button" class="btn btn-red text-sm remove-service mt-2">Quitar</button>
@@ -76,7 +76,7 @@
                         <th scope="row" class="px-6 py-3 text-lg">Total</th>
                         <td class="px-6 py-3"></td>
                         <td class="px-6 py-3"></td>
-                        <td class="px-6 py-3 text-lg" id="total">Bs. 0</td>
+                        <td class="px-6 py-3 text-lg" id="total">Bs. 0.00</td> <!-- Total inicial como 0.00 -->
                         <td class="px-6 py-3"></td>
                     </tr>
                 </tfoot>
@@ -84,49 +84,26 @@
             <button type="button" id="add-service" class="btn btn-green text-sm mt-4">Añadir otro servicio</button>
         </div>
 
-        {{-- <div class="mb-4">
-            <label>Total a Pagar</label>
-            <input type="text" id="total" class="form-control" value="Bs. 0" readonly>
-        </div> --}}
-
-       
-
         <div class="mb-4">
             <label for="payment_method">Método de Pago</label>
-            <x-select name="payment_method" class="input-label" class="form-control ">
-
-                <option value="efectivo" @selected(old('payment_method') == 'efectivo')> 
-                    Efectivo
-                </option>
-
-                <option value="transferencia" @selected(old('payment_method') == 'transferencia')>
-                    Transferencia
-                </option>
-
-                <option value="qr" @selected(old('payment_method') == 'qr')>
-                    QR
-                </option>
-
+            <x-select name="payment_method" class="input-label" class="form-control">
+                <option value="Efectivo" @selected(old('payment_method') == 'Efectivo')>Efectivo</option>
+                <option value="Transferencia" @selected(old('payment_method') == 'Transferencia')>Transferencia</option>
+                <option value="QR" @selected(old('payment_method') == 'QR')>QR</option>
             </x-select>
-
-           
         </div>
 
         <div class="mb-4">
             <label for="amount">Monto Pagado</label>
-            <input type="number" name="amount" id="amount" class="form-control rounded-lg" placeholder="Ingrese el monto pagado" min="0" value="0" >
+            <input type="number" name="amount" id="amount" class="form-control rounded-lg" placeholder="Ingrese el monto pagado" min="0" value="0">
         </div>
 
         <div class="mb-4">
             <label for="payment_status">Forma de Pago:</label>
-            <x-select name="payment_status" class="form-control" >
-                <option value="contado">Contado</option>
-                {{-- <option value="pendiente">Pendiente</option> --}}
+            <x-select name="payment_status" class="form-control">
+                <option value="Contado">Contado</option>
             </x-select>
         </div>
-
-        
-        {{-- <x-button type="submit" class="btn btn-success">Registrar Venta</x-button> --}}
 
         <div class="flex justify-end">
             <x-button>
@@ -146,11 +123,11 @@
             const rows = document.querySelectorAll('.service-row');
             rows.forEach(row => {
                 const quantity = row.querySelector('.service-quantity').value;
-                const price = row.querySelector('.service-select').selectedOptions[0].getAttribute('data-price');
+                const price = row.querySelector('.service-select').selectedOptions[0].getAttribute('data-price') || 0; // Si el precio es null, usa 0
                 const subtotal = price * quantity;
 
                 // Mostrar el precio en la tabla
-                row.querySelector('.service-price').textContent = 'Bs. ' + price;
+                row.querySelector('.service-price').textContent = 'Bs. ' + parseFloat(price).toFixed(2);
 
                 // Mostrar el subtotal en la tabla
                 row.querySelector('.service-subtotal').textContent = 'Bs. ' + subtotal.toFixed(2);
@@ -166,7 +143,7 @@
             serviceRow.classList.add('service-row', 'bg-white', 'dark:bg-gray-800');
             serviceRow.innerHTML = `
                 <td class="px-6 py-4">
-                    <x-select name="services[${serviceIndex}][service_id]" class="form-control service-select" >
+                    <x-select name="services[${serviceIndex}][service_id]" class="form-control service-select">
                         <option value="">Seleccione un servicio</option>
                         @foreach ($services as $service)
                             <option value="{{ $service->id }}" data-price="{{ $service->price }}">
@@ -179,10 +156,10 @@
                     <input type="number" name="services[${serviceIndex}][quantity]" class="form-control service-quantity rounded-lg"  min="1" value="1">
                 </td>
                 <td class="px-6 py-4">
-                    <span class="service-price">Bs. 0</span>
+                    <span class="service-price">Bs. 0.00</span>
                 </td>
                 <td class="px-6 py-4">
-                    <span class="service-subtotal">Bs. 0</span>
+                    <span class="service-subtotal">Bs. 0.00</span>
                 </td>
                 <td class="px-6 py-4">
                     <button type="button" class="btn btn-red text-sm remove-service mt-2">Quitar</button>
@@ -204,7 +181,7 @@
         document.getElementById('services').addEventListener('click', function(event) {
             if (event.target.classList.contains('remove-service')) {
                 event.target.closest('.service-row').remove();
-                updateTotal(); // Recalcular el total después de Quitar un servicio
+                updateTotal(); // Recalcular el total después de quitar un servicio
             }
         });
 

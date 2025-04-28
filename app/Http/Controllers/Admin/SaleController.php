@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Doctor;
+use App\Models\History;
 use App\Models\Patient;
 use App\Models\Payment;
-use App\Models\Person;
 use App\Models\Sale;
 use App\Models\SaleDetail;
 use App\Models\Service;
@@ -68,7 +68,7 @@ class SaleController extends Controller
             
             'amount' => 'required|numeric|min:0',
             'payment_method' => 'required|string',            
-            'payment_status' => 'required|in:contado',
+            'payment_status' => 'required|in:Contado',
 
         ]);
 
@@ -99,6 +99,17 @@ class SaleController extends Controller
                 'service_id' => $service['service_id'],
             ]);
 
+            //registrar el historial
+            History::create([
+                'description' => 'Venta de servicio',
+                'date' => now(),
+                
+                'patient_id' => $request->patient_id,
+                'doctor_id' => $request->doctor_id,
+                'service_id' => $service['service_id'],
+            ]);
+
+
             // Sumar al total
             $total += $subtotal;
         }
@@ -127,12 +138,7 @@ class SaleController extends Controller
             'icon' => 'success'
         ]);
  
-        return redirect()->route('admin.sales.index');
-
-
-
-
-
+        return redirect()->route('admin.sales.index'); 
     }
 
     /**
@@ -179,7 +185,8 @@ class SaleController extends Controller
     public function print($salePrint){
 
         //obtener la venta con sus detalles
-        $sale = Sale::with('patient', 'doctor', 'saleDetails.service', 'payments')->findOrFail($salePrint);
+        $sale = Sale::with('patient', 'doctor', 'saleDetails.service')->findOrFail($salePrint);
+        $payment = $sale->payments->first(); // Obtener el primer pago asociado a la venta
 
            // Obtener el nombre del usuario logueado
         $user = auth()->user();  // Obtiene el usuario autenticado
@@ -192,7 +199,7 @@ class SaleController extends Controller
         $totalLiteral = ucwords(strtolower( $numberTransformer->toWords($sale->total))) ;
 
         //generar el pdf a partir de la vista print
-        $pdf = PDF::loadView('admin.sales.print', compact('sale','totalLiteral','user'))
+        $pdf = PDF::loadView('admin.sales.print', compact('sale','totalLiteral','user','payment'))
         ->setPaper([0, 0, 300, 600], 'portrait');   // Configurar el tamaño y la orientación del papel;
 
         //descargar pdf

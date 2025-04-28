@@ -30,4 +30,10 @@ class Doctor extends Model
     {
         return $this->belongsTo(Speciality::class);
     }
+
+    //uno a muchos
+    public function histories()
+    {
+        return $this->hasMany(History::class);
+    }
 }
