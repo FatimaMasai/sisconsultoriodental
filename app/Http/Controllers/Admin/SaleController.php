@@ -115,31 +115,31 @@ class SaleController extends Controller
         }
 
         // Verificar si el monto pagado es igual al total
-    if ($request->amount != $total) {
-        return redirect()->back()->withErrors(['amount' => 'El monto pagado no coincide con el total de la venta.']);
-    }
+        if ($request->amount != $total) {
+            return redirect()->back()->withErrors(['amount' => 'El monto pagado no coincide con el total de la venta.']);
+        }
 
-        // Registrar el pago
-        Payment::create([
-            
-            'amount' => $request->amount,
-            'payment_method' => $request->payment_method,
-            'payment_status' => $request->payment_status,
-            'sale_id' => $sale->id,
-        ]);
+            // Registrar el pago
+            Payment::create([
+                
+                'amount' => $request->amount,
+                'payment_method' => $request->payment_method,
+                'payment_status' => $request->payment_status,
+                'sale_id' => $sale->id,
+            ]);
 
 
-        // Actualizar el total de la venta
-        $sale->update(['total' => $total]);
+            // Actualizar el total de la venta
+            $sale->update(['total' => $total]);
 
-        session()->flash('swal', [
-            'title' => 'Venta Realizada con éxito.',
-            'text' => 'Bien hecho!',
-            'icon' => 'success'
-        ]);
- 
-        return redirect()->route('admin.sales.index'); 
-    }
+            session()->flash('swal', [
+                'title' => 'Venta Realizada con éxito.',
+                'text' => 'Bien hecho!',
+                'icon' => 'success'
+            ]);
+    
+            return redirect()->route('admin.sales.index'); 
+        }
 
     /**
      * Display the specified resource.

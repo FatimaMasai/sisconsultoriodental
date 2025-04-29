@@ -43,5 +43,10 @@ class Person extends Model
         return $this->hasOne(Doctor::class);
     }
 
+    public function supplier()
+    {
+        return $this->hasOne(Supplier::class);
+    }
+
 
 }

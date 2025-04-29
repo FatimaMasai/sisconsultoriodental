@@ -3,22 +3,24 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Service;
-use App\Models\ServiceCategory;
+use App\Models\Product;
+use App\Models\ProductCategory;
 use Illuminate\Http\Request;
 
-class ServiceController extends Controller
+class ProductController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $services = Service::where('status',1)
+        $products = Product::where('status', 1)
         ->orderBy('id', 'desc')
         ->paginate(10);
-        
-        return view('admin.services.index', compact('services'));
+
+
+        return view('admin.products.index', compact('products'));
+
     }
 
     /**
@@ -26,10 +28,9 @@ class ServiceController extends Controller
      */
     public function create()
     {
-        
-        $serviceCategories = ServiceCategory::all();
+        $productCategories = ProductCategory::all();
 
-        return view('admin.services.create', compact('serviceCategories'));
+        return view('admin.products.create', compact('productCategories'));
     }
 
     /**
@@ -42,30 +43,26 @@ class ServiceController extends Controller
             'price' => 'required|numeric'
         ]);
 
-         
-
-        Service::create([
+        Product::create([
             'name' => ucwords(strtolower($request->name)),
             'price' => $request->price,
             'status' => 1, // "Alta"
-            'service_category_id' => $request->service_category_id,
+            'product_category_id' => $request->product_category_id,
         ]);
-        
-
         session()->flash('swal', [
-            'title' => 'Servicio Creado',
+            'title' => 'Producto Creado',
             'text' => '¡Bien Hecho!.',
             'icon' => 'success',
         ]);
+        return redirect()->route('admin.products.index');
 
-        return redirect()->route('admin.services.index');
 
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Service $service)
+    public function show(Product $product)
     {
         //
     }
@@ -73,57 +70,55 @@ class ServiceController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Service $service)
+    public function edit(Product $product)
     {
-        $serviceCategories = ServiceCategory::all();
-        return view('admin.services.edit', compact('service', 'serviceCategories'));
+        $productCategories = ProductCategory::all();
+
+        return view('admin.products.edit', compact('product', 'productCategories'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Service $service)
+    public function update(Request $request, Product $product)
     {
         $request->validate([
-            'service_category_id' => 'required|exists:service_categories,id',
-            'name' => 'required',
-            'price' => 'required|numeric'
-        ]);
- 
 
-        $service->update([
+            'name' => 'required',
+            'price' => 'required|numeric',
+
+            'product_category_id' => 'required|exists:product_categories,id'
+
+        ]);
+
+        $product->update([
             'name' => ucwords(strtolower($request->name)),
             'price' => $request->price,
-            'status' => $request->status, // El valor de status se actualiza con el select
-            'service_category_id' => $request->service_category_id,
+            'status' => 1, // "Alta"
+            'product_category_id' => $request->product_category_id,
         ]);
-
         session()->flash('swal', [
-            'title' => 'Servicio Actualizado',
+            'title' => 'Producto Actualizado',
             'text' => '¡Bien Hecho!.',
             'icon' => 'success',
         ]);
-
-        return redirect()->route('admin.services.edit', $service);
+        return redirect()->route('admin.products.index');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Service $service)
+    public function destroy(Product $product)
     {
+        $product->update([
+            'status' => 0, // "Baja"
+        ]);
 
-        // Cambiar el estado a 0 (baja) en lugar de eliminar el registro
-        $service->update(['status' => 0]);
-
-        //$service->delete();
-        
         session()->flash('swal', [
-            'title' => 'Servicio eliminado',
+            'title' => 'Producto Eliminado',
             'text' => '¡Bien Hecho!.',
             'icon' => 'success',
         ]);
-        return redirect()->route('admin.services.index'); 
-    
+        return redirect()->route('admin.products.index');
     }
 }

@@ -1,11 +1,11 @@
 @php
     $links = [
-        // [  
-        //     'icon' => 'fa-solid fa-gauge',
-        //     'name' => 'Dashboard fa',
-        //     'route' => route('dashboard'),
-        //     'active' => request()->routeIs('dashboard'),
-        // ],
+        [  
+            'icon' => 'fa-solid fa-gauge',
+            'name' => 'Dashboard',
+            'route' => route('admin.dashboard'),
+            'active' => request()->routeIs('dashboard'),
+        ],
         [  
             'icon' => 'fa-solid fa-cogs',
             'name' => 'Categoria de Servicio',
@@ -58,6 +58,34 @@
             'name' => 'Historial Médico',
             'route' => route('admin.histories.index'),
             'active' => request()->routeIs('histories.*'),
+            
+        ],
+        [
+            'icon' => 'fa-solid fa-cogs',
+            'name' => 'Categoria de Producto',
+            'route' => route('admin.product_categories.index'),
+            'active' => request()->routeIs('product_categories.*'),
+            
+        ],
+        [
+            'icon' => 'fa-solid fa-cube',
+            'name' => 'Producto',
+            'route' => route('admin.products.index'),
+            'active' => request()->routeIs('products.*'),
+            
+        ],
+        [
+            'icon' => 'fa-solid fa-truck',
+            'name' => 'Proveedor',
+            'route' => route('admin.suppliers.index'),
+            'active' => request()->routeIs('suppliers.*'),
+            
+        ],
+        [
+            'icon' => 'fa-solid fa-shopping-cart',
+            'name' => 'Compras',
+            'route' => route('admin.purchases.index'),
+            'active' => request()->routeIs('purchases.*'),
             
         ]
 

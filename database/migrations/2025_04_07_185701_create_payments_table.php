@@ -19,7 +19,14 @@ return new class extends Migration
             $table->string('payment_method'); // Métodos de pago
             $table->string('payment_status'); // Estado del pago
 
-            $table->foreignId('sale_id')->constrained()->onDelete('cascade'); // Relación con la tabla sales
+            // $table->foreignId('sale_id')->constrained()->onDelete('cascade'); // Relación con la tabla ventas
+            // $table->foreignId('purchase_id')->constrained()->onDelete('cascade'); // Relación con la tabla compras
+
+            // Relación con la tabla ventas
+            $table->foreignId('sale_id')->nullable(); 
+
+            // Relación con la tabla compras
+            $table->foreignId('purchase_id')->nullable();
 
             $table->timestamps();
         });

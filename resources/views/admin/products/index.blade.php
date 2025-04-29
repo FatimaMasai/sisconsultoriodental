@@ -2,72 +2,87 @@
     <div class="flex justify-between items-center mb-6">
         <div class="">
             <x-label class="text-black text-xl font-semibold">
-                Listado de Ventas
+                Listado de Producto
             </x-label>
         </div>
         <div class="">
-            <a href="{{route('admin.sales.create')}}" class="btn btn-green">
+            <a href="{{route('admin.products.create')}}" class="btn btn-green">
                 Nuevo
             </a>
+            
         </div>
     </div> 
 
     
 
-    @if ($sales->count())
+    @if ($products->count())
 
         <div class="relative overflow-x-auto">
             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
-                        <th scope="col" class="px-1 py-1">
+                        <th scope="col" class="px-3 py-2">
                             ID
                         </th>
+                        
                         <th scope="col" class="px-3 py-2">
-                            Paciente
+                            Categoria
+                        </th> 
+
+                        <th scope="col" class="px-3 py-2">
+                            Servicio
+                        </th> 
+
+                        <th scope="col" class="px-3 py-2">
+                            Precio
                         </th> 
                         <th scope="col" class="px-3 py-2">
-                            Doctor
-                        </th>  
-                        <th scope="col" class="px-3 py-2">
-                            Fecha
+                            Estado
                         </th> 
-                        <th scope="col" class="px-3 py-2">
-                            Pago
-                        </th>  
                         <th scope="col" class="px-3 py-2">
                             Acciones
                         </th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($sales as $sale) 
+                    @foreach ($products as $product) 
 
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
-                            <th scope="row" class="px-1 py-1 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {{$sale->id}}
+                            <th scope="row" class="px-3 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                {{$product->id}}
                             </th>
+                            
                             <td class="px-3 py-2">
-                                {{$sale->patient->person->name}} {{$sale->patient->person->last_name_father}} {{$sale->patient->person->last_name_mother}}  
+                                {{$product->productCategory->name}}
                             </td>  
                             <td class="px-3 py-2">
-                                {{ $sale->doctor->person->name }}  {{$sale->doctor->person->last_name_father}} {{$sale->doctor->person->last_name_mother}} 
-                            </td>  
-
-                            <td class="px-3 py-2">
-                                {{ $sale->sale_date }} 
+                                {{$product->name}}
                             </td> 
                             <td class="px-3 py-2">
-                                Bs. {{ $sale->total }} 
+                                {{$product->price}} Bs.
                             </td> 
-                             
- 
+                            <td class="px-3 py-2">
+                                <span class="{{ $product->status ? 'text-green-500' : 'text-red-500' }}">
+                                    {{ $product->status ? 'Alta' : 'Baja' }}
+                                </span>
+                            </td> 
 
                             <td class="px-3 py-2" >
-                                <div class="flex space-x-2"> 
-                                    <a href="{{ route('admin.sales.print', $sale->id) }}" class="btn btn-orange text-xs" target="_blank">PDF</a>
+                                <div class="flex space-x-2">
 
-                                    
+                                
+                                    <a href="{{route('admin.products.edit', $product)}}" class="btn btn-blue text-xs">Editar</a>
+                                    <form class="delete-form" action="{{route('admin.products.destroy', $product)}}" method="POST">
+
+                                        @csrf
+                                        @method('DELETE')
+        
+                                        <button class="btn btn-red text-xs">
+                                            Eliminar
+                                        </button>
+
+                                    </form>
+
                                 </div>
 
                             </td>
@@ -78,7 +93,7 @@
             </table>
 
             <div class="mt-4">
-                {{$sales->links()}}
+                {{$products->links()}}
             </div>
 
         </div>
@@ -92,7 +107,7 @@
 
             <span class="sr-only">Info</span>
             <div>
-                <span class="font-medium">Info alert!</span> Todavia no hay ventas registrada.
+                <span class="font-medium">Info alert!</span> Todavia no hay producto registrado.
             </div>
         </div>
 

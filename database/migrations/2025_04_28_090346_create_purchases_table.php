@@ -11,12 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('specialities', function (Blueprint $table) {
+        Schema::create('purchases', function (Blueprint $table) {
             $table->id();
 
-            $table->string('name')->unique();
-            $table->boolean('status')->default(true);
-             
+            $table->date('date'); 
+
+            $table->decimal('total', 10, 2); // Total de la venta
+            $table->string('status')->default('true');
+           
+            $table->foreignId('supplier_id')->constrained()->onDelete('cascade');
+
             $table->timestamps();
         });
     }
@@ -26,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('specialities');
+        Schema::dropIfExists('purchases');
     }
 };

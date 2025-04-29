@@ -2,11 +2,11 @@
     <div class="flex justify-between items-center mb-6">
         <div class="">
             <x-label class="text-black text-xl font-semibold">
-                Listado de Ventas
+                Listado de Compras
             </x-label>
         </div>
         <div class="">
-            <a href="{{route('admin.sales.create')}}" class="btn btn-green">
+            <a href="{{route('admin.purchases.create')}}" class="btn btn-green">
                 Nuevo
             </a>
         </div>
@@ -14,7 +14,7 @@
 
     
 
-    @if ($sales->count())
+    @if ($purchases->count())
 
         <div class="relative overflow-x-auto">
             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
@@ -24,10 +24,7 @@
                             ID
                         </th>
                         <th scope="col" class="px-3 py-2">
-                            Paciente
-                        </th> 
-                        <th scope="col" class="px-3 py-2">
-                            Doctor
+                            Proveedor
                         </th>  
                         <th scope="col" class="px-3 py-2">
                             Fecha
@@ -41,33 +38,26 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($sales as $sale) 
+                    @foreach ($purchases as $sale) 
 
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
                             <th scope="row" class="px-1 py-1 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                 {{$sale->id}}
                             </th>
                             <td class="px-3 py-2">
-                                {{$sale->patient->person->name}} {{$sale->patient->person->last_name_father}} {{$sale->patient->person->last_name_mother}}  
-                            </td>  
-                            <td class="px-3 py-2">
-                                {{ $sale->doctor->person->name }}  {{$sale->doctor->person->last_name_father}} {{$sale->doctor->person->last_name_mother}} 
-                            </td>  
+                                {{$sale->supplier->person->name}} {{$sale->supplier->person->last_name_father}} {{$sale->supplier->person->last_name_mother}}  
+                            </td>   
 
                             <td class="px-3 py-2">
-                                {{ $sale->sale_date }} 
+                                {{ $sale->date }} 
                             </td> 
                             <td class="px-3 py-2">
                                 Bs. {{ $sale->total }} 
-                            </td> 
-                             
- 
+                            </td>  
 
                             <td class="px-3 py-2" >
                                 <div class="flex space-x-2"> 
-                                    <a href="{{ route('admin.sales.print', $sale->id) }}" class="btn btn-orange text-xs" target="_blank">PDF</a>
-
-                                    
+                                     <a href="{{ route('admin.sales.print', $sale->id) }}" class="btn btn-orange text-xs" target="_blank">PDF</a> 
                                 </div>
 
                             </td>
@@ -78,7 +68,7 @@
             </table>
 
             <div class="mt-4">
-                {{$sales->links()}}
+                {{$purchases->links()}}
             </div>
 
         </div>
@@ -92,7 +82,7 @@
 
             <span class="sr-only">Info</span>
             <div>
-                <span class="font-medium">Info alert!</span> Todavia no hay ventas registrada.
+                <span class="font-medium">Info alert!</span> Todavia no hay compras registrada.
             </div>
         </div>
 
@@ -128,7 +118,7 @@
     
     </script> 
     
-@endpush
+    @endpush
 
  
 </x-admin-layout>

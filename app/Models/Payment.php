@@ -10,10 +10,17 @@ class Payment extends Model
         'amount', 
         'payment_method', 
         'payment_status',
+        
         'sale_id',
+        'purchase_id',
     ];
     public function sale()
     {
         return $this->belongsTo(Sale::class);
+    }
+
+    public function purchase()
+    {
+        return $this->belongsTo(Purchase::class);
     }
 }

@@ -1,11 +1,10 @@
 <x-admin-layout> 
     <x-label class="text-black text-xl font-semibold mb-4">
-        Editar Especialidad
+        Editar Categoria Producto
     </x-label>
-    <form action="{{route('admin.specialities.update', $speciality)}}" method="POST" >
+    <form action="{{route('admin.product_categories.update', $productCategory)}}" method="POST" >
         @csrf
         @method('PUT')
-
         <div class="mb-4">
 
             <x-validation-errors class="mb-4" /> 
@@ -14,7 +13,7 @@
                 Nombre
             </x-label>
 
-            <x-input name="name" value="{{old('name', $speciality->name)}}" class="w-full" placeholder="Ingrese nombre de la especialidad">
+            <x-input name="name" value="{{old('name', $productCategory->name)}}" class="w-full" placeholder="Ingrese nombre de la categoria">
 
             </x-input>
         </div>
