@@ -6,9 +6,11 @@
             </x-label>
         </div>
         <div class="">
-            <a href="{{route('admin.sales.create')}}" class="btn btn-green">
-                Nuevo
-            </a>
+            @can('admin.sales.create')
+                <a href="{{route('admin.sales.create')}}" class="btn btn-green">
+                    Nuevo
+                </a>
+            @endcan
         </div>
     </div> 
 
@@ -65,7 +67,9 @@
 
                             <td class="px-3 py-2" >
                                 <div class="flex space-x-2"> 
-                                    <a href="{{ route('admin.sales.print', $sale->id) }}" class="btn btn-orange text-xs" target="_blank">PDF</a>
+                                    @can('admin.sales.print')
+                                        <a href="{{ route('admin.sales.print', $sale->id) }}" class="btn btn-orange text-xs" target="_blank">PDF</a>
+                                    @endcan
 
                                     
                                 </div>

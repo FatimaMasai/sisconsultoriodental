@@ -6,11 +6,9 @@
             </x-label>
         </div>
         <div class="">
-            @can('admin.specialities.create')
             <a href="{{route('admin.specialities.create')}}" class="btn btn-green">
                 Nuevo
             </a>
-            @endcan
         </div>
     </div> 
 
@@ -48,23 +46,17 @@
                                 <div class="flex space-x-2">
 
                                 
-                                    @can('admin.specialities.edit')
                                     <a href="{{route('admin.specialities.edit', $speciality)}}" class="btn btn-blue text-xs">Editar</a>
-                                    @endcan
+                                    <form class="delete-form" action="{{route('admin.specialities.destroy', $speciality)}}" method="POST">
 
-                                    
-                                    @can('admin.specialities.destroy')
-                                        <form class="delete-form" action="{{route('admin.specialities.destroy', $speciality)}}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+        
+                                        <button class="btn btn-red text-xs">
+                                            Eliminar
+                                        </button>
 
-                                            @csrf
-                                            @method('DELETE')
-            
-                                            <button class="btn btn-red text-xs">
-                                                Eliminar
-                                            </button>
-
-                                        </form>
-                                    @endcan
+                                    </form>
 
                                 </div>
 

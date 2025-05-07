@@ -160,4 +160,9 @@ class PersonController extends Controller
         ]);
         return redirect()->route('admin.persons.index'); 
     }
+    
+    public function pdf()
+    {
+         
+    }
 } 

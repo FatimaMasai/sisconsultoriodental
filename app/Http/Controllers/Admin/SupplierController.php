@@ -132,4 +132,8 @@ class SupplierController extends Controller
 
         return redirect()->route('admin.suppliers.index');
     }
+    public function pdf()
+    {
+         
+    }
 }

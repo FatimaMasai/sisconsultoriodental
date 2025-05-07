@@ -55,9 +55,13 @@
 
                             <td class="px-3 py-2" >
                                 <div class="flex space-x-2"> 
-                                    <a href="{{ route('admin.histories.show', $history->id) }}" class="btn btn-blue text-xs">Ver Historial</a>
-                                    <a href="{{ route('admin.histories.pdf', $history->id) }}" class="btn btn-orange text-xs" target="_blank">PDF</a>
+                                    @can('admin.histories.show')
+                                        <a href="{{ route('admin.histories.show', $history->id) }}" class="btn btn-blue text-xs">Ver Historial</a>
+                                    @endcan
 
+                                    @can('admin.histories.pdf')
+                                        <a href="{{ route('admin.histories.pdf', $history->id) }}" class="btn btn-orange text-xs" target="_blank">PDF</a>
+                                    @endcan
                                     
                                 </div>
 

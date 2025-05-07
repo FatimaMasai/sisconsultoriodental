@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Service;
 use App\Models\ServiceCategory;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf as PDF; 
 
 class ServiceController extends Controller
 {
@@ -13,12 +14,8 @@ class ServiceController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-    {
-        $services = Service::where('status',1)
-        ->orderBy('id', 'desc')
-        ->paginate(10);
-        
-        return view('admin.services.index', compact('services'));
+    { 
+        return view('admin.services.index');
     }
 
     /**
@@ -67,8 +64,11 @@ class ServiceController extends Controller
      */
     public function show(Service $service)
     {
-        //
+        
     }
+
+     
+
 
     /**
      * Show the form for editing the specified resource.
@@ -126,4 +126,19 @@ class ServiceController extends Controller
         return redirect()->route('admin.services.index'); 
     
     }
+
+    public function pdf()
+    {
+        // Obtener las categorías de servicio activas
+        $services = Service::where('status',1)->orderBy('id', 'desc')->get();
+        
+        // Generar el PDF a partir de la vista 'service.pdf
+        $pdf = PDF::loadView('admin.services.pdf', compact('services')); 
+
+        // Mostrar el PDF en el navegador
+        return $pdf->stream('admin.services.pdf');
+    }
+
+
+
 }

@@ -123,4 +123,8 @@ class SpecialityController extends Controller
         return redirect()->route('admin.specialities.index');
 
     }
+    public function pdf()
+    {
+         
+    }
 }

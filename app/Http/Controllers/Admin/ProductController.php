@@ -121,4 +121,11 @@ class ProductController extends Controller
         ]);
         return redirect()->route('admin.products.index');
     }
+
+    public function pdf()
+    {
+         
+    }
+
+
 }

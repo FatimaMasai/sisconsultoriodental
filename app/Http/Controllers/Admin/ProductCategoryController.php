@@ -118,8 +118,11 @@ class ProductCategoryController extends Controller
             'icon' => 'success',
         ]);
         return redirect()->route('admin.product_categories.index', $productCategory);
-
-
-
     }
+
+    public function pdf()
+    {
+         
+    }
+    
 }

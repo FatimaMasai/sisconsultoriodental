@@ -6,13 +6,14 @@
             </x-label>
         </div>
         <div class="">
-            <a href="{{route('admin.product_categories.create')}}" class="btn btn-green">
-                Nuevo
-            </a>
+            @can('admin.product_categories.create')
+                <a href="{{route('admin.product_categories.create')}}" class="btn btn-green">
+                    Nuevo
+                </a>
+            @endcan
         </div>
     </div> 
-
-    
+ 
 
     @if ($product_categories->count())
 
@@ -45,18 +46,22 @@
                             <td class="px-3 py-2" >
                                 <div class="flex space-x-2">
 
-                                
-                                    <a href="{{route('admin.product_categories.edit', $product_categorie)}}" class="btn btn-blue text-xs">Editar</a>
-                                    <form class="delete-form" action="{{route('admin.product_categories.destroy', $product_categorie)}}" method="POST">
+                                    @can('admin.product_categories.edit')
+                                        <a href="{{route('admin.product_categories.edit', $product_categorie)}}" class="btn btn-blue text-xs">Editar</a>
+                                    @endcan
+                                    
+                                    @can('admin.product_categories.destroy')
+                                        <form class="delete-form" action="{{route('admin.product_categories.destroy', $product_categorie)}}" method="POST">
 
-                                        @csrf
-                                        @method('DELETE')
-        
-                                        <button class="btn btn-red text-xs">
-                                            Eliminar
-                                        </button>
+                                            @csrf
+                                            @method('DELETE')
+            
+                                            <button class="btn btn-red text-xs">
+                                                Eliminar
+                                            </button>
 
-                                    </form>
+                                        </form>
+                                    @endcan
                                     {{-- <a href="{{ route('admin.product_categories.pdf', $product_categorie->id) }}" class="btn btn-orange text-xs" target="_blank">PDF</a> --}}
 
 

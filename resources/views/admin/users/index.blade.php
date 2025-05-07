@@ -2,27 +2,27 @@
     <div class="flex justify-between items-center mb-6">
         <div class="">
             <x-label class="text-black text-xl font-semibold">
-                Listado de Servicio
+                Listado de Usuarios
             </x-label>
         </div>
-        <div class=""> 
-            @can('admin.services.pdf')
-                <a href="{{ route('admin.services.pdf') }}" class="btn btn-orange" target="_blank">PDF</a>
-            @endcan
-
-            @can('admin.services.create')
-                <a href="{{route('admin.services.create')}}" class="btn btn-green">Nuevo</a>
+        <div class="">
+            @can('admin.users.pdf')
+            <a href="{{ route('admin.users.pdf') }}" class="btn btn-orange" target="_blank">PDF</a>
             @endcan
             
-        </div>
+            @can('admin.users.create')
+            <a href="{{route('admin.users.create')}}" class="btn btn-green">
+                Nuevo
+            </a>
+            @endcan
+        </div> 
     </div> 
 
-    @livewire('admin.service-search') 
- 
      
-    
 
-    
+    @livewire('admin.user-search') 
+ 
+
 
 
     {{-- agregando el script de la libreria de sweetalert2 PASO 3--}}

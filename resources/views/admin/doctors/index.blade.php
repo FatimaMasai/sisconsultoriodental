@@ -6,9 +6,11 @@
             </x-label>
         </div>
         <div class="">
-            <a href="{{route('admin.doctors.create')}}" class="btn btn-green">
-                Nuevo
-            </a>
+            @can('admin.doctors.create')
+                <a href="{{route('admin.doctors.create')}}" class="btn btn-green">
+                    Nuevo
+                </a>
+            @endcan
         </div>
     </div> 
 
@@ -73,18 +75,22 @@
                                 <div class="flex space-x-2">
 
                                 
-                                    <a href="{{route('admin.doctors.edit', $doctor)}}" class="btn btn-blue text-xs">Editar</a>
-                                    <form class="delete-form" action="{{route('admin.doctors.destroy', $doctor)}}" method="POST">
+                                    @can('admin.doctors.edit')
+                                        <a href="{{route('admin.doctors.edit', $doctor)}}" class="btn btn-blue text-xs">Editar</a>
+                                    @endcan
 
-                                        @csrf
-                                        @method('DELETE')
-        
-                                        <button class="btn btn-red text-xs">
-                                            Eliminar
-                                        </button>
+                                    @can('admin.doctors.destroy')
+                                        <form class="delete-form" action="{{route('admin.doctors.destroy', $doctor)}}" method="POST">
 
-                                    </form>
+                                            @csrf
+                                            @method('DELETE')
+            
+                                            <button class="btn btn-red text-xs">
+                                                Eliminar
+                                            </button>
 
+                                        </form>
+                                    @endcan
                                 </div>
 
                             </td>

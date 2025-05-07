@@ -120,4 +120,9 @@ class DoctorController extends Controller
         return redirect()->route('admin.doctors.index');
 
     }
+
+    public function pdf()
+    {
+         
+    }
 }

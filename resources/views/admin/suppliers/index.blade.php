@@ -6,9 +6,11 @@
             </x-label>
         </div>
         <div class="">
+            @can('admin.suppliers.create')
             <a href="{{route('admin.suppliers.create')}}" class="btn btn-green">
                 Nuevo
             </a>
+            @endcan
         </div>
     </div> 
 
@@ -60,7 +62,11 @@
                                 <div class="flex space-x-2">
 
                                 
+                                    @can('admin.suppliers.edit')
                                     <a href="{{route('admin.suppliers.edit', $supplier)}}" class="btn btn-blue text-xs">Editar</a>
+                                    @endcan
+                                    
+                                    @can('admin.suppliers.destroy')
                                     <form class="delete-form" action="{{route('admin.suppliers.destroy', $supplier)}}" method="POST">
 
                                         @csrf
@@ -71,6 +77,7 @@
                                         </button>
 
                                     </form>
+                                    @endcan
 
                                 </div>
 

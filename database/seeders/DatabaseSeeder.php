@@ -15,14 +15,13 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-            'password' => bcrypt('password'),
-        ]);
+        
+        
 
 
         $this->call([
+            RoleSeeder::class,
+            UserSeeder::class,
             ServiceCategorySeeder::class,
             ServiceSeeder::class, 
 
@@ -34,6 +33,7 @@ class DatabaseSeeder extends Seeder
 
             ProductCategorySeeder::class,
             ProductSeeder::class,
+            
 
         ]);
 

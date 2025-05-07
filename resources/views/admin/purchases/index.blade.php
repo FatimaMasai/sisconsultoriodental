@@ -6,9 +6,11 @@
             </x-label>
         </div>
         <div class="">
-            <a href="{{route('admin.purchases.create')}}" class="btn btn-green">
-                Nuevo
-            </a>
+            @can('admin.purchases.create')
+                <a href="{{route('admin.purchases.create')}}" class="btn btn-green">
+                    Nuevo
+                </a>
+            @endcan
         </div>
     </div> 
 

@@ -4,25 +4,36 @@
             'icon' => 'fa-solid fa-gauge',
             'name' => 'Dashboard',
             'route' => route('admin.dashboard'),
-            'active' => request()->routeIs('dashboard'),
+            'active' => request()->routeIs('panel.*'),
+            'can' => 'admin.dashboard',
+        ],
+        [  
+            'icon' => 'fa-solid fa-users',
+            'name' => 'Usuarios',
+            'route' => route('admin.users.index'),
+            'active' => request()->routeIs('users.*'),
+            'can' => 'admin.users.index',
         ],
         [  
             'icon' => 'fa-solid fa-cogs',
             'name' => 'Categoria de Servicio',
             'route' => route('admin.service_categories.index'),
             'active' => request()->routeIs('service_categories.*'),
+            'can' => 'admin.service_categories.index',
         ],
         [
             'icon' => 'fa-solid fa-box',
             'name' => 'Servicio',
             'route' => route('admin.services.index'),
             'active' => request()->routeIs('services.*'),
+            'can' => 'admin.services.index',
         ],
         [
             'icon' => 'fa-solid fa-users',
             'name' => 'Personas',
             'route' => route('admin.persons.index'),
             'active' => request()->routeIs('persons.*'),
+            'can' => 'admin.persons.index',
             
         ],
         [
@@ -30,6 +41,7 @@
             'name' => 'Pacientes',
             'route' => route('admin.patients.index'),
             'active' => request()->routeIs('patients.*'),
+            'can' => 'admin.patients.index',
             
         ],
         [
@@ -37,6 +49,7 @@
             'name' => 'Especialidad',
             'route' => route('admin.specialities.index'),
             'active' => request()->routeIs('specialities.*'),
+            'can' => 'admin.specialities.index',
             
         ],
         [
@@ -44,6 +57,7 @@
             'name' => 'Doctor',
             'route' => route('admin.doctors.index'),
             'active' => request()->routeIs('doctors.*'),
+            'can' => 'admin.doctors.index',
             
         ],
         [
@@ -51,6 +65,7 @@
             'name' => 'Ventas',
             'route' => route('admin.sales.index'),
             'active' => request()->routeIs('sales.*'),
+            'can' => 'admin.sales.index',
             
         ],
         [
@@ -58,6 +73,7 @@
             'name' => 'Historial Médico',
             'route' => route('admin.histories.index'),
             'active' => request()->routeIs('histories.*'),
+            'can' => 'admin.histories.index',
             
         ],
         [
@@ -65,6 +81,7 @@
             'name' => 'Categoria de Producto',
             'route' => route('admin.product_categories.index'),
             'active' => request()->routeIs('product_categories.*'),
+            'can' => 'admin.product_categories.index',
             
         ],
         [
@@ -72,6 +89,7 @@
             'name' => 'Producto',
             'route' => route('admin.products.index'),
             'active' => request()->routeIs('products.*'),
+            'can' => 'admin.products.index',
             
         ],
         [
@@ -79,6 +97,7 @@
             'name' => 'Proveedor',
             'route' => route('admin.suppliers.index'),
             'active' => request()->routeIs('suppliers.*'),
+            'can' => 'admin.suppliers.index',
             
         ],
         [
@@ -86,6 +105,7 @@
             'name' => 'Compras',
             'route' => route('admin.purchases.index'),
             'active' => request()->routeIs('purchases.*'),
+            'can' => 'admin.purchases.index',
             
         ]
 
@@ -108,19 +128,21 @@
     
         <ul class="space-y-2 font-medium">
             @foreach ($links as $link) 
-                <li>
-                    <a href="{{ $link['route'] }}" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group 
-                    {{ $link['active'] ? 'bg-gray-100 dark:bg-gray-700' : '' }}">
-                      
-                        <span class="inline-flex w-6 h-6 justify-center items-center">
-                            <i class="{{ $link['icon'] }} text-gray-500"> </i>
-                        </span>
+                @can($link['can'])
+                    <li>
+                        <a href="{{ $link['route'] }}" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group 
+                        {{ $link['active'] ? 'bg-gray-100 dark:bg-gray-700' : '' }}">
+                        
+                            <span class="inline-flex w-6 h-6 justify-center items-center">
+                                <i class="{{ $link['icon'] }} text-gray-500"> </i>
+                            </span>
 
-                        <span class="ml-2">
-                            {{ $link['name'] }}
-                        </span>
-                    </a>
-                </li>
+                            <span class="ml-2">
+                                {{ $link['name'] }}
+                            </span>
+                        </a>
+                    </li>
+                @endcan
             @endforeach
 
         </ul>

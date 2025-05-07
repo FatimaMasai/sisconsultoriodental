@@ -6,9 +6,11 @@
             </x-label>
         </div>
         <div class="">
-            <a href="{{route('admin.patients.create')}}" class="btn btn-green">
-                Nuevo
-            </a>
+            @can('admin.patients.create')
+                <a href="{{route('admin.patients.create')}}" class="btn btn-green">
+                    Nuevo
+                </a>
+            @endcan
         </div>
     </div> 
 
@@ -77,19 +79,23 @@
                             <td class="px-3 py-2" >
                                 <div class="flex space-x-2">
 
+                                    @can('admin.patients.edit' )
+                                        <a href="{{route('admin.patients.edit', $patient)}}" class="btn btn-blue text-xs">Editar</a>
+                                    @endcan
                                 
-                                    <a href="{{route('admin.patients.edit', $patient)}}" class="btn btn-blue text-xs">Editar</a>
-                                    <form class="delete-form" action="{{route('admin.patients.destroy', $patient)}}" method="POST">
+                                    @can('admin.patients.destroy' )
+                                        <form class="delete-form" action="{{route('admin.patients.destroy', $patient)}}" method="POST">
 
-                                        @csrf
-                                        @method('DELETE')
-        
-                                        <button class="btn btn-red text-xs">
-                                            Eliminar
-                                        </button>
+                                            @csrf
+                                            @method('DELETE')
+            
+                                            <button class="btn btn-red text-xs">
+                                                Eliminar
+                                            </button>
 
-                                    </form>
-
+                                        </form>
+                                    @endcan
+                                    
                                 </div>
 
                             </td>

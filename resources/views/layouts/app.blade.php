@@ -16,7 +16,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         <!-- Styles -->
-        @livewireStyles
+       @livewireStyles
     </head>
     <body class="font-sans antialiased">
         <x-banner />
@@ -35,12 +35,12 @@
 
             <!-- Page Content -->
             <main>
-                {{ $slot }}
+                {{ $slot }} 
             </main>
         </div>
 
         @stack('modals')
-
+ 
         @livewireScripts
 
 

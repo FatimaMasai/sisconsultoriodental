@@ -145,4 +145,9 @@ class PurchaseController extends Controller
     {
         //
     }
+
+    public function pdf()
+    {
+         
+    }
 }
