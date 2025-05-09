@@ -10,12 +10,22 @@ use Illuminate\Http\Request;
 
 use Carbon\Carbon;
 
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
+
 
 class DoctorController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+
+    public function __construct()
+    {
+        // $this->middleware('auth');
+        $this->middleware('can:admin.doctors.index')->only('index');
+        $this->middleware('can:admin.doctors.create')->only('create', 'store');
+        $this->middleware('can:admin.doctors.edit')->only('edit', 'update');
+        $this->middleware('can:admin.doctors.pdf')->only('pdf');
+    }
+
+
     public function index()
     {
         $doctors = Doctor::where('status',1)->orderBy('id', 'desc')->paginate(10);

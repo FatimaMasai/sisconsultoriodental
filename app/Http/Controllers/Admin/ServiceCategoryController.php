@@ -9,9 +9,17 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class ServiceCategoryController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    
+    public function __construct()
+    {
+        $this->middleware('can:admin.service_categories.index')->only('index');
+        $this->middleware('can:admin.service_categories.create')->only('create', 'store');
+        $this->middleware('can:admin.service_categories.edit')->only('edit', 'update');
+        $this->middleware('can:admin.service_categories.destroy')->only('destroy');
+        $this->middleware('can:admin.service_categories.pdf')->only('pdf');
+    }
+
+
     public function index()
     {
         $service_categories = ServiceCategory::where('status',1)->orderBy('id', 'desc')->paginate(10);

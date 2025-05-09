@@ -8,9 +8,17 @@ use Illuminate\Http\Request;
 
 class SpecialityController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+   
+
+    public function __construct()
+    {
+        $this->middleware('can:admin.specialities.index')->only('index');
+        $this->middleware('can:admin.specialities.create')->only('create', 'store');
+        $this->middleware('can:admin.specialities.edit')->only('edit', 'update');
+        $this->middleware('can:admin.specialities.destroy')->only('destroy');
+        $this->middleware('can:admin.specialities.pdf')->only('pdf');
+    }
+
     public function index()
     {
         $specialities = Speciality::where('status',1)->orderBy('id', 'desc')->paginate(10);

@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\PersonController;
 use App\Http\Controllers\Admin\ProductCategoryController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\PurchaseController;
+use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SaleController;
 use App\Http\Controllers\Admin\ServiceCategoryController;
 use App\Http\Controllers\Admin\ServiceController;
@@ -28,6 +29,8 @@ Route::get('/', function()
 //rutas de administrador
 Route::get('dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
 Route::resource('users', UserController::class)->except(['show']); 
+Route::resource('roles', RoleController::class);
+
 
 //ventas
 Route::resource('service_categories', ServiceCategoryController::class);

@@ -11,6 +11,15 @@ class ProductCategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    public function __construct()
+    {
+        $this->middleware('can:admin.product_categories.index')->only('index');
+        $this->middleware('can:admin.product_categories.create')->only('create', 'store');
+        $this->middleware('can:admin.product_categories.edit')->only('edit', 'update');
+        $this->middleware('can:admin.product_categories.destroy')->only('destroy');
+        $this->middleware('can:admin.product_categories.pdf')->only('pdf');
+    } 
     public function index()
     {
         $product_categories = ProductCategory::where('status', 1)

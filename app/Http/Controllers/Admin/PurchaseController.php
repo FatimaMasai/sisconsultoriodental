@@ -12,9 +12,17 @@ use Illuminate\Http\Request;
 
 class PurchaseController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    
+    public function __construct()
+    {
+        $this->middleware('can:admin.purchases.index')->only('index');
+        $this->middleware('can:admin.purchases.create')->only('create', 'store');
+        $this->middleware('can:admin.purchases.edit')->only('edit', 'update');
+        $this->middleware('can:admin.purchases.destroy')->only('destroy');
+        $this->middleware('can:admin.purchases.pdf')->only('pdf');
+    }
+
+
     public function index()
     {
         $purchases = Purchase::with('supplier')->orderBy('id', 'desc')->paginate(10);

@@ -11,9 +11,18 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    //proteccion de rutas a través de un constructor con middleware 
+
+  
+    public function __construct()
+    {
+        // $this->middleware('auth');
+        $this->middleware('can:admin.users.index')->only('index');
+        $this->middleware('can:admin.users.edit')->only('edit', 'update');
+        $this->middleware('can:admin.users.pdf')->only('pdf');
+    }
+
+
     public function index()
     {
         return view('admin.users.index');

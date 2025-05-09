@@ -15,6 +15,13 @@
             'can' => 'admin.users.index',
         ],
         [  
+            'icon' => 'fa-solid fa-user-shield',
+            'name' => 'Lista de Roles',
+            'route' => route('admin.roles.index'),
+            'active' => request()->routeIs('roles.*'),
+            'can' => 'admin.roles.index',
+        ],
+        [  
             'icon' => 'fa-solid fa-cogs',
             'name' => 'Categoria de Servicio',
             'route' => route('admin.service_categories.index'),

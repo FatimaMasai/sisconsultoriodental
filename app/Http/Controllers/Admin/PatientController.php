@@ -13,6 +13,16 @@ class PatientController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    public function __construct()
+    {
+        $this->middleware('can:admin.patients.index')->only('index');
+        $this->middleware('can:admin.patients.create')->only('create', 'store');
+        $this->middleware('can:admin.patients.edit')->only('edit', 'update');
+        $this->middleware('can:admin.patients.destroy')->only('destroy');
+        $this->middleware('can:admin.patients.pdf')->only('pdf');
+    }
+
     public function index()
     {
         $patients = Patient::where('status',1)

@@ -9,9 +9,15 @@ use Carbon\Carbon;
 
 class PersonController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct()
+    {
+        $this->middleware('can:admin.persons.index')->only('index');
+        $this->middleware('can:admin.persons.create')->only('create', 'store');
+        $this->middleware('can:admin.persons.edit')->only('edit', 'update');
+        $this->middleware('can:admin.persons.destroy')->only('destroy');
+        $this->middleware('can:admin.persons.pdf')->only('pdf');
+    }
+
     public function index()
     {
         $persons = Person::where('status',1)->orderBy('id', 'desc')->paginate(10);

@@ -11,9 +11,16 @@ use Carbon\Carbon;
 
 class SupplierController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    
+    public function __construct()
+    {
+        $this->middleware('can:admin.suppliers.index')->only('index');
+        $this->middleware('can:admin.suppliers.create')->only('create', 'store');
+        $this->middleware('can:admin.suppliers.edit')->only('edit', 'update');
+        $this->middleware('can:admin.suppliers.destroy')->only('destroy');
+        $this->middleware('can:admin.suppliers.pdf')->only('pdf');
+    }
+
     public function index()
     {
         $suppliers = Supplier::where('status',1)

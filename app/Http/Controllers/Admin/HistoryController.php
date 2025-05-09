@@ -15,6 +15,20 @@ class HistoryController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    public function __construct()
+    {
+        // $this->middleware('auth');
+        $this->middleware('can:admin.histories.index')->only('index');
+        $this->middleware('can:admin.histories.create')->only('create', 'store');
+        $this->middleware('can:admin.histories.show')->only('show'); 
+        
+        $this->middleware('can:admin.histories.edit')->only('edit', 'update');
+        $this->middleware('can:admin.histories.destroy')->only('destroy');
+
+        $this->middleware('can:admin.histories.addNote')->only('addNote');
+        $this->middleware('can:admin.histories.pdf')->only('pdf');
+    }
     public function index()
     {
         $histories = History::with('patient.person', 'doctor.person', 'service')->orderBy('id', 'DESC')->paginate(50);

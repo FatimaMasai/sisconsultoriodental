@@ -9,9 +9,17 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    
+    public function __construct()
+    {
+        $this->middleware('can:admin.products.index')->only('index');
+        $this->middleware('can:admin.products.create')->only('create', 'store');
+        $this->middleware('can:admin.products.edit')->only('edit', 'update');
+        $this->middleware('can:admin.products.destroy')->only('destroy');
+        $this->middleware('can:admin.products.pdf')->only('pdf');
+    }
+
+
     public function index()
     {
         $products = Product::where('status', 1)

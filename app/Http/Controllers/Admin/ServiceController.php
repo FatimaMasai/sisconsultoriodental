@@ -10,9 +10,17 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class ServiceController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    
+
+    public function __construct()
+    {
+        $this->middleware('can:admin.services.index')->only('index');
+        $this->middleware('can:admin.services.create')->only('create', 'store');
+        $this->middleware('can:admin.services.edit')->only('edit', 'update');
+        $this->middleware('can:admin.services.destroy')->only('destroy');
+        $this->middleware('can:admin.services.pdf')->only('pdf');
+    }
+
     public function index()
     { 
         return view('admin.services.index');
