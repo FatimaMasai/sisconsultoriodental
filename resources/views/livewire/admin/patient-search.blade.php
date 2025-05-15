@@ -1,26 +1,13 @@
-<x-admin-layout>
-    <div class="flex justify-between items-center mb-6">
-        <div class="">
-            <x-label class="text-black text-xl font-semibold">
-                Listado de Pacientes
-            </x-label>
-        </div>
-        <div class="">
-            @can('admin.patients.pdf')
-                <a href="{{ route('admin.patients.pdf') }}" class="btn btn-orange" target="_blank">PDF</a>
-            @endcan
-            @can('admin.patients.create')
-                <a href="{{route('admin.patients.create')}}" class="btn btn-green">
-                    Nuevo
-                </a>
-            @endcan
-        </div>
-    </div> 
+<div>
 
-    @livewire('admin.patient-search')
- 
+    <div class="">
+     <!-- Formulario de búsqueda -->
+    <x-input wire:model.live="search" class="form-control w-full" placeholder="Buscar por nombre" />
 
-    {{-- @if ($patients->count())
+    </div>
+    <br>
+
+     @if ($patients->count())
 
         <div class="relative overflow-x-auto">
             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
@@ -35,9 +22,9 @@
                         <th scope="col" class="px-3 py-2">
                             Edad
                         </th> 
-                <th scope="col" class="px-3 py-2">
+                        {{-- <th scope="col" class="px-3 py-2">
                             Sexo 
-                        </th>   
+                        </th>  --}}
                         <th scope="col" class="px-3 py-2">
                             Alergia
                         </th> 
@@ -65,9 +52,9 @@
                             <td class="px-3 py-2">
                                 {{ $patient->person->age }} Años
                             </td> 
-                            <td class="px-3 py-2">
+                            {{-- <td class="px-3 py-2">
                                 {{ $patient->person->gender }}  
-                            </td>  
+                            </td>  --}}
                             <td class="px-3 py-2">
                                 {{ $patient->allergy }} 
                             </td> 
@@ -128,39 +115,7 @@
             </div>
         </div>
 
-    @endif --}}
+    @endif
 
 
-
-    {{-- agregando el script de la libreria de sweetalert2 PASO 3--}}
-
-    @push('js')
-    <script>
-        forms=document.querySelectorAll('.delete-form');
-        forms.forEach(form=>{
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-
-                    Swal.fire({
-                    title: "¿Está seguro?",
-                    text: "¡No podrás revertir esto!",
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#3085d6",
-                    cancelButtonColor: "#d33",
-                    confirmButtonText: "Sí, ¡eliminalo!",
-                    cancelButtonText: "Cancelar",
-                    }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
-                    });
-            })
-        })
-    
-    </script> 
-    
-@endpush
-
- 
-</x-admin-layout>
+</div>

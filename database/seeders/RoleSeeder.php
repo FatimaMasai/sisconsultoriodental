@@ -304,15 +304,15 @@ class RoleSeeder extends Seeder
             'description' => 'Ver historias clinicas',
         ])->syncRoles([$role1, $role2]);
 
-        Permission::create([
-            'name' => 'admin.histories.edit',
-            'description' => 'Editar historias clinicas',
-        ])->syncRoles([$role1, $role2]);
+        // Permission::create([
+        //     'name' => 'admin.histories.edit',
+        //     'description' => 'Editar historias clinicas',
+        // ])->syncRoles([$role1, $role2]);
 
-        Permission::create([
-            'name' => 'admin.histories.destroy',
-            'description' => 'Eliminar historias clinicas',
-        ])->syncRoles([$role1]);
+        // Permission::create([
+        //     'name' => 'admin.histories.destroy',
+        //     'description' => 'Eliminar historias clinicas',
+        // ])->syncRoles([$role1]);
 
         Permission::create([
             'name' => 'admin.histories.addNote',

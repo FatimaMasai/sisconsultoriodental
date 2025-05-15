@@ -1,124 +1,89 @@
-<x-admin-layout>
-    <div class="flex justify-between items-center mb-6">
-        <div class="">
-            <x-label class="text-black text-xl font-semibold">
-                Listado de Especialidades
+<x-admin-layout> 
+    <x-label class="text-black text-xl font-semibold mb-4">
+        Crear Usuario
+    </x-label>
+    <form action="{{ route('admin.users.store') }}" method="POST">
+        @csrf
+
+        <div class="mb-4">
+
+            <x-validation-errors class="mb-4" /> 
+
+            <x-label class="mb-2">
+                Nombre
             </x-label>
-        </div>
-        <div class="">
-            <a href="{{route('admin.specialities.create')}}" class="btn btn-green">
-                Nuevo
-            </a>
-        </div>
-    </div> 
+            <x-input name="name" value="{{ old('name') }}" class="w-full mb-4" placeholder="Ingrese nombre del"></x-input>
 
-    
+            <x-label class="mb-2">
+                Correo
+            </x-label>
+            <x-input name="email" value="{{ old('email') }}" class="w-full mb-4" placeholder="Ingrese correo"></x-input>
 
-    @if ($specialities->count())
+            <x-label class="mb-2">
+                Contraseña
+            </x-label>
+            <div class="relative mb-4">
+                <x-input name="password" type="password" class="w-full" placeholder="Ingrese contraseña" id="password-field">
+                </x-input>
+                <!-- Botón para alternar visibilidad de la contraseña -->
+                <button type="button" id="toggle-password-1" class="absolute top-1/2 right-3 transform -translate-y-1/2">
+                    <i id="eye-icon-1" class="fa fa-eye items-center"></i>
+                </button>
+            </div>
 
-        <div class="relative overflow-x-auto">
-            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                    <tr>
-                        <th scope="col" class="px-3 py-2">
-                            ID
-                        </th>
-                        <th scope="col" class="px-3 py-2">
-                            Nombre
-                        </th> 
-                        <th scope="col" class="px-3 py-2">
-                            Acciones
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($specialities as $speciality) 
-
-                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
-                            <th scope="row" class="px-3 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {{$speciality->id}}
-                            </th>
-                            <td class="px-3 py-2">
-                                {{$speciality->name}}
-                            </td>  
-
-                            <td class="px-3 py-2" >
-                                <div class="flex space-x-2">
-
-                                
-                                    <a href="{{route('admin.specialities.edit', $speciality)}}" class="btn btn-blue text-xs">Editar</a>
-                                    <form class="delete-form" action="{{route('admin.specialities.destroy', $speciality)}}" method="POST">
-
-                                        @csrf
-                                        @method('DELETE')
-        
-                                        <button class="btn btn-red text-xs">
-                                            Eliminar
-                                        </button>
-
-                                    </form>
-
-                                </div>
-
-                            </td>
-                        </tr>
-                    @endforeach
-
-                </tbody>
-            </table>
-
-            <div class="mt-4">
-                {{$specialities->links()}}
+            <x-label class="mb-2">
+                Confirmar Contraseña
+            </x-label>
+            <div class="relative mb-4">
+                <x-input name="password_confirmation" type="password" class="w-full" placeholder="Confirmar contraseña" id="password-confirmation-field">
+                </x-input>
+                <!-- Botón para alternar visibilidad de la confirmación de la contraseña -->
+                <button type="button" id="toggle-password-2" class="absolute top-1/2 right-3 transform -translate-y-1/2">
+                    <i id="eye-icon-2" class="fa fa-eye items-center"></i>
+                </button>
             </div>
 
         </div>
-        
-    @else
 
-        <div class="flex items-center p-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400" role="alert">
-            <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
-            </svg>
-
-            <span class="sr-only">Info</span>
-            <div>
-                <span class="font-medium">Info alert!</span> Todavia no hay especialidades registradas.
-            </div>
+        <div class="flex justify-end">
+            <x-button>
+                Guardar
+            </x-button>
         </div>
 
-    @endif
+    </form>
 
-
-
-    {{-- agregando el script de la libreria de sweetalert2 PASO 3--}}
-
-    @push('js')
+    <!-- Script para alternar visibilidad -->
     <script>
-        forms=document.querySelectorAll('.delete-form');
-        forms.forEach(form=>{
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
+        // Para el campo de la contraseña
+        const togglePassword1 = document.getElementById('toggle-password-1');
+        const passwordField1 = document.getElementById('password-field');
+        const eyeIcon1 = document.getElementById('eye-icon-1');
 
-                    Swal.fire({
-                    title: "¿Está seguro?",
-                    text: "¡No podrás revertir esto!",
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#3085d6",
-                    cancelButtonColor: "#d33",
-                    confirmButtonText: "Sí, ¡eliminalo!",
-                    cancelButtonText: "Cancelar",
-                    }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
-                    });
-            })
-        })
-    
-    </script> 
-    
-@endpush
+        togglePassword1.addEventListener('click', function () {
+            // Alternar el tipo de la contraseña entre 'password' y 'text'
+            const type = passwordField1.type === 'password' ? 'text' : 'password';
+            passwordField1.type = type;
 
- 
+            // Alternar el icono entre 'ojo abierto' y 'ojo cerrado'
+            eyeIcon1.classList.toggle('fa-eye');
+            eyeIcon1.classList.toggle('fa-eye-slash');
+        });
+
+        // Para el campo de la confirmación de la contraseña
+        const togglePassword2 = document.getElementById('toggle-password-2');
+        const passwordField2 = document.getElementById('password-confirmation-field');
+        const eyeIcon2 = document.getElementById('eye-icon-2');
+
+        togglePassword2.addEventListener('click', function () {
+            // Alternar el tipo de la contraseña entre 'password' y 'text'
+            const type = passwordField2.type === 'password' ? 'text' : 'password';
+            passwordField2.type = type;
+
+            // Alternar el icono entre 'ojo abierto' y 'ojo cerrado'
+            eyeIcon2.classList.toggle('fa-eye');
+            eyeIcon2.classList.toggle('fa-eye-slash');
+        });
+    </script>
+
 </x-admin-layout>

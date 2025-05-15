@@ -6,7 +6,7 @@
 
     @if($history)
         <div class="bg-white p-6 rounded shadow mb-6">
-            <p><strong>Paciente:</strong> {{ $history->patient->person->name }} {{ $history->patient->person->last_name_father }}</p>
+            <p><strong>Paciente:</strong> {{ $history->patient->person->name }} {{ $history->patient->person->last_name_father }} {{ $history->patient->person->last_name_mother }}</p>
             <p><strong>Doctor:</strong> {{ $history->doctor->person->name }} {{ $history->doctor->person->last_name_father }}</p>
             <p><strong>Servicio:</strong> {{ $history->service->name }}</p>
             <p><strong>Fecha inicial:</strong> {{ \Carbon\Carbon::parse($history->date)->format('d/m/Y') }}</p>

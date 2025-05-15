@@ -35,8 +35,8 @@ Route::resource('roles', RoleController::class);
 //ventas
 Route::resource('service_categories', ServiceCategoryController::class);
 Route::resource('services', ServiceController::class)->except(['show']);
-Route::resource('persons', PersonController::class);
-Route::resource('patients', PatientController::class);
+Route::resource('persons', PersonController::class)->except(['show']); 
+Route::resource('patients', PatientController::class)->except(['show']);
 Route::resource('specialities', SpecialityController::class);
 Route::resource('doctors', DoctorController::class);
 Route::resource('sales', SaleController::class);

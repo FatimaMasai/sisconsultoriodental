@@ -37,7 +37,7 @@
                 <th>#</th>
                 <th>Servicio</th>
                 <th>Precio</th>
-                <th>Estado</th>
+                <th>Fecha de Registro</th>
             </tr>
         </thead>
         <tbody>
@@ -46,7 +46,10 @@
                     <td>{{ $index + 1 }}</td>
                     <td>{{ $service->name }}</td>
                     <td>{{$service->price}}</td>
-                    <td>{{ $service->status == 1 ? 'Activo' : 'Inactivo' }}</td>
+
+                    <td>{{$service->created_at}}</td>
+
+                    {{-- <td>{{ $service->status == 1 ? 'Activo' : 'Inactivo' }}</td> --}}
                 </tr>
             @endforeach
         </tbody>

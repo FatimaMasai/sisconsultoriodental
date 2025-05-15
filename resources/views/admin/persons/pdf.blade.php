@@ -1,4 +1,4 @@
-<!-- resources/views/admin/service_categories/pdf.blade.php -->
+<!-- resources/views/admin/persons/pdf.blade.php -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -30,23 +30,28 @@
 </head>
 <body>
 
-    <h1>Listado de Categorías de Servicio</h1>
+    <h1>Listado de Personas</h1>
 
     <table>
         <thead>
             <tr>
                 <th>#</th>
-                <th>Nombre de la Categoría</th>
-                <th>Fecha de Registro</th>
+                <th>Nombre Completo/th>
+                <th>Carnet</th>
+                <th>Celular</th>
+                <th>Sexo</th>
             </tr>
         </thead>
         <tbody>
-            @foreach ($service_categories as $index => $category)
+            @foreach ($persons as $index => $person)
                 <tr>
                     <td>{{ $index + 1 }}</td>
-                    <td>{{ $category->name }}</td>
-                    <td> {{$category->created_at}} </td>
-                    {{-- <td>{{ $category->status == 1 ? 'Activo' : 'Inactivo' }}</td> --}}
+                    <td>{{ $person->name }} {{$person->last_name_father}} {{$person->last_name_mother}}</td>
+                     
+                    <td> {{ $person->identity_card }}  </td>
+                    <td>{{ $person->phone }} </td>
+                    <td>{{ $person->gender }}</td>
+                     
                 </tr>
             @endforeach
         </tbody>

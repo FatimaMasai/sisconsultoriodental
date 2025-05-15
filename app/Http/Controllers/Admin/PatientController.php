@@ -7,6 +7,7 @@ use App\Models\Patient;
 use App\Models\Person;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class PatientController extends Controller
 {
@@ -170,6 +171,11 @@ class PatientController extends Controller
 
     public function pdf()
     {
-         
+        $patients = Patient::where('status', 1)->with('person')->orderBy('id', 'desc')->get();
+
+        $pdf = PDF::loadView('admin.patients.pdf', compact('patients'));
+
+        return $pdf->stream('admin.patients.pdf');
+
     }
 }

@@ -1,10 +1,9 @@
-<!-- resources/views/admin/service_categories/pdf.blade.php -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Listado de Categorías de Servicio</title>
+    <title>Listado de Pacientes</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -30,23 +29,28 @@
 </head>
 <body>
 
-    <h1>Listado de Categorías de Servicio</h1>
+    <h1>Listado de Pacientes</h1>
 
     <table>
         <thead>
             <tr>
                 <th>#</th>
-                <th>Nombre de la Categoría</th>
-                <th>Fecha de Registro</th>
+                <th>Paciente</th> 
+                <th>Sexo</th>
+                <th>Observación</th> 
             </tr>
         </thead>
         <tbody>
-            @foreach ($service_categories as $index => $category)
+            @foreach ($patients as $index => $patient)
                 <tr>
                     <td>{{ $index + 1 }}</td>
-                    <td>{{ $category->name }}</td>
-                    <td> {{$category->created_at}} </td>
-                    {{-- <td>{{ $category->status == 1 ? 'Activo' : 'Inactivo' }}</td> --}}
+                    <td>{{$patient->person->name}} {{$patient->person->last_name_father}} {{$patient->person->last_name_mother}}</td>
+                     
+
+                    <td>{{ $patient->person->gender }} </td>
+                    <td>{{ $patient->observation }} </td>
+
+                    {{-- <td>{{ $service->status == 1 ? 'Activo' : 'Inactivo' }}</td> --}}
                 </tr>
             @endforeach
         </tbody>

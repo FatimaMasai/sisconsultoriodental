@@ -33,16 +33,43 @@ class UserController extends Controller
      */
     public function create()
     {
-        //
+        $users = User::all();
+        return view('admin.users.create', compact('users'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    {
-        //
+{
+    // Validación de los datos del usuario
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email',
+        'password' => 'required|string|min:8|confirmed',
+    ]);
+
+    // Creación del nuevo usuario
+    $user = new User();
+    $user->name = $request->input('name');
+    $user->email = $request->input('email');
+    $user->password = bcrypt($request->input('password'));
+    $user->save();
+
+    // Asignar roles
+    if ($request->has('roles')) {
+        $user->roles()->sync($request->roles);
     }
+
+    session()->flash('swal', [
+        'title' => 'Usuario Creado',
+        'text' => '¡Bien Hecho!',
+        'icon' => 'success',
+    ]);
+
+    return redirect()->route('admin.users.index');
+}
+
 
     /**
      * Display the specified resource.
@@ -82,7 +109,26 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        //
+        // Verifica si el usuario tiene un rol asignado
+        if ($user->roles()->exists()) {
+            session()->flash('swal', [
+                'title' => 'Error',
+                'text' => 'No se puede eliminar un usuario con roles asignados.',
+                'icon' => 'error',
+            ]);
+            return redirect()->route('admin.users.index');
+        }
+
+        // Elimina el usuario
+        $user->delete();
+
+        session()->flash('swal', [
+            'title' => 'Usuario Eliminado',
+            'text' => '¡Bien Hecho!.',
+            'icon' => 'success',
+        ]);
+
+        return redirect()->route('admin.users.index');
     }
 
     // public function pdf()

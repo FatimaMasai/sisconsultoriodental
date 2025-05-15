@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('birth_date');
             $table->string('gender');
             
-            $table->string('phone');
+            $table->string('phone')->nullable();
             $table->string('email')->nullable();
 
             $table->string('address');

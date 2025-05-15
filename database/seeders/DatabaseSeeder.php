@@ -28,8 +28,8 @@ class DatabaseSeeder extends Seeder
             SpecialitySeeder::class,
             PersonSeeder::class, 
 
-            DoctorSeeder::class,
-            PatientSeeder::class,
+            // DoctorSeeder::class,
+            // PatientSeeder::class,
 
             ProductCategorySeeder::class,
             ProductSeeder::class,

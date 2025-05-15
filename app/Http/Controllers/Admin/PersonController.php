@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Person;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf as PDF; 
 
 class PersonController extends Controller
 {
@@ -169,6 +170,13 @@ class PersonController extends Controller
     
     public function pdf()
     {
-         
+         // Obtener las categorías de servicio activas
+        $persons = Person::where('status',1)->orderBy('id', 'desc')->get();
+        
+        // Generar el PDF a partir de la vista 'persons.pdf
+        $pdf = PDF::loadView('admin.persons.pdf', compact('persons')); 
+
+        // Mostrar el PDF en el navegador
+        return $pdf->stream('admin.persons.pdf');
     }
 } 
