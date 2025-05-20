@@ -47,7 +47,7 @@
                                 <div class="flex space-x-2">
 
                                     @can('admin.roles.edit')
-                                        <a href="{{route('admin.roles.edit', $role)}}" class="btn btn-blue text-xs">Editar</a>
+                                        <a href="{{route('admin.roles.edit', $role)}}" class="btn btn-blue text-xs">Asignar Rol</a>
                                     @endcan
                                     
                                     @can('admin.roles.destroy')

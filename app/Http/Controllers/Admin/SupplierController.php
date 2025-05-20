@@ -7,7 +7,7 @@ use App\Models\Person;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class SupplierController extends Controller
 {
@@ -51,7 +51,7 @@ class SupplierController extends Controller
     {
         $request->validate([
             'company' => 'required',
-            'nit' => 'required', 
+            'nit' => 'required|numeric', 
 
         ]);
 
@@ -141,6 +141,11 @@ class SupplierController extends Controller
     }
     public function pdf()
     {
-         
+        $suppliers = Supplier::where('status', 1)->with('person')->orderBy('id', 'desc')->get();
+
+        $pdf = PDF::loadView('admin.suppliers.pdf', compact('suppliers'));
+
+        return $pdf->stream('admin.suppliers.pdf');
+
     }
 }

@@ -2,79 +2,86 @@
 
     <div class="">
      <!-- Formulario de búsqueda -->
-    <x-input wire:model.live="search" class="form-control w-full" placeholder="Buscar por servicio" />
+    <x-input wire:model.live="search" class="form-control w-full" placeholder="Buscar por nombre" />
 
     </div>
     <br>
 
-    @if ($services->count())
+    @if ($doctors->count())
 
         <div class="relative overflow-x-auto">
             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
-                        <th scope="col" class="px-3 py-2">
+                        <th scope="col" class="px-1 py-1">
                             ID
                         </th>
-                        
                         <th scope="col" class="px-3 py-2">
-                            Categoria
-                        </th> 
-
-                        <th scope="col" class="px-3 py-2">
-                            Servicio
-                        </th> 
-
-                        <th scope="col" class="px-3 py-2">
-                            Precio
+                            Doctor
                         </th> 
                         <th scope="col" class="px-3 py-2">
-                            Estado
+                            Edad
                         </th> 
+                        <th scope="col" class="px-3 py-2">
+                            Sexo 
+                        </th>   
+                        <th scope="col" class="px-3 py-2">
+                            Especialidad
+                        </th> 
+                        <th scope="col" class="px-3 py-2">
+                            Celular
+                        </th>  
                         <th scope="col" class="px-3 py-2">
                             Acciones
                         </th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($services as $service) 
+                    @foreach ($doctors as $doctor) 
 
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
-                            <th scope="row" class="px-3 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {{$service->id}}
+                            <th scope="row" class="px-1 py-1 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                {{$doctor->id}}
                             </th>
-                            
                             <td class="px-3 py-2">
-                                {{$service->serviceCategory->name}}
+                                {{$doctor->person->name}} {{$doctor->person->last_name_father}} {{$doctor->person->last_name_mother}}
                             </td>  
                             <td class="px-3 py-2">
-                                {{$service->name}}
+                                {{ $doctor->person->age }} Años
                             </td> 
                             <td class="px-3 py-2">
-                                {{$service->price}} Bs.
-                            </td> 
+                                {{ $doctor->person->gender }}  
+                            </td>   
+
                             <td class="px-3 py-2">
-                                <span class="{{ $service->status ? 'text-green-500' : 'text-red-500' }}">
-                                    {{ $service->status ? 'Alta' : 'Baja' }}
-                                </span>
+                                {{ $doctor->speciality->name }} 
                             </td> 
+                            
+                            <td class="px-3 py-2">
+                                {{ $doctor->person->phone }} 
+                            </td> 
+ 
 
                             <td class="px-3 py-2" >
                                 <div class="flex space-x-2">
 
                                 
-                                    <a href="{{route('admin.services.edit', $service)}}" class="btn btn-blue text-xs">Editar</a>
-                                    <form class="delete-form" action="{{route('admin.services.destroy', $service)}}" method="POST">
+                                    @can('admin.doctors.edit')
+                                        <a href="{{route('admin.doctors.edit', $doctor)}}" class="btn btn-blue text-xs">Editar</a>
+                                    @endcan
 
-                                        @csrf
-                                        @method('DELETE')
-        
-                                        <button class="btn btn-red text-xs">
-                                            Eliminar
-                                        </button>
+                                    @can('admin.doctors.destroy')
+                                        <form class="delete-form" action="{{route('admin.doctors.destroy', $doctor)}}" method="POST">
 
-                                    </form>
+                                            @csrf
+                                            @method('DELETE')
+            
+                                            <button class="btn btn-red text-xs">
+                                                Eliminar
+                                            </button>
 
+                                        </form>
+                                    @endcan
                                 </div>
 
                             </td>
@@ -85,7 +92,7 @@
             </table>
 
             <div class="mt-4">
-                {{$services->links()}}
+                {{$doctors->links()}}
             </div>
 
         </div>
@@ -99,12 +106,12 @@
 
             <span class="sr-only">Info</span>
             <div>
-                <span class="font-medium">Info alert!</span> Todavia no hay servicio registrado.
+                <span class="font-medium">Info alert!</span> Todavia no hay doctores registrados.
             </div>
         </div>
 
     @endif
 
-
+    
 
 </div>

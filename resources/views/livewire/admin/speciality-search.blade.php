@@ -2,12 +2,12 @@
 
     <div class="">
      <!-- Formulario de búsqueda -->
-    <x-input wire:model.live="search" class="form-control w-full" placeholder="Buscar por servicio" />
+    <x-input wire:model.live="search" class="form-control w-full" placeholder="Buscar por nombre" />
 
     </div>
     <br>
 
-    @if ($services->count())
+     @if ($specialities->count())
 
         <div class="relative overflow-x-auto">
             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
@@ -16,20 +16,8 @@
                         <th scope="col" class="px-3 py-2">
                             ID
                         </th>
-                        
                         <th scope="col" class="px-3 py-2">
-                            Categoria
-                        </th> 
-
-                        <th scope="col" class="px-3 py-2">
-                            Servicio
-                        </th> 
-
-                        <th scope="col" class="px-3 py-2">
-                            Precio
-                        </th> 
-                        <th scope="col" class="px-3 py-2">
-                            Estado
+                            Nombre
                         </th> 
                         <th scope="col" class="px-3 py-2">
                             Acciones
@@ -37,43 +25,37 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($services as $service) 
+                    @foreach ($specialities as $speciality) 
 
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
                             <th scope="row" class="px-3 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {{$service->id}}
+                                {{$speciality->id}}
                             </th>
-                            
                             <td class="px-3 py-2">
-                                {{$service->serviceCategory->name}}
+                                {{$speciality->name}}
                             </td>  
-                            <td class="px-3 py-2">
-                                {{$service->name}}
-                            </td> 
-                            <td class="px-3 py-2">
-                                {{$service->price}} Bs.
-                            </td> 
-                            <td class="px-3 py-2">
-                                <span class="{{ $service->status ? 'text-green-500' : 'text-red-500' }}">
-                                    {{ $service->status ? 'Alta' : 'Baja' }}
-                                </span>
-                            </td> 
 
                             <td class="px-3 py-2" >
                                 <div class="flex space-x-2">
 
                                 
-                                    <a href="{{route('admin.services.edit', $service)}}" class="btn btn-blue text-xs">Editar</a>
-                                    <form class="delete-form" action="{{route('admin.services.destroy', $service)}}" method="POST">
+                                    @can('admin.specialities.edit')
+                                    <a href="{{route('admin.specialities.edit', $speciality)}}" class="btn btn-blue text-xs">Editar</a>
+                                    @endcan
 
-                                        @csrf
-                                        @method('DELETE')
-        
-                                        <button class="btn btn-red text-xs">
-                                            Eliminar
-                                        </button>
+                                    
+                                    @can('admin.specialities.destroy')
+                                        <form class="delete-form" action="{{route('admin.specialities.destroy', $speciality)}}" method="POST">
 
-                                    </form>
+                                            @csrf
+                                            @method('DELETE')
+            
+                                            <button class="btn btn-red text-xs">
+                                                Eliminar
+                                            </button>
+
+                                        </form>
+                                    @endcan
 
                                 </div>
 
@@ -85,7 +67,7 @@
             </table>
 
             <div class="mt-4">
-                {{$services->links()}}
+                {{$specialities->links()}}
             </div>
 
         </div>
@@ -99,12 +81,11 @@
 
             <span class="sr-only">Info</span>
             <div>
-                <span class="font-medium">Info alert!</span> Todavia no hay servicio registrado.
+                <span class="font-medium">Info alert!</span> Todavia no hay especialidades registradas.
             </div>
         </div>
 
     @endif
-
 
 
 </div>

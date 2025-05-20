@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Speciality;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf as PDF; 
+
 
 class SpecialityController extends Controller
 {
@@ -133,6 +135,13 @@ class SpecialityController extends Controller
     }
     public function pdf()
     {
-         
+        // Obtener las categorías de servicio activas
+        $specialities = Speciality::where('status',1)->orderBy('id', 'desc')->get();
+        
+        // Generar el PDF a partir de la vista 'specialities.pdf
+        $pdf = PDF::loadView('admin.specialities.pdf', compact('specialities')); 
+
+        // Mostrar el PDF en el navegador
+        return $pdf->stream('admin.specialities.pdf');
     }
 }

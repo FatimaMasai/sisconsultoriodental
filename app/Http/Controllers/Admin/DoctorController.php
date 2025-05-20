@@ -133,6 +133,11 @@ class DoctorController extends Controller
 
     public function pdf()
     {
-         
+        $doctors = Doctor::where('status', 1)->with('person')->orderBy('id', 'desc')->get();
+
+        $pdf = PDF::loadView('admin.doctors.pdf', compact('doctors'));
+
+        return $pdf->stream('admin.doctors.pdf');
+
     }
 }

@@ -37,8 +37,8 @@ Route::resource('service_categories', ServiceCategoryController::class);
 Route::resource('services', ServiceController::class)->except(['show']);
 Route::resource('persons', PersonController::class)->except(['show']); 
 Route::resource('patients', PatientController::class)->except(['show']);
-Route::resource('specialities', SpecialityController::class);
-Route::resource('doctors', DoctorController::class);
+Route::resource('specialities', SpecialityController::class)->except(['show']);
+Route::resource('doctors', DoctorController::class)->except(['show']);
 Route::resource('sales', SaleController::class);
 
 
@@ -48,9 +48,9 @@ Route::post('histories/{id}/add-note',[HistoryController::class, 'addNote'])->na
  
 
 //compras
-Route::resource('product_categories', ProductCategoryController::class );
-Route::resource('products', ProductController::class);
-Route::resource('suppliers', SupplierController::class);
+Route::resource('product_categories', ProductCategoryController::class )->except(['show']);
+Route::resource('products', ProductController::class)->except(['show']);
+Route::resource('suppliers', SupplierController::class)->except(['show']);
 Route::resource('purchases', PurchaseController::class);
   
 

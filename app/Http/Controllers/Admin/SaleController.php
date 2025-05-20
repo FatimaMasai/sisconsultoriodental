@@ -46,10 +46,10 @@ class SaleController extends Controller
     public function create()
     {
          
-        $patients = Patient::with('person')->where('status',1)->get(); 
-        $doctors = Doctor::with('person')->where('status',1)->get();
+        $patients = Patient::with('person')->where('status',1)->orderBy('id', 'desc')->get(); 
+        $doctors = Doctor::with('person')->where('status',1)->orderBy('id', 'desc')->get();
 
-        $services = Service::where('status', 1)->get(); // Obtener servicios activos
+        $services = Service::where('status', 1)->orderBy('id', 'desc')->get(); // Obtener servicios activos
 
         return view('admin.sales.create', compact('patients', 'services', 'doctors'));
 

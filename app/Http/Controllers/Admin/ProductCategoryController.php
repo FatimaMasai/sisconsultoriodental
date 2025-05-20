@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ProductCategory;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf as PDF; 
 
 class ProductCategoryController extends Controller
 {
@@ -131,7 +132,15 @@ class ProductCategoryController extends Controller
 
     public function pdf()
     {
-         
+        // Obtener las categorías de servicio activas
+        $product_categories = ProductCategory::where('status',1)->orderBy('id', 'desc')->get();
+        
+        // Generar el PDF a partir de la vista 'product_categories.pdf
+        $pdf = PDF::loadView('admin.product_categories.pdf', compact('product_categories')); 
+
+        // Mostrar el PDF en el navegador
+        return $pdf->stream('admin.product_categories.pdf');
     }
+
     
 }
