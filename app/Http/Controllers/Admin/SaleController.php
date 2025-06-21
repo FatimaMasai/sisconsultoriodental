@@ -61,19 +61,37 @@ class SaleController extends Controller
     public function store(Request $request)
     {
         
-        $request->validate([
-            'patient_id' => 'required|exists:patients,id',
-            'doctor_id' => 'required|exists:doctors,id',
+        // $request->validate([
+        //     'patient_id' => 'required|exists:patients,id',
+        //     'doctor_id' => 'required|exists:doctors,id',
 
-            'services' => 'required|array',
-            'services.*.service_id' => 'required|exists:services,id',
-            'services.*.quantity' => 'required|integer|min:1', 
+        //     'services' => 'required|array',
+        //     'services.*.service_id' => 'required|exists:services,id',
+        //     'services.*.quantity' => 'required|integer|min:1', 
             
-            'amount' => 'required|numeric|min:0',
-            'payment_method' => 'required|string',            
-            'payment_status' => 'required|in:Contado',
+        //     'amount' => 'required|numeric|min:0',
+        //     'payment_method' => 'required|string',            
+        //     'payment_status' => 'required|in:Contado',
 
-        ]);
+        // ]);
+
+        $request->validate([
+                'patient_id' => 'required|exists:patients,id',
+                'doctor_id' => 'required|exists:doctors,id',
+                'services' => 'required|array',
+                'services.*.service_id' => 'required|exists:services,id',
+                'services.*.quantity' => 'required|integer|min:1', 
+                'amount' => 'required|numeric|min:0',
+                'payment_method' => 'required|string',            
+                'payment_status' => 'required|in:Contado',
+            ], [
+                'patient_id.required' => 'El campo paciente es obligatorio.',
+                'doctor_id.required' => 'El campo doctor es obligatorio.',
+                'services.required' => 'Debe agregar al menos un servicio.',
+                'services.*.service_id.required' => 'Debe seleccionar un servicio.',
+                'services.*.quantity.required' => 'Debe ingresar la cantidad del servicio.',
+            ]);
+
 
         //crear venta
         $sale = Sale::create([

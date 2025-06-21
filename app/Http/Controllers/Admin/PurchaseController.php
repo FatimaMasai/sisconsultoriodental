@@ -10,6 +10,9 @@ use App\Models\PurchaseDetail;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 
+use Barryvdh\DomPDF\Facade\Pdf as PDF; 
+use NumberToWords\NumberToWords;
+
 class PurchaseController extends Controller
 {
     
@@ -154,8 +157,27 @@ class PurchaseController extends Controller
         //
     }
 
-    public function pdf()
-    {
-         
+    public function print($purchasePrint){
+
+        //obtener la compra con sus detalles
+        $purchase = Purchase::with('supplier', 'purchaseDetails.product')->findOrFail($purchasePrint);
+        $payment = $purchase->payments->first(); // Obtener el primer pago asociado a la venta
+
+           // Obtener el nombre del usuario logueado
+        $user = auth()->user();  // Obtiene el usuario autenticado
+
+        // Crear la instancia de NumberToWords
+        $numberToWords = new NumberToWords();
+        $numberTransformer = $numberToWords->getNumberTransformer('es');  // 'es' es el idioma español
+
+        // Convertir el total a palabras
+        $totalLiteral = ucwords(strtolower( $numberTransformer->toWords($purchase->total))) ;
+
+        //generar el pdf a partir de la vista print
+        $pdf = PDF::loadView('admin.purchases.print', compact('purchase','totalLiteral','user','payment'))
+        ->setPaper([0, 0, 300, 600], 'portrait');   // Configurar el tamaño y la orientación del papel;
+
+        //descargar pdf
+        return $pdf->stream('comprante_venta_' . $purchase->id . '.pdf'); 
     }
 }
