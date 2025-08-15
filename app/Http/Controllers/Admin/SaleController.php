@@ -137,7 +137,10 @@ class SaleController extends Controller
 
         // Verificar si el monto pagado es igual al total
         if ($request->amount != $total) {
-            return redirect()->back()->withErrors(['amount' => 'El monto pagado no coincide con el total de la venta.']);
+            return redirect()->back()
+            ->withErrors(['amount' => 'El monto pagado no coincide con el total de la venta.'])
+            ->withInput();
+        
         }
 
             // Registrar el pago

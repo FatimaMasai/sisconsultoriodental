@@ -17,10 +17,12 @@ use App\Http\Controllers\Admin\SupplierController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function()
-{
-    return view('admin.dashboard');
-})->name('dasboard');
+// Route::get('/', function()
+// {
+//     return view('admin.dashboard');
+// })->name('dasboard');
+
+Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
 
 // Route::get('/', function() {
 //     return redirect()->route('login');  // Redirige a la página de login

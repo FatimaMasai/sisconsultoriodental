@@ -46,33 +46,6 @@
                     </tr>
                 </thead>
 
-                {{-- <tbody id="services">
-                    <tr class="bg-white dark:bg-gray-800 service-row">
-                        <td class="px-6 py-4">
-                            <x-select name="services[0][service_id]" class="form-control service-select">
-                                <option value="">Seleccione un servicio</option>
-                                @foreach ($services as $service)
-                                    <option value="{{ $service->id }}" data-price="{{ $service->price }}">
-                                        {{ $service->name }} - Bs. {{ $service->price }}
-                                    </option>
-                                @endforeach
-                            </x-select>
-                        </td>
-                        <td class="px-6 py-4">
-                            <input type="number" name="services[0][quantity]" class="form-control service-quantity rounded-lg" min="1" value="1">
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="service-price">Bs. 0.00</span> <!-- Precio inicial como 0.00 -->
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="service-subtotal">Bs. 0.00</span> <!-- Subtotal inicial como 0.00 -->
-                        </td>
-                        <td class="px-6 py-4">
-                            <button type="button" class="btn btn-red text-sm remove-service mt-2">Quitar</button>
-                        </td>
-                    </tr>
-                </tbody> --}}
-
                 <tbody id="services">
                     @if(old('services'))
                         @foreach(old('services') as $i => $oldService)
@@ -137,7 +110,7 @@
                         <th scope="row" class="px-6 py-3 text-lg">Total</th>
                         <td class="px-6 py-3"></td>
                         <td class="px-6 py-3"></td>
-                        <td class="px-6 py-3 text-lg" id="total">Bs. 0.00</td> <!-- Total inicial como 0.00 -->
+                        <td class="px-6 py-3 text-lg" id="total">Bs. 0.00</td>
                         <td class="px-6 py-3"></td>
                     </tr>
                 </tfoot>
@@ -147,7 +120,7 @@
 
         <div class="mb-4">
             <label for="payment_method">Método de Pago</label>
-            <x-select name="payment_method" class="input-label" class="form-control">
+            <x-select name="payment_method" class="input-label form-control">
                 <option value="Efectivo" @selected(old('payment_method') == 'Efectivo')>Efectivo</option>
                 <option value="Transferencia" @selected(old('payment_method') == 'Transferencia')>Transferencia</option>
                 <option value="QR" @selected(old('payment_method') == 'QR')>QR</option>
@@ -156,20 +129,15 @@
 
         <div class="mb-4">
             <label for="amount">Monto Pagado</label>
-            <input type="number" name="amount" id="amount" class="form-control rounded-lg" placeholder="Ingrese el monto pagado" min="0" value="0">
+            <input type="number" name="amount" id="amount" class="form-control rounded-lg" placeholder="Ingrese el monto pagado" min="0" value="{{ old('amount',0) }}">
         </div>
 
         <div class="mb-4">
             <label for="payment_status">Forma de Pago:</label>
-            {{-- <x-select name="payment_status" class="form-control">
-                <option value="Contado">Contado</option>
-            </x-select> --}}
-
             <x-select name="payment_status" class="form-control">
                 <option value="Contado" @selected(old('payment_status','Contado')=='Contado')>
                     Contado</option>
             </x-select>
-
         </div>
 
         <div class="flex justify-end">
@@ -184,43 +152,37 @@
         let serviceIndex = {{ old('services') ? count(old('services')) : 1 }};
         let total = 0;
 
-        // Función para actualizar el total y los subtotales
         function updateTotal() {
             total = 0;
-            const rows = document.querySelectorAll('.service-row');
-            rows.forEach(row => {
+            document.querySelectorAll('.service-row').forEach(row => {
                 const quantity = row.querySelector('.service-quantity').value;
-                const price = row.querySelector('.service-select').selectedOptions[0].getAttribute('data-price') || 0; // Si el precio es null, usa 0
+                const price = row.querySelector('.service-select').selectedOptions[0].getAttribute('data-price') || 0;
                 const subtotal = price * quantity;
 
-                // Mostrar el precio en la tabla
                 row.querySelector('.service-price').textContent = 'Bs. ' + parseFloat(price).toFixed(2);
-
-                // Mostrar el subtotal en la tabla
                 row.querySelector('.service-subtotal').textContent = 'Bs. ' + subtotal.toFixed(2);
 
                 total += subtotal;
             });
-            document.getElementById('total').textContent = 'Bs. ' + total.toFixed(2); // Actualizar el total
+            document.getElementById('total').textContent = 'Bs. ' + total.toFixed(2);
         }
 
-        // Agregar un nuevo servicio al formulario
         document.getElementById('add-service').addEventListener('click', function() {
             const serviceRow = document.createElement('tr');
             serviceRow.classList.add('service-row', 'bg-white', 'dark:bg-gray-800');
             serviceRow.innerHTML = `
                 <td class="px-6 py-4">
-                    <x-select name="services[${serviceIndex}][service_id]" class="form-control service-select">
+                    <select name="services[${serviceIndex}][service_id]" class="form-control service-select">
                         <option value="">Seleccione un servicio</option>
                         @foreach ($services as $service)
                             <option value="{{ $service->id }}" data-price="{{ $service->price }}">
                                 {{ $service->name }} - Bs. {{ $service->price }}
                             </option>
                         @endforeach
-                    </x-select>
+                    </select>
                 </td>
                 <td class="px-6 py-4">
-                    <input type="number" name="services[${serviceIndex}][quantity]" class="form-control service-quantity rounded-lg"  min="1" value="1">
+                    <input type="number" name="services[${serviceIndex}][quantity]" class="form-control service-quantity rounded-lg" min="1" value="1">
                 </td>
                 <td class="px-6 py-4">
                     <span class="service-price">Bs. 0.00</span>
@@ -234,25 +196,22 @@
             `;
             document.getElementById('services').appendChild(serviceRow);
             serviceIndex++;
-            updateTotal(); // Actualizamos el total después de agregar el servicio
+            updateTotal();
         });
 
-        // Escuchar cambios en la cantidad y el servicio
         document.getElementById('services').addEventListener('input', function(event) {
             if (event.target.classList.contains('service-quantity') || event.target.classList.contains('service-select')) {
                 updateTotal();
             }
         });
 
-        // Quitar un servicio
         document.getElementById('services').addEventListener('click', function(event) {
             if (event.target.classList.contains('remove-service')) {
                 event.target.closest('.service-row').remove();
-                updateTotal(); // Recalcular el total después de quitar un servicio
+                updateTotal();
             }
         });
 
-        // Inicializar el total en la carga de la página
         updateTotal();
     </script>
 </x-admin-layout>
