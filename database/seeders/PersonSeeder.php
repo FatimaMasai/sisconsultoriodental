@@ -15,18 +15,18 @@ class PersonSeeder extends Seeder
      */
     public function run(): void
     {
-        $faker = Faker::create();
+        $faker = Faker::create('es_ES');
 
 
-        foreach (range(1, 10) as $i) {
+        foreach (range(1, 15) as $i) {
             Person::create([
                 'name' => $faker->firstName,
                 'last_name_father' => $faker->lastName,
                 'last_name_mother' => $faker->lastName,
-                'identity_card' => $faker->unique()->numerify('########'),
+                'identity_card' => $faker->unique()->numerify('#######'),
                 'birth_date' => $faker->date('Y-m-d', '2005-12-31'),
-                'gender' => $faker->randomElement(['Feminino', 'Masculino']),
-                'phone' => $faker->phoneNumber,
+                'gender' => $faker->randomElement(['Femenino', 'Masculino']),
+                'phone' => $faker->numerify('7##-#####'),
                 'email' => $faker->unique()->safeEmail,
                 'address' => $faker->address,
                 'status' => true,
@@ -34,19 +34,6 @@ class PersonSeeder extends Seeder
         }$faker = Faker::create();
 
 
-        foreach (range(1, 10) as $i) {
-            Person::create([
-                'name' => $faker->firstName,
-                'last_name_father' => $faker->lastName,
-                'last_name_mother' => $faker->lastName,
-                'identity_card' => $faker->unique()->numerify('########'),
-                'birth_date' => $faker->date('Y-m-d', '2005-12-31'),
-                'gender' => $faker->randomElement(['Feminino', 'Masculino']),
-                'phone' => $faker->phoneNumber,
-                'email' => $faker->unique()->safeEmail,
-                'address' => $faker->address,
-                'status' => true,
-            ]);
-        }
+        
     }
 }

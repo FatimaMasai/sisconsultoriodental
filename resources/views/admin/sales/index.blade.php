@@ -62,6 +62,8 @@
                             <td class="px-3 py-2">
                                 Bs. {{ $sale->total }} 
                             </td> 
+
+                            
                              
  
 

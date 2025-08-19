@@ -47,7 +47,7 @@ class PatientController extends Controller
      */
     public function create()
     {
-        $persons = Person::all();
+        $persons = Person::where('status', 1)->orderBy('id', 'desc')->get();
         return view('admin.patients.create', compact( 'persons'));
     }
 

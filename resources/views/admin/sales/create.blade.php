@@ -26,7 +26,11 @@
                 <x-select name="doctor_id" class="w-full">
                     <option value="">Seleccione un doctor</option>
                     @foreach ($doctors as $doctor)
-                        <option value="{{ $doctor->id }}" @selected(old('doctor_id') == $doctor->id)>
+                        <option value="{{ $doctor->id }}" 
+                            
+                            @selected(old('doctor_id') == $doctor->id)
+                            >
+
                             {{ $doctor->person->name }} {{ $doctor->person->last_name_father }} {{ $doctor->person->last_name_mother }}
                         </option>
                     @endforeach
@@ -45,99 +49,53 @@
                         <th scope="col" class="px-6 py-3">Acción</th>
                     </tr>
                 </thead>
-
-                {{-- <tbody id="services">
-                    <tr class="bg-white dark:bg-gray-800 service-row">
-                        <td class="px-6 py-4">
-                            <x-select name="services[0][service_id]" class="form-control service-select">
-                                <option value="">Seleccione un servicio</option>
-                                @foreach ($services as $service)
-                                    <option value="{{ $service->id }}" data-price="{{ $service->price }}">
-                                        {{ $service->name }} - Bs. {{ $service->price }}
-                                    </option>
-                                @endforeach
-                            </x-select>
-                        </td>
-                        <td class="px-6 py-4">
-                            <input type="number" name="services[0][quantity]" class="form-control service-quantity rounded-lg" min="1" value="1">
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="service-price">Bs. 0.00</span> <!-- Precio inicial como 0.00 -->
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="service-subtotal">Bs. 0.00</span> <!-- Subtotal inicial como 0.00 -->
-                        </td>
-                        <td class="px-6 py-4">
-                            <button type="button" class="btn btn-red text-sm remove-service mt-2">Quitar</button>
-                        </td>
-                    </tr>
-                </tbody> --}}
-
+                
                 <tbody id="services">
-                    @if(old('services'))
-                        @foreach(old('services') as $i => $oldService)
-                            <tr class="bg-white dark:bg-gray-800 service-row">
-                                <td class="px-6 py-4">
-                                    <x-select name="services[{{ $i }}][service_id]" class="form-control service-select">
-                                        <option value="">Seleccione un servicio</option>
-                                        @foreach ($services as $service)
-                                            <option value="{{ $service->id }}" data-price="{{ $service->price }}"
-                                                @selected($oldService['service_id'] == $service->id)>
-                                                {{ $service->name }} - Bs. {{ $service->price }}
-                                            </option>
-                                        @endforeach
-                                    </x-select>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <input type="number" name="services[{{ $i }}][quantity]"
-                                           class="form-control service-quantity rounded-lg" min="1"
-                                           value="{{ $oldService['quantity'] }}">
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span class="service-price">Bs. {{ $oldService['price'] ?? 0 }}</span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span class="service-subtotal">Bs. {{ ($oldService['price'] ?? 0) * ($oldService['quantity'] ?? 1) }}</span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <button type="button" class="btn btn-red text-sm remove-service mt-2">Quitar</button>
-                                </td>
-                            </tr>
-                        @endforeach
-                    @else
+                    @php
+                        // Si el formulario falló, cargamos lo que había
+                        // Caso contrario, dejamos una fila vacía
+                        $oldServices = old('services', [['service_id' => '', 'quantity' => 1]]);
+                    @endphp
+
+                    @foreach ($oldServices as $i => $oldService)
                         <tr class="bg-white dark:bg-gray-800 service-row">
                             <td class="px-6 py-4">
-                                <x-select name="services[0][service_id]" class="form-control service-select">
+                                <x-select name="services[{{ $i }}][service_id]" class="form-control service-select">
                                     <option value="">Seleccione un servicio</option>
                                     @foreach ($services as $service)
-                                        <option value="{{ $service->id }}" data-price="{{ $service->price }}">
+                                        <option value="{{ $service->id }}" data-price="{{ $service->price }}"
+                                            @selected($oldService['service_id'] == $service->id)>
                                             {{ $service->name }} - Bs. {{ $service->price }}
                                         </option>
                                     @endforeach
                                 </x-select>
                             </td>
                             <td class="px-6 py-4">
-                                <input type="number" name="services[0][quantity]" class="form-control service-quantity rounded-lg" min="1" value="1">
+                                <input type="number" name="services[{{ $i }}][quantity]"
+                                    class="form-control service-quantity rounded-lg"
+                                    min="1"
+                                    value="{{ $oldService['quantity'] ?? 1 }}">
                             </td>
                             <td class="px-6 py-4">
-                                <span class="service-price">Bs. 0.00</span>
+                                <span class="service-price">Bs. </span>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="service-subtotal">Bs. 0.00</span>
+                                <span class="service-subtotal">Bs. </span>
                             </td>
                             <td class="px-6 py-4">
                                 <button type="button" class="btn btn-red text-sm remove-service mt-2">Quitar</button>
                             </td>
                         </tr>
-                    @endif
+                    @endforeach
                 </tbody>
+
 
                 <tfoot>
                     <tr class="font-semibold text-gray-900 dark:text-white">
                         <th scope="row" class="px-6 py-3 text-lg">Total</th>
                         <td class="px-6 py-3"></td>
                         <td class="px-6 py-3"></td>
-                        <td class="px-6 py-3 text-lg" id="total">Bs. 0.00</td> <!-- Total inicial como 0.00 -->
+                        <td class="px-6 py-3 text-lg" id="total">Bs. </td> <!-- Total inicial como 0.00 -->
                         <td class="px-6 py-3"></td>
                     </tr>
                 </tfoot>
@@ -156,20 +114,18 @@
 
         <div class="mb-4">
             <label for="amount">Monto Pagado</label>
-            <input type="number" name="amount" id="amount" class="form-control rounded-lg" placeholder="Ingrese el monto pagado" min="0" value="0">
+            <input type="number" name="amount" id="amount" class="form-control rounded-lg" placeholder="0" min="0" >
         </div>
 
         <div class="mb-4">
-            <label for="payment_status">Forma de Pago:</label>
+            {{-- <label for="payment_status">Forma de Pago:</label> --}}
+           
+
+            <input type="hidden" name="payment_status" value="Contado">
+
             {{-- <x-select name="payment_status" class="form-control">
                 <option value="Contado">Contado</option>
             </x-select> --}}
-
-            <x-select name="payment_status" class="form-control">
-                <option value="Contado" @selected(old('payment_status','Contado')=='Contado')>
-                    Contado</option>
-            </x-select>
-
         </div>
 
         <div class="flex justify-end">
@@ -181,7 +137,7 @@
     </form>
 
     <script>
-        let serviceIndex = {{ old('services') ? count(old('services')) : 1 }};
+        let serviceIndex = 1;
         let total = 0;
 
         // Función para actualizar el total y los subtotales
@@ -194,14 +150,14 @@
                 const subtotal = price * quantity;
 
                 // Mostrar el precio en la tabla
-                row.querySelector('.service-price').textContent = 'Bs. ' + parseFloat(price).toFixed(2);
+                row.querySelector('.service-price').textContent = 'Bs. ' + parseFloat(price).toFixed();
 
                 // Mostrar el subtotal en la tabla
-                row.querySelector('.service-subtotal').textContent = 'Bs. ' + subtotal.toFixed(2);
+                row.querySelector('.service-subtotal').textContent = 'Bs. ' + subtotal.toFixed();
 
                 total += subtotal;
             });
-            document.getElementById('total').textContent = 'Bs. ' + total.toFixed(2); // Actualizar el total
+            document.getElementById('total').textContent = 'Bs. ' + total.toFixed(); // Actualizar el total
         }
 
         // Agregar un nuevo servicio al formulario
@@ -223,10 +179,10 @@
                     <input type="number" name="services[${serviceIndex}][quantity]" class="form-control service-quantity rounded-lg"  min="1" value="1">
                 </td>
                 <td class="px-6 py-4">
-                    <span class="service-price">Bs. 0.00</span>
+                    <span class="service-price">Bs. </span>
                 </td>
                 <td class="px-6 py-4">
-                    <span class="service-subtotal">Bs. 0.00</span>
+                    <span class="service-subtotal">Bs. </span>
                 </td>
                 <td class="px-6 py-4">
                     <button type="button" class="btn btn-red text-sm remove-service mt-2">Quitar</button>

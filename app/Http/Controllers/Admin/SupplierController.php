@@ -40,7 +40,7 @@ class SupplierController extends Controller
      */
     public function create()
     {
-        $persons = Person::all();
+        $persons = Person::where('status', 1)->orderBy('id', 'desc')->get();
         return view('admin.suppliers.create', compact('persons'));
     }
 

@@ -17,7 +17,7 @@ class DoctorSeeder extends Seeder
      */
     public function run(): void
     {
-        $faker = Faker::create();
+        $faker = Faker::create('es_ES');
 
         $personIds = Person::pluck('id')->toArray();
         $specialityIds = Speciality::pluck('id')->toArray();
@@ -25,7 +25,8 @@ class DoctorSeeder extends Seeder
         foreach (range(1, 5) as $i) {
             Doctor::create([
                 'status' => true,
-                'person_id' => $faker->randomElement($personIds),
+                //'person_id' => $faker->randomElement($personIds), // un solo ID
+                'person_id' => $personIds, //cada paciente debe tener una persona asociada
                 'speciality_id' => $faker->randomElement($specialityIds),
             ]);
         }

@@ -44,7 +44,7 @@ class DoctorController extends Controller
      */
     public function create()
     {
-        $persons = Person::all();
+        $persons = Person::where('status', 1)->orderBy('id', 'desc')->get();
         $specialities = Speciality::all();
         return view('admin.doctors.create', compact('persons', 'specialities'));
 
@@ -62,7 +62,7 @@ class DoctorController extends Controller
         ]);
 
         session()->flash('swal', [
-            'title' => 'Servicio Creado',
+            'title' => 'Doctor Creado',
             'text' => '¡Bien Hecho!.',
             'icon' => 'success',
         ]);

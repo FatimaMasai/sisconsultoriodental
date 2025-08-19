@@ -9,6 +9,8 @@ use App\Models\Purchase;
 use App\Models\PurchaseDetail;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
 
 use Barryvdh\DomPDF\Facade\Pdf as PDF; 
 use NumberToWords\NumberToWords;
@@ -45,41 +47,51 @@ class PurchaseController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+ 
     public function store(Request $request)
-    {
-        $request->validate([ 
-            'supplier_id' => 'required|exists:suppliers,id',
+{
+    $request->validate([ 
+        'supplier_id' => 'required|exists:suppliers,id',
+        'products' => 'required|array',
+        'products.*.product_id' => 'required|exists:products,id',
+        'products.*.quantity' => 'required|integer|min:1',
+        'amount' => 'required|numeric|min:0',
+        'payment_method' => 'required|string',            
+        'payment_status' => 'required|in:Contado',
+    ]);
 
-            'products' => 'required|array',
-            'products.*.product_id' => 'required|exists:products,id',
-            'products.*.quantity' => 'required|integer|min:1',
-            
-            'amount' => 'required|numeric|min:0',
-            'payment_method' => 'required|string',            
-            'payment_status' => 'required|in:Contado',
-        ]);
+    DB::beginTransaction();
 
-
-        //crear compra
-        $purchase = Purchase::create([
-            'supplier_id' => $request->supplier_id,
-            
-            'date' => now(),
-            'total' => 0,
-            'status' => 1, 
-
-        ]);
-
-
+    try {
         $total = 0;
 
-        /// Crear los detalles de la venta
+        // Calcular el total primero
         foreach ($request->products as $product) {
-            //obtener servicio y calcular subtotal
-            $productDetails = Product::find($product['product_id']);
+            $productDetails = Product::findOrFail($product['product_id']);
+            $subtotal = $productDetails->price * $product['quantity'];
+            $total += $subtotal;
+        }
+
+        // Validar monto pagado
+        if ($request->amount != $total) {
+            return redirect()->back()
+                ->withErrors(['amount' => 'El monto pagado no coincide con el total de la compra.'])
+                ->withInput();
+        }
+
+        // Crear compra
+        $purchase = Purchase::create([
+            'supplier_id' => $request->supplier_id,
+            'date' => now(),
+            'total' => $total,
+            'status' => 1,
+        ]);
+
+        // Crear detalles
+        foreach ($request->products as $product) {
+            $productDetails = Product::findOrFail($product['product_id']);
             $subtotal = $productDetails->price * $product['quantity'];
 
-            // Crear el detalle de venta
             PurchaseDetail::create([
                 'price' => $productDetails->price,
                 'quantity' => $product['quantity'],
@@ -87,43 +99,34 @@ class PurchaseController extends Controller
                 'purchase_id' => $purchase->id,
                 'product_id' => $product['product_id'],
             ]);
- 
-
-
-            // Sumar al total
-            $total += $subtotal;
-        }
-        
-
-        // Verificar si el monto pagado es igual al total
-        if ($request->amount != $total) {
-            return redirect()->back()->withErrors(['amount' => 'El monto pagado no coincide con el total de la compra.']);
         }
 
-            // Registrar el pago
-            Payment::create([
-                
-                'amount' => $request->amount,
-                'payment_method' => $request->payment_method,
-                'payment_status' => $request->payment_status,
-                'purchase_id' => $purchase->id,
-            ]);
+        // Registrar pago
+        Payment::create([
+            'amount' => $request->amount,
+            'payment_method' => $request->payment_method,
+            'payment_status' => $request->payment_status,
+            'purchase_id' => $purchase->id,
+        ]);
 
-
-            // Actualizar el total de la venta
-            $purchase->update(['total' => $total]);
-        
-
+        DB::commit();
 
         session()->flash('swal', [
             'title' => 'Compra Registrada',
             'text' => 'La compra fue registrada exitosamente.',
             'icon' => 'success',
         ]);
-    
-        return redirect()->route('admin.purchases.index'); 
 
+        return redirect()->route('admin.purchases.index');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->back()
+            ->withErrors(['error' => 'Ocurrió un error al registrar la compra: ' . $e->getMessage()])
+            ->withInput();
     }
+}
+
 
     /**
      * Display the specified resource.

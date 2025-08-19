@@ -47,7 +47,8 @@
                                 {{ $history->service->name }} 
                             </td> 
                             <td class="px-3 py-2">
-                                {{ $history->date }} 
+                                {{-- {{ $history->date }}  --}}
+                                 {{ $history->created_at->format('d/m/Y H:i')}}
                             </td>
                             <td class="px-3 py-2">
                                 {{ $history->doctor->person->name }}  {{$history->doctor->person->last_name_father}} {{$history->doctor->person->last_name_mother}} 
