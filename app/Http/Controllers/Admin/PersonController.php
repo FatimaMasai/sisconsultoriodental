@@ -57,6 +57,12 @@ class PersonController extends Controller
             'email' => 'required|email',
             'address' => 'required', 
 
+        ],        
+        [
+            'last_name_father.required' => 'El apellido paterno es obligatorio.',
+            'last_name_mother.required' => 'El apellido materno es obligatorio.',
+            'identity_card.required' => 'El número de cédula ya está registrado.',
+            'birth_date.required' => 'La fecha de nacimiento es obligatoria.', 
         ]);
  
         Person::create([
@@ -121,6 +127,13 @@ class PersonController extends Controller
             'email' => 'required|email',
             'address' => 'required', 
 
+        ],
+        
+        [
+            'last_name_father.required' => 'El apellido paterno es obligatorio.',
+            'last_name_mother.required' => 'El apellido materno es obligatorio.',
+            'identity_card.required' => 'El número de cédula ya está registrado.',
+            'birth_date.required' => 'La fecha de nacimiento es obligatoria.', 
         ]);
 
         

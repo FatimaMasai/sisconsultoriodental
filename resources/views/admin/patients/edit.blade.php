@@ -40,7 +40,7 @@
             <div>
                 <x-label class="form-label">Recomendado por:</x-label>
                 <x-input  value="{{ old('recommended_by', $patient->recommended_by ) }}" name="recommended_by" class="input-label"
-                    placeholder="Nombre del médico o persona que recomendó" />
+                    placeholder="Nombre de la persona que recomendó" />
             </div>
             <div>
                 <x-label class="form-label">Responsable</x-label>

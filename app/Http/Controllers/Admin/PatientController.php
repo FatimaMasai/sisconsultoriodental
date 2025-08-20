@@ -65,6 +65,15 @@ class PatientController extends Controller
             'responsible_person' => 'required',
             'medical_history' => 'required', //antecedentes
 
+        ],
+        [
+            'allergy.required' => 'El campo alergia es obligatorio.',
+            'observation.required' => 'El campo observación es obligatorio.',
+            'recommended_by.required' => 'El campo recomendado por es obligatorio.',
+
+            'responsible_person.required' => 'El campo persona responsable es obligatorio.',
+            'medical_history.required' => 'El campo antecedentes es obligatorio.',
+
         ]);
 
 
@@ -138,6 +147,14 @@ class PatientController extends Controller
 
             'status' => $request->status, // El valor de status se actualiza con el select
             'person_id' => $request->person_id,
+
+        ],[
+            'allergy.required' => 'El campo alergia es obligatorio.',
+            'observation.required' => 'El campo observación es obligatorio.',
+            'recommended_by.required' => 'El campo recomendado por es obligatorio.',
+
+            'responsible_person.required' => 'El campo persona responsable es obligatorio.',
+            'medical_history.required' => 'El campo antecedentes es obligatorio.',
 
         ]);
 
