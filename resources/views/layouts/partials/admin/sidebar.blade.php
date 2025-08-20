@@ -1,14 +1,18 @@
 @php
     $menuModules = [
 
-        'Configuración' => [
+    'Dashboard' => [
             [
                 'icon' => 'fa-solid fa-gauge',
-                'name' => 'Dashboard',
+                'name' => 'Panel de Control',
                 'route' => route('admin.dashboard'),
                 'active' => request()->routeIs('panel.*'),
                 'can' => 'admin.dashboard',
             ],
+            
+             
+        ],
+        'Administracion' => [
             [
                 'icon' => 'fa-solid fa-users',
                 'name' => 'Usuarios',
@@ -22,14 +26,11 @@
                 'route' => route('admin.roles.index'),
                 'active' => request()->routeIs('roles.*'),
                 'can' => 'admin.roles.index',
-            ],
-            [
-                'icon' => 'fa-solid fa-cogs',
-                'name' => 'Categoría de Servicio',
-                'route' => route('admin.service_categories.index'),
-                'active' => request()->routeIs('service_categories.*'),
-                'can' => 'admin.service_categories.index',
-            ],
+            ], 
+            
+             
+        ],
+        'Servicio y especilidad' => [ 
             [
                 'icon' => 'fa-solid fa-box',
                 'name' => 'Servicio',
@@ -44,16 +45,18 @@
                 'active' => request()->routeIs('specialities.*'),
                 'can' => 'admin.specialities.index',
             ],
+        ],
+        'Categorias de' => [ 
             [
-                'icon' => 'fa-solid fa-user-md',
-                'name' => 'Doctor',
-                'route' => route('admin.doctors.index'),
-                'active' => request()->routeIs('doctors.*'),
-                'can' => 'admin.doctors.index',
+                'icon' => 'fa-solid fa-cogs',
+                'name' => 'Servicio',
+                'route' => route('admin.service_categories.index'),
+                'active' => request()->routeIs('service_categories.*'),
+                'can' => 'admin.service_categories.index',
             ],
             [
                 'icon' => 'fa-solid fa-cogs',
-                'name' => 'Categoría de Producto',
+                'name' => 'Producto',
                 'route' => route('admin.product_categories.index'),
                 'active' => request()->routeIs('product_categories.*'),
                 'can' => 'admin.product_categories.index',
@@ -63,7 +66,7 @@
         'Recepción' => [
             [
                 'icon' => 'fa-solid fa-users',
-                'name' => 'Personas',
+                'name' => 'Datos personales',
                 'route' => route('admin.persons.index'),
                 'active' => request()->routeIs('persons.*'),
                 'can' => 'admin.persons.index',
@@ -75,11 +78,26 @@
                 'active' => request()->routeIs('patients.*'),
                 'can' => 'admin.patients.index',
             ],
+            
+            [
+                'icon' => 'fa-solid fa-user-md',
+                'name' => 'Doctor',
+                'route' => route('admin.doctors.index'),
+                'active' => request()->routeIs('doctors.*'),
+                'can' => 'admin.doctors.index',
+            ],
+            [
+                'icon' => 'fa-solid fa-truck',
+                'name' => 'Proveedor',
+                'route' => route('admin.suppliers.index'),
+                'active' => request()->routeIs('suppliers.*'),
+                'can' => 'admin.suppliers.index',
+            ],
         ],
-        'Ventas' => [
+        'Comprobante' => [
             [
                 'icon' => 'fa-solid fa-dollar-sign',
-                'name' => 'Ventas',
+                'name' => 'Comprobante de Servicio',
                 'route' => route('admin.sales.index'),
                 'active' => request()->routeIs('sales.*'),
                 'can' => 'admin.sales.index',
@@ -92,14 +110,8 @@
                 'can' => 'admin.histories.index',
             ],
         ],
-        'Compras' => [
-            [
-                'icon' => 'fa-solid fa-truck',
-                'name' => 'Proveedor',
-                'route' => route('admin.suppliers.index'),
-                'active' => request()->routeIs('suppliers.*'),
-                'can' => 'admin.suppliers.index',
-            ],
+        'Compras de insumos' => [
+            
             [
                 'icon' => 'fa-solid fa-cube',
                 'name' => 'Producto',

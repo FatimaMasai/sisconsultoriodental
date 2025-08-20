@@ -93,7 +93,7 @@ class ServiceCategoryController extends Controller
             'text' => 'Familia actualizada correctamente',
             'icon' => 'success'
         ]);
-        return redirect()->route('admin.service_categories.edit', $serviceCategory);
+        return redirect()->route('admin.service_categories.index', $serviceCategory);
     }
 
     /**

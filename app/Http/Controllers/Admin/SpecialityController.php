@@ -100,7 +100,7 @@ class SpecialityController extends Controller
             'icon' => 'success',
         ]);
 
-        return redirect()->route('admin.specialities.edit', $speciality);
+        return redirect()->route('admin.specialities.index', $speciality);
     }
 
     /**

@@ -2,7 +2,7 @@
     <div class="flex justify-between items-center mb-6">
         <div class="">
             <x-label class="text-black text-xl font-semibold">
-                Listado de Ventas
+                Comprobante de servicios
             </x-label>
         </div>
         <div class="">

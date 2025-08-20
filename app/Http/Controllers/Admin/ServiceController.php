@@ -112,7 +112,7 @@ class ServiceController extends Controller
             'icon' => 'success',
         ]);
 
-        return redirect()->route('admin.services.edit', $service);
+        return redirect()->route('admin.services.index', $service);
     }
 
     /**

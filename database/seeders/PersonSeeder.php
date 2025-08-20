@@ -26,7 +26,7 @@ class PersonSeeder extends Seeder
                 'identity_card' => $faker->unique()->numerify('#######'),
                 'birth_date' => $faker->date('Y-m-d', '2005-12-31'),
                 'gender' => $faker->randomElement(['Femenino', 'Masculino']),
-                'phone' => $faker->numerify('7##-#####'),
+                'phone' => $faker->numerify('7#######'),
                 'email' => $faker->unique()->safeEmail,
                 'address' => $faker->address,
                 'status' => true,
