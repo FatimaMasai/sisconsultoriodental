@@ -30,7 +30,19 @@ Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashb
 
 //rutas de administrador
 Route::get('dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
+
+
+// Cambiar contraseña (colocar antes del resource)
+Route::get('users/{user}/password', [UserController::class, 'editPassword'])->name('users.editPassword');
+Route::put('users/{user}/password', [UserController::class, 'updatePassword'])->name('users.updatePassword');
+
+
 Route::resource('users', UserController::class)->except(['show']); 
+
+ 
+
+ 
+
 Route::resource('roles', RoleController::class);
 
 
@@ -41,7 +53,11 @@ Route::resource('persons', PersonController::class)->except(['show']);
 Route::resource('patients', PatientController::class)->except(['show']);
 Route::resource('specialities', SpecialityController::class)->except(['show']);
 Route::resource('doctors', DoctorController::class)->except(['show']);
-Route::resource('sales', SaleController::class);
+Route::resource('sales', SaleController::class);  
+
+Route::post('sales/{sale}/cancel', [SaleController::class, 'cancel'])->name('sales.cancel');
+
+
 
 
 //historias y notas medicas

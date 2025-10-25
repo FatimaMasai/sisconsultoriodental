@@ -17,6 +17,9 @@ return new class extends Migration
             $table->date('sale_date');
             //$table->string('description'); 
             $table->decimal('total', 10, 2); // Total de la venta
+            
+
+
             $table->string('status')->default('true');
             
 

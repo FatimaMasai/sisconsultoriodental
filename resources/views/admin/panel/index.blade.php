@@ -202,4 +202,102 @@
         </div>
     </div>
 
+
+    <!-- Totales globales -->
+    <div class="bg-white p-6 rounded-lg shadow-md mb-6 ">
+        <x-label class="text-black text-xl font-semibold mb-4">
+            Totales Globales
+        </x-label>
+        <canvas id="totalsChart" class="w-96 h-96 mx-auto" ></canvas>
+    </div>
+
+    <!-- Tendencia mensual -->
+    <div class="bg-white p-6 rounded-lg shadow-md mb-6 ">
+        <x-label class="text-black text-xl font-semibold mb-4">
+            Ventas y Compras Últimos 12 Meses
+        </x-label>
+        <canvas id="monthlyChart" class="w-96 h-96 mx-auto"></canvas>
+</div>
+
+
+
+ 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // 1️⃣ Totales globales
+    const totalsCtx = document.getElementById('totalsChart').getContext('2d');
+    const totalsChart = new Chart(totalsCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Ventas', 'Compras', 'Productos', 'Pacientes', 'Proveedores', 'Doctores', 'Especialidades', 'Servicios'],
+            datasets: [{
+                label: 'Totales',
+                data: [
+                    {{ $totalSales }},
+                    {{ $totalPurchases }},
+                    {{ $totalProducts }},
+                    {{ $totalPatients }},
+                    {{ $totalSuppliers }},
+                    {{ $totalDoctors }},
+                    {{ $totalSpecialities }},
+                    {{ $totalServices }}
+                ],
+                backgroundColor: [
+                    '#4ade80', '#facc15', '#3b82f6', '#60a5fa', '#a78bfa', '#f472b6', '#f87171', '#34d399'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    // 2️⃣ Tendencia mensual
+    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+    const monthlyChart = new Chart(monthlyCtx, {
+        type: 'line',
+        data: {
+            labels: {!! json_encode($months) !!},
+            datasets: [
+                {
+                    label: 'Ventas',
+                    data: {!! json_encode($salesByMonth) !!},
+                    borderColor: '#4ade80',
+                    backgroundColor: 'rgba(74, 222, 128, 0.2)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'Compras',
+                    data: {!! json_encode($purchasesByMonth) !!},
+                    borderColor: '#facc15',
+                    backgroundColor: 'rgba(250, 204, 21, 0.2)',
+                    tension: 0.4,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+</script>
+
+
+ 
+
+
+ 
 </x-admin-layout>

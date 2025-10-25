@@ -104,6 +104,31 @@ class UserController extends Controller
         return redirect()->route('admin.users.index', $user);
     }
 
+    // ====== CONTRASEÑA ======
+        public function editPassword(User $user)
+        {
+            return view('admin.users.password', compact('user'));
+        }
+
+        public function updatePassword(Request $request, User $user)
+        {
+            $request->validate([
+                'password' => 'required|string|min:8|confirmed',
+            ]);
+
+            $user->password = bcrypt($request->password);
+            $user->save();
+
+            session()->flash('swal', [
+                'title' => 'Contraseña Actualizada',
+                'text' => '¡Bien Hecho!',
+                'icon' => 'success',
+            ]);
+
+            return redirect()->route('admin.users.index');
+        }
+
+
     /**
      * Remove the specified resource from storage.
      */

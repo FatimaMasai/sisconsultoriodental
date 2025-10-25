@@ -47,7 +47,15 @@
                                 <div class="flex space-x-2">
 
                                 
-                                    <a href="{{route('admin.users.edit', $user)}}" class="btn btn-blue text-xs">Editar</a>
+                                    <a href="{{route('admin.users.edit', $user)}}" class="btn btn-blue text-xs">Agregar Rol</a>
+
+                                    <!-- Cambiar contraseña -->
+                                    <a href="{{ route('admin.users.editPassword', $user) }}"
+                                    class="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">
+                                    Cambiar Contraseña
+                                    </a>
+
+
                                     <form class="delete-form" action="{{route('admin.users.destroy', $user)}}" method="POST">
 
                                         @csrf
@@ -63,6 +71,9 @@
                                 </div>
 
                             </td>
+
+
+
                         </tr>
                     @endforeach
 

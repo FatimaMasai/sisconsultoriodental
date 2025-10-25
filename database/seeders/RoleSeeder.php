@@ -286,6 +286,10 @@ class RoleSeeder extends Seeder
             'name' => 'admin.sales.print',
             'description' => 'Imprimir ventas',
         ])->syncRoles([$role1, $role3]);
+        Permission::create([
+            'name' => 'admin.sales.cancel',
+            'description' => 'Cancelar ventas',
+        ])->syncRoles([$role1, $role3]);
 
 
         //historia clinica

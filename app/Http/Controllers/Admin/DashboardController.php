@@ -11,7 +11,10 @@ use App\Models\Sale;
 use App\Models\Service;
 use App\Models\Speciality;
 use App\Models\Supplier;
-use Illuminate\Http\Request;
+use Illuminate\Http\Request;    
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+
 
 class DashboardController extends Controller
 {
@@ -31,7 +34,31 @@ class DashboardController extends Controller
         $totalServices = Service::where('status',1)->count(); //total de servicios
 
 
+        // Datos mensuales últimos 12 meses
+        $months = [];
+        $salesByMonth = [];
+        $purchasesByMonth = [];
+
+        for ($i = 11; $i >= 0; $i--) {
+            $month = Carbon::now()->subMonths($i)->format('Y-m');
+            $months[] = Carbon::parse($month . '-01')->format('M Y');
+
+            $salesByMonth[] = Sale::whereYear('created_at', Carbon::parse($month)->year)
+                ->whereMonth('created_at', Carbon::parse($month)->month)
+                ->sum('total');
+
+            $purchasesByMonth[] = Purchase::whereYear('created_at', Carbon::parse($month)->year)
+                ->whereMonth('created_at', Carbon::parse($month)->month)
+                ->sum('total');
+        }
+
+
         return view('admin.panel.index', compact('totalSales', 'totalPurchases', 'totalProducts',
-            'totalPatients', 'totalSuppliers', 'totalDoctors', 'totalServices', 'totalSpecialities'));
+            'totalPatients', 'totalSuppliers', 'totalDoctors', 'totalServices', 'totalSpecialities',
+        'months','salesByMonth','purchasesByMonth'
+        ));
     }
+
+
+    
 }

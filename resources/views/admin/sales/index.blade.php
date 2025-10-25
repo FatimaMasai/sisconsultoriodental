@@ -38,8 +38,13 @@
                             Pago
                         </th>  
                         <th scope="col" class="px-3 py-2">
+                            Estado
+                        </th>
+
+                        <th scope="col" class="px-3 py-2">
                             Acciones
                         </th>
+                        
                     </tr>
                 </thead>
                 <tbody>
@@ -60,23 +65,39 @@
                                 {{ $sale->sale_date }} 
                             </td> 
                             <td class="px-3 py-2">
-                                Bs. {{ $sale->total }} 
+                                {{-- Bs. {{ $sale->total }}   --}}
+                                {{ number_format($sale->total, 0, '', '.') }} Bs.
                             </td> 
-
-                            
-                             
- 
-
+  
                             <td class="px-3 py-2" >
                                 <div class="flex space-x-2"> 
                                     @can('admin.sales.print')
                                         <a href="{{ route('admin.sales.print', $sale->id) }}" class="btn btn-orange text-xs" target="_blank">PDF</a>
                                     @endcan
 
-                                    
+                                    @can('admin.sales.cancel')
+                                    <form action="{{ route('admin.sales.cancel', $sale) }}" method="POST" class="delete-form">
+                                        @csrf
+                                        <button type="submit" class="btn btn-red text-xs">
+                                            Anular
+                                        </button>
+                                    </form>
+ 
+                                    @endcan
                                 </div>
 
                             </td>
+
+                            <td class="px-3 py-2">
+                                @if ($sale->status == 1)
+                                    <span class="text-green-600 font-semibold">Activa</span>
+                                @else
+                                    <span class="text-red-600 font-semibold">Anulada</span>
+                                @endif
+                            </td>
+
+  
+
                         </tr>
                     @endforeach
 

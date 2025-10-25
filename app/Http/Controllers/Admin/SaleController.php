@@ -26,13 +26,19 @@ class SaleController extends Controller
         $this->middleware('can:admin.sales.create')->only('create', 'store');
         $this->middleware('can:admin.sales.edit')->only('edit', 'update');
         $this->middleware('can:admin.sales.pdf')->only('pdf');
+        $this->middleware('can:admin.sales.cancel')->only('cancel');
+
     }
     
 
     public function index()
     {
         // Obtener todas las ventas junto con la relación con pacientes, servicios, médicos y pagos.
-        $sales = Sale::where('status',1)
+        //$sales = Sale::where('status',1)
+
+         // Obtener todas las ventas (activas o anuladas)
+        $sales = Sale::with(['patient.person', 'doctor.person'])
+    
         ->orderBy('id', 'DESC') // Ordenar las ventas por la fecha de la venta
         ->paginate(50); // Paginación para limitar los resultados
 
@@ -212,4 +218,50 @@ class SaleController extends Controller
         //descargar pdf
         return $pdf->stream('comprante_venta_' . $sale->id . '.pdf'); 
     }
+
+
+    public function cancel(Sale $sale)
+    {
+        // Verificar si ya está anulada
+        if ($sale->status == 0) {
+            return redirect()->back()->with('info', 'Esta venta ya está anulada.');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Cambiar estado de la venta
+            $sale->update(['status' => 0]);
+
+            // Cambiar estado de los detalles si quieres (opcional)
+            foreach ($sale->saleDetails as $detail) {
+                $detail->update(['subtotal' => 0]);
+            }
+
+            // Cambiar estado de los pagos si existen
+            foreach ($sale->payments as $payment) {
+                $payment->update([
+                    'payment_status' => 'Anulado'
+                ]);
+            }
+
+            DB::commit();
+
+            session()->flash('swal', [
+                'title' => 'Venta anulada con éxito',
+                'text' => 'La venta fue anulada correctamente.',
+                'icon' => 'success'
+            ]);
+
+            return redirect()->route('admin.sales.index');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->withErrors([
+                'error' => 'Ocurrió un error al anular la venta: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+
+
 }
