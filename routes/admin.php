@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Route;
 // })->name('dasboard');
 
 Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
-
+Route::get('/dashboard2', [DashboardController::class, 'dashboard2'])->name('dashboard2');
 // Route::get('/', function() {
 //     return redirect()->route('login');  // Redirige a la página de login
 // });
