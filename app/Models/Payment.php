@@ -7,12 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class Payment extends Model
 {
     protected $fillable = [
-        'amount', 
-        'payment_method', 
+        'amount',
+        'payment_method',
         'payment_status',
-        
+
         'sale_id',
         'purchase_id',
+        'installment_id',
     ];
     public function sale()
     {
@@ -22,5 +23,10 @@ class Payment extends Model
     public function purchase()
     {
         return $this->belongsTo(Purchase::class);
+    }
+
+    public function installment()
+    {
+        return $this->belongsTo(Installment::class);
     }
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comprobante de Venta #{{ $sale->id }}</title>
+    <title>Comprobante de Venta {{ $sale->numero }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -65,7 +65,7 @@
     <!-- Encabezado -->
     <div class="header">
         <h1>COMPROBANTE DE VENTA</h1>
-        <p>Venta: # {{ $sale->id }}  </p>
+        <p>Venta: {{ $sale->numero }}</p>
     </div>
 
     <!-- Datos del paciente -->
@@ -118,7 +118,7 @@
 
     <!-- Total de la venta -->
     <div class="total">
-        <p style="margin: 0; padding: 0;"><strong>Importe Total: Bs. {{ $sale->total }}</strong></p> <!-- Total en números -->
+        <p style="margin: 0; padding: 0;"><strong>Importe Total: Bs. {{ number_format($sale->total, 0, '', '.') }}</strong></p> <!-- Total en números -->
         {{-- <p><strong>Son:</strong> {{ $totalLiteral }} 00/100 BOLIVIANOS</p>    --}}
     </div>
 

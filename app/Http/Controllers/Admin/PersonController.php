@@ -55,14 +55,24 @@ class PersonController extends Controller
 
             'phone' => 'required|numeric',
             'email' => 'required|email',
-            'address' => 'required', 
+            'address' => 'required',
 
-        ],        
+        ],
         [
+            'name.required' => 'El nombre es obligatorio.',
             'last_name_father.required' => 'El apellido paterno es obligatorio.',
             'last_name_mother.required' => 'El apellido materno es obligatorio.',
-            'identity_card.required' => 'El número de cédula ya está registrado.',
-            'birth_date.required' => 'La fecha de nacimiento es obligatoria.', 
+            'identity_card.required' => 'El carnet de identidad es obligatorio.',
+            'identity_card.numeric' => 'El carnet de identidad solo debe contener números.',
+            'identity_card.unique' => 'Ese número de carnet de identidad ya está registrado.',
+            'birth_date.required' => 'La fecha de nacimiento es obligatoria.',
+            'birth_date.date_format' => 'La fecha de nacimiento no es válida.',
+            'gender.required' => 'Debe seleccionar el sexo.',
+            'phone.required' => 'El celular es obligatorio.',
+            'phone.numeric' => 'El celular solo debe contener números.',
+            'email.required' => 'El email es obligatorio.',
+            'email.email' => 'Ingrese un email válido.',
+            'address.required' => 'La dirección es obligatoria.',
         ]);
  
         Person::create([
@@ -125,15 +135,25 @@ class PersonController extends Controller
 
             'phone' => 'required|numeric',
             'email' => 'required|email',
-            'address' => 'required', 
+            'address' => 'required',
 
         ],
-        
+
         [
+            'name.required' => 'El nombre es obligatorio.',
             'last_name_father.required' => 'El apellido paterno es obligatorio.',
             'last_name_mother.required' => 'El apellido materno es obligatorio.',
-            'identity_card.required' => 'El número de cédula ya está registrado.',
-            'birth_date.required' => 'La fecha de nacimiento es obligatoria.', 
+            'identity_card.required' => 'El carnet de identidad es obligatorio.',
+            'identity_card.numeric' => 'El carnet de identidad solo debe contener números.',
+            'identity_card.unique' => 'Ese número de carnet de identidad ya está registrado.',
+            'birth_date.required' => 'La fecha de nacimiento es obligatoria.',
+            'birth_date.date_format' => 'La fecha de nacimiento no es válida.',
+            'gender.required' => 'Debe seleccionar el sexo.',
+            'phone.required' => 'El celular es obligatorio.',
+            'phone.numeric' => 'El celular solo debe contener números.',
+            'email.required' => 'El email es obligatorio.',
+            'email.email' => 'Ingrese un email válido.',
+            'address.required' => 'La dirección es obligatoria.',
         ]);
 
         

@@ -74,11 +74,11 @@
     <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-6">
         <div class="bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-lg shadow-md text-white">
             <p class="text-sm opacity-90">Ventas Totales</p>
-            <p class="text-2xl font-bold">{{ number_format($totalSales, 2) }} Bs.</p>
+            <p class="text-2xl font-bold">{{ number_format($totalSales, 0, '', '.') }} Bs.</p>
         </div>
         <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 p-6 rounded-lg shadow-md text-white">
             <p class="text-sm opacity-90">Compras Totales</p>
-            <p class="text-2xl font-bold">{{ number_format($totalPurchases, 2) }} Bs.</p>
+            <p class="text-2xl font-bold">{{ number_format($totalPurchases, 0, '', '.') }} Bs.</p>
         </div>
         <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-lg shadow-md text-white">
             <p class="text-sm opacity-90">Pacientes</p>
@@ -145,7 +145,7 @@
                         <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{{ $supplier['name'] }}</td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $supplier['total_orders'] }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-green-600">{{ number_format($supplier['total_purchases'], 2) }} Bs.</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-green-600">{{ number_format($supplier['total_purchases'], 0, '', '.') }} Bs.</td>
                         </tr>
                         @empty
                         <tr>

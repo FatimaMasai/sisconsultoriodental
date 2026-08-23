@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Doctor;
 use App\Models\History;
+use App\Models\Installment;
 use App\Models\Patient;
 use App\Models\Product;
 use App\Models\Purchase;
@@ -12,7 +13,7 @@ use App\Models\Sale;
 use App\Models\Service;
 use App\Models\Speciality;
 use App\Models\Supplier;
-use Illuminate\Http\Request;    
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -21,8 +22,8 @@ class DashboardController extends Controller
 {
     public function dashboard()
     {
-        $totalSales = Sale::sum('total'); //total de ventas
-        $totalPurchases = Purchase::sum('total'); //total de compras
+        $totalSales = Sale::where('status', 1)->sum('total'); //total de ventas activas (no anuladas)
+        $totalPurchases = Purchase::where('status', 1)->sum('total'); //total de compras activas (no anuladas)
         $totalProducts = Product::where('status',1)->count(); //total de productos
          // Depuración para verificar los valores
     //dd($totalSales, $totalPurchases, $totalProducts);
@@ -37,26 +38,57 @@ class DashboardController extends Controller
 
         // Datos mensuales últimos 12 meses
         $months = [];
-        $salesByMonth = [];
+        $salesContadoByMonth = [];
+        $salesCreditoByMonth = [];
         $purchasesByMonth = [];
 
         for ($i = 11; $i >= 0; $i--) {
             $month = Carbon::now()->subMonths($i)->format('Y-m');
             $months[] = Carbon::parse($month . '-01')->format('M Y');
 
-            $salesByMonth[] = Sale::whereYear('created_at', Carbon::parse($month)->year)
+            $salesContadoByMonth[] = Sale::where('status', 1)
+                ->where('payment_type', 'Contado')
+                ->whereYear('created_at', Carbon::parse($month)->year)
                 ->whereMonth('created_at', Carbon::parse($month)->month)
                 ->sum('total');
 
-            $purchasesByMonth[] = Purchase::whereYear('created_at', Carbon::parse($month)->year)
+            $salesCreditoByMonth[] = Sale::where('status', 1)
+                ->where('payment_type', 'Credito')
+                ->whereYear('created_at', Carbon::parse($month)->year)
+                ->whereMonth('created_at', Carbon::parse($month)->month)
+                ->sum('total');
+
+            $purchasesByMonth[] = Purchase::where('status', 1)
+                ->whereYear('created_at', Carbon::parse($month)->year)
                 ->whereMonth('created_at', Carbon::parse($month)->month)
                 ->sum('total');
         }
 
+        // Cuotas por cobrar (ventas a Credito): vencidas y las que vencen este mes.
+        // El status de la cuota solo se guarda como Pendiente/Pagada/Anulada; "vencida"
+        // se calcula aquí comparando la fecha, igual que en el accesor del modelo.
+        $today = Carbon::today();
+
+        $cuotasVencidasMonto = Installment::where('status', 'Pendiente')
+            ->where('due_date', '<', $today)
+            ->sum('amount');
+        $cuotasVencidasCount = Installment::where('status', 'Pendiente')
+            ->where('due_date', '<', $today)
+            ->count();
+
+        $cuotasMesMonto = Installment::where('status', 'Pendiente')
+            ->whereYear('due_date', $today->year)
+            ->whereMonth('due_date', $today->month)
+            ->sum('amount');
+        $cuotasMesCount = Installment::where('status', 'Pendiente')
+            ->whereYear('due_date', $today->year)
+            ->whereMonth('due_date', $today->month)
+            ->count();
 
         return view('admin.panel.index', compact('totalSales', 'totalPurchases', 'totalProducts',
             'totalPatients', 'totalSuppliers', 'totalDoctors', 'totalServices', 'totalSpecialities',
-        'months','salesByMonth','purchasesByMonth'
+            'months', 'salesContadoByMonth', 'salesCreditoByMonth', 'purchasesByMonth',
+            'cuotasVencidasMonto', 'cuotasVencidasCount', 'cuotasMesMonto', 'cuotasMesCount'
         ));
     }
 
@@ -75,8 +107,8 @@ class DashboardController extends Controller
         $servicesThisWeek = History::whereBetween('date', [$startOfWeek, $today])->count();
         $servicesThisMonth = History::whereBetween('date', [$startOfMonth, $today])->count();
 
-        $totalSales = Sale::sum('total');
-        $totalPurchases = Purchase::sum('total');
+        $totalSales = Sale::where('status', 1)->sum('total');
+        $totalPurchases = Purchase::where('status', 1)->sum('total');
         $totalPatients = Patient::where('status', 1)->count();
         $totalDoctors = Doctor::where('status', 1)->count();
         $totalSuppliers = Supplier::where('status', 1)->count();
@@ -100,6 +132,7 @@ class DashboardController extends Controller
             ->join('people', 'suppliers.person_id', '=', 'people.id')
             ->selectRaw('suppliers.id, suppliers.company, people.name, SUM(purchases.total) as total_purchases, COUNT(purchases.id) as total_orders')
             ->where('suppliers.status', 1)
+            ->where('purchases.status', 1)
             ->groupBy('suppliers.id', 'suppliers.company', 'people.name')
             ->orderBy('total_purchases', 'DESC')
             ->limit(10)
@@ -136,10 +169,12 @@ class DashboardController extends Controller
             $startOfPeriod = $date->copy()->startOfMonth();
             $endOfPeriod = $date->copy()->endOfMonth();
 
-            $salesByMonthQ[] = Sale::whereBetween('sale_date', [$startOfPeriod, $endOfPeriod])
+            $salesByMonthQ[] = Sale::where('status', 1)
+                ->whereBetween('sale_date', [$startOfPeriod, $endOfPeriod])
                 ->sum('total');
 
-            $purchasesByMonthQ[] = Purchase::whereBetween('date', [$startOfPeriod, $endOfPeriod])
+            $purchasesByMonthQ[] = Purchase::where('status', 1)
+                ->whereBetween('date', [$startOfPeriod, $endOfPeriod])
                 ->sum('total');
         }
 

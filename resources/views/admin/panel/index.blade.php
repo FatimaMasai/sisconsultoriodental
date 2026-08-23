@@ -1,303 +1,200 @@
 <x-admin-layout>
-    <x-label class="text-black text-xl font-semibold mb-4">
-        Dashboard
-    </x-label>
-
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <!-- Total de Ventas -->
-        <div class="bg-white p-6 rounded-lg shadow-md"> 
-            <x-label class="text-black text-xl font-semibold mb-4">
-                Ventas Totales
-            </x-label>
-
-            @if ($totalSales > 0)
-                <p class="text-2xl font-bold text-green-500">{{ $totalSales }} Bs.</p>
-            @else
-                <div class="flex items-center p-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400"
-                    role="alert">
-                    <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                            d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-                    </svg>
-
-                    <span class="sr-only">Info</span>
-                    <div>
-                        <span class="font-medium">Bs. 0</span>
-                    </div>
-                </div>
-            @endif
-        </div>
-
-        <!-- Total de Compras -->
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <x-label class="text-black text-xl font-semibold mb-4">
-                Compras Totales
-            </x-label> 
-
-            @if ($totalPurchases > 0)
-                <p class="text-2xl font-bold text-yellow-500">{{ $totalPurchases }} Bs.</p>
-            @else
-                <div class="flex items-center p-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400"
-                    role="alert">
-                    <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                            d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-                    </svg>
-
-                    <span class="sr-only">Info</span>
-                    <div>
-                        <span class="font-medium">Bs. 0</span>
-                    </div>
-                </div>
-            @endif
-        </div>
-
-        <!-- Total de Productos -->
-        <div class="bg-white p-6 rounded-lg shadow-md"> 
-            <x-label class="text-black text-xl font-semibold mb-4">
-                Productos 
-            </x-label>
-            @if ($totalProducts > 0)
-                <p class="text-3xl font-bold text-blue-500">{{ $totalProducts }}</p>
-            @else
-                <div class="flex items-center p-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400"
-                    role="alert">
-                    <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                            d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-                    </svg>
-
-                    <span class="sr-only">Info</span>
-                    <div>
-                        <span class="font-medium">No hay productos</span>
-                    </div>
-                </div>
-            @endif
-        </div>
-
-        <!-- Total de Pacientes -->
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <x-label class="text-black text-xl font-semibold mb-4">
-                Pacientes 
-            </x-label> 
-            @if ($totalPatients > 0)
-                <p class="text-3xl font-bold text-blue-500">{{ $totalPatients }}</p>
-            @else
-                <div class="flex items-center p-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400"
-                    role="alert">
-                    <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                            d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-                    </svg>
-
-                    <span class="sr-only">Info</span>
-                    <div>
-                        <span class="font-medium">No hay pacientes</span>
-                    </div>
-                </div>
-            @endif
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <!-- Total de Proveedores -->
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <x-label class="text-black text-xl font-semibold mb-4">
-                Proveedores 
-            </x-label> 
- 
-            @if ($totalSuppliers > 0)
-                <p class="text-3xl font-bold text-blue-500">{{ $totalSuppliers }}</p>
-            @else
-                <div class="flex items-center p-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400"
-                    role="alert">
-                    <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                            d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-                    </svg>
-
-                    <span class="sr-only">Info</span>
-                    <div>
-                        <span class="font-medium">No hay proveedores</span>
-                    </div>
-                </div>
-            @endif
-        </div>
-
-        <!-- Total de Doctores -->
-        <div class="bg-white p-6 rounded-lg shadow-md"> 
-            <x-label class="text-black text-xl font-semibold mb-4">
-                Doctores 
-            </x-label>
-
-            @if ($totalDoctors > 0)
-                <p class="text-3xl font-bold text-blue-500">{{ $totalDoctors }}</p>
-            @else
-                <div class="flex items-center p-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400"
-                    role="alert">
-                    <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                            d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-                    </svg>
-
-                    <span class="sr-only">Info</span>
-                    <div>
-                        <span class="font-medium">No hay doctores</span>
-                    </div>
-                </div>
-            @endif
-        </div>
-        <!-- Total de Doctores -->
-        <div class="bg-white p-6 rounded-lg shadow-md"> 
-            <x-label class="text-black text-xl font-semibold mb-4">
-                Especialidades 
-            </x-label>
-            @if ($totalSpecialities > 0)
-                <p class="text-3xl font-bold text-blue-500">{{ $totalSpecialities }}</p>
-            @else
-                <div class="flex items-center p-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400"
-                    role="alert">
-                    <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                            d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-                    </svg>
-
-                    <span class="sr-only">Info</span>
-                    <div>
-                        <span class="font-medium">No hay especialidades</span>
-                    </div>
-                </div>
-            @endif
-        </div>
-
-        <!-- Total de Servicios -->
-        <div class="bg-white p-6 rounded-lg shadow-md"> 
-            <x-label class="text-black text-xl font-semibold mb-4">
-                Servicios 
-            </x-label>
-            @if ($totalServices > 0)
-                <p class="text-3xl font-bold text-blue-500">{{ $totalServices }}</p>
-            @else
-                <div class="flex items-center p-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400"
-                    role="alert">
-                    <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                        fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                            d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-                    </svg>
-
-                    <span class="sr-only">Info</span>
-                    <div>
-                        <span class="font-medium">No hay servicios</span>
-                    </div>
-                </div>
-            @endif
-        </div>
-    </div>
-
-
-    <!-- Totales globales -->
-    <div class="bg-white p-6 rounded-lg shadow-md mb-6 ">
-        <x-label class="text-black text-xl font-semibold mb-4">
-            Totales Globales
+    <div class="mb-6">
+        <x-label class="text-black dark:text-white text-xl font-semibold">
+            Panel de Control
         </x-label>
-        <canvas id="totalsChart" class="w-96 h-96 mx-auto" ></canvas>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Resumen general de la clínica.
+        </p>
     </div>
 
-    <!-- Tendencia mensual -->
-    <div class="bg-white p-6 rounded-lg shadow-md mb-6 ">
-        <x-label class="text-black text-xl font-semibold mb-4">
-            Ventas y Compras Últimos 12 Meses
+    {{-- Resumen principal: siempre en una sola fila horizontal en escritorio, apilado/2x2 en pantallas chicas --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5">
+            <div class="flex items-center justify-between mb-2">
+                <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-medium">Ventas Totales</p>
+                <div class="w-9 h-9 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-sack-dollar text-green-600 dark:text-green-400 text-sm"></i>
+                </div>
+            </div>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ number_format($totalSales, 0, '', '.') }} Bs.</p>
+            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Ventas activas, sin contar anuladas</p>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5">
+            <div class="flex items-center justify-between mb-2">
+                <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-medium">Compras Totales</p>
+                <div class="w-9 h-9 rounded-full bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-cart-shopping text-orange-600 dark:text-orange-400 text-sm"></i>
+                </div>
+            </div>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ number_format($totalPurchases, 0, '', '.') }} Bs.</p>
+            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Compras activas, sin contar anuladas</p>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5">
+            <div class="flex items-center justify-between mb-2">
+                <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-medium">Cuotas Vencidas</p>
+                <div class="w-9 h-9 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-triangle-exclamation text-red-500 dark:text-red-400 text-sm"></i>
+                </div>
+            </div>
+
+            @if ($cuotasVencidasCount > 0)
+                <p class="text-2xl font-bold text-red-600">Bs. {{ number_format($cuotasVencidasMonto, 0, '', '.') }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {{ $cuotasVencidasCount }} {{ $cuotasVencidasCount == 1 ? 'cuota vencida' : 'cuotas vencidas' }} sin pagar
+                </p>
+            @else
+                <p class="text-2xl font-bold text-green-600">
+                    <i class="fa-solid fa-circle-check text-lg"></i> Al día
+                </p>
+                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">No hay cuotas vencidas</p>
+            @endif
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5">
+            <div class="flex items-center justify-between mb-2">
+                <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-medium">Cuotas por Cobrar Este Mes</p>
+                <div class="w-9 h-9 rounded-full bg-yellow-50 dark:bg-yellow-900/20 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-calendar-days text-yellow-600 dark:text-yellow-400 text-sm"></i>
+                </div>
+            </div>
+
+            @if ($cuotasMesCount > 0)
+                <p class="text-2xl font-bold text-yellow-600">Bs. {{ number_format($cuotasMesMonto, 0, '', '.') }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {{ $cuotasMesCount }} {{ $cuotasMesCount == 1 ? 'cuota' : 'cuotas' }} con vencimiento este mes
+                </p>
+            @else
+                <p class="text-2xl font-bold text-gray-400 dark:text-gray-500">—</p>
+                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">No hay cuotas por cobrar este mes</p>
+            @endif
+        </div>
+    </div>
+
+    {{-- Resumen general: datos de referencia, más compactos --}}
+    @php
+        $resumen = [
+            ['label' => 'Pacientes', 'value' => $totalPatients, 'icon' => 'fa-users', 'color' => 'blue'],
+            ['label' => 'Doctores', 'value' => $totalDoctors, 'icon' => 'fa-user-doctor', 'color' => 'blue'],
+            ['label' => 'Proveedores', 'value' => $totalSuppliers, 'icon' => 'fa-truck', 'color' => 'blue'],
+            ['label' => 'Especialidades', 'value' => $totalSpecialities, 'icon' => 'fa-stethoscope', 'color' => 'blue'],
+            ['label' => 'Servicios', 'value' => $totalServices, 'icon' => 'fa-tooth', 'color' => 'blue'],
+            ['label' => 'Productos', 'value' => $totalProducts, 'icon' => 'fa-box', 'color' => 'blue'],
+        ];
+    @endphp
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+        @foreach ($resumen as $item)
+            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-center">
+                <div class="w-8 h-8 mx-auto mb-2 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                    <i class="fa-solid {{ $item['icon'] }} text-blue-500 dark:text-blue-400 text-xs"></i>
+                </div>
+                <p class="text-lg font-bold text-gray-900 dark:text-white leading-tight">{{ $item['value'] }}</p>
+                <p class="text-[11px] text-gray-500 dark:text-gray-400">{{ $item['label'] }}</p>
+            </div>
+        @endforeach
+    </div>
+
+    {{-- Tendencia mensual --}}
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5 mb-6">
+        <x-label class="text-black dark:text-white text-base font-semibold mb-4 block">
+            Ventas (Contado / Crédito) y Compras &mdash; Últimos 12 Meses
         </x-label>
-        <canvas id="monthlyChart" class="w-96 h-96 mx-auto"></canvas>
-</div>
+        <div class="relative h-72 sm:h-80">
+            <canvas id="monthlyChart"></canvas>
+        </div>
+    </div>
 
+    {{-- Distribución de la clínica --}}
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5 mb-6">
+        <x-label class="text-black dark:text-white text-base font-semibold mb-4 block">
+            Distribución de la Clínica
+        </x-label>
+        <div class="relative h-64 sm:h-72">
+            <canvas id="totalsChart"></canvas>
+        </div>
+    </div>
 
-
- 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    // 1️⃣ Totales globales
-    const totalsCtx = document.getElementById('totalsChart').getContext('2d');
-    const totalsChart = new Chart(totalsCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Ventas', 'Compras', 'Productos', 'Pacientes', 'Proveedores', 'Doctores', 'Especialidades', 'Servicios'],
-            datasets: [{
-                label: 'Totales',
-                data: [
-                    {{ $totalSales }},
-                    {{ $totalPurchases }},
-                    {{ $totalProducts }},
-                    {{ $totalPatients }},
-                    {{ $totalSuppliers }},
-                    {{ $totalDoctors }},
-                    {{ $totalSpecialities }},
-                    {{ $totalServices }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Tendencia mensual: ventas (Contado / Crédito) y compras.
+        const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+        new Chart(monthlyCtx, {
+            type: 'line',
+            data: {
+                labels: {!! json_encode($months) !!},
+                datasets: [
+                    {
+                        label: 'Ventas Contado',
+                        data: {!! json_encode($salesContadoByMonth) !!},
+                        borderColor: '#4ade80',
+                        backgroundColor: 'rgba(74, 222, 128, 0.2)',
+                        tension: 0.4,
+                        fill: true,
+                    },
+                    {
+                        label: 'Ventas Crédito',
+                        data: {!! json_encode($salesCreditoByMonth) !!},
+                        borderColor: '#60a5fa',
+                        backgroundColor: 'rgba(96, 165, 250, 0.2)',
+                        tension: 0.4,
+                        fill: true,
+                    },
+                    {
+                        label: 'Compras',
+                        data: {!! json_encode($purchasesByMonth) !!},
+                        borderColor: '#fb923c',
+                        backgroundColor: 'rgba(251, 146, 60, 0.2)',
+                        tension: 0.4,
+                        fill: true,
+                    },
                 ],
-                backgroundColor: [
-                    '#4ade80', '#facc15', '#3b82f6', '#60a5fa', '#a78bfa', '#f472b6', '#f87171', '#34d399'
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { display: false }
             },
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
-    });
-
-    // 2️⃣ Tendencia mensual
-    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
-    const monthlyChart = new Chart(monthlyCtx, {
-        type: 'line',
-        data: {
-            labels: {!! json_encode($months) !!},
-            datasets: [
-                {
-                    label: 'Ventas',
-                    data: {!! json_encode($salesByMonth) !!},
-                    borderColor: '#4ade80',
-                    backgroundColor: 'rgba(74, 222, 128, 0.2)',
-                    tension: 0.4,
-                    fill: true
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' },
                 },
-                {
-                    label: 'Compras',
-                    data: {!! json_encode($purchasesByMonth) !!},
-                    borderColor: '#facc15',
-                    backgroundColor: 'rgba(250, 204, 21, 0.2)',
-                    tension: 0.4,
-                    fill: true
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { position: 'top' }
+                scales: {
+                    y: { beginAtZero: true },
+                },
             },
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
-    });
-</script>
+        });
 
-
- 
-
-
- 
+        // Distribución de la clínica: solo cantidades (unidades comparables entre sí).
+        const totalsCtx = document.getElementById('totalsChart').getContext('2d');
+        new Chart(totalsCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Pacientes', 'Doctores', 'Proveedores', 'Especialidades', 'Servicios', 'Productos'],
+                datasets: [{
+                    label: 'Cantidad',
+                    data: [
+                        {{ $totalPatients }},
+                        {{ $totalDoctors }},
+                        {{ $totalSuppliers }},
+                        {{ $totalSpecialities }},
+                        {{ $totalServices }},
+                        {{ $totalProducts }},
+                    ],
+                    backgroundColor: '#60a5fa',
+                    borderRadius: 6,
+                    maxBarThickness: 48,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                },
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 } },
+                },
+            },
+        });
+    </script>
 </x-admin-layout>

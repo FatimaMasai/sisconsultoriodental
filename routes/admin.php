@@ -37,11 +37,11 @@ Route::get('users/{user}/password', [UserController::class, 'editPassword'])->na
 Route::put('users/{user}/password', [UserController::class, 'updatePassword'])->name('users.updatePassword');
 
 
-Route::resource('users', UserController::class)->except(['show']); 
+Route::resource('users', UserController::class)->except(['show']);
 
- 
 
- 
+
+
 
 Route::resource('roles', RoleController::class);
 
@@ -49,13 +49,14 @@ Route::resource('roles', RoleController::class);
 //ventas
 Route::resource('service_categories', ServiceCategoryController::class);
 Route::resource('services', ServiceController::class)->except(['show']);
-Route::resource('persons', PersonController::class)->except(['show']); 
+Route::resource('persons', PersonController::class)->except(['show']);
 Route::resource('patients', PatientController::class)->except(['show']);
 Route::resource('specialities', SpecialityController::class)->except(['show']);
 Route::resource('doctors', DoctorController::class)->except(['show']);
-Route::resource('sales', SaleController::class);  
+Route::resource('sales', SaleController::class);
 
 Route::post('sales/{sale}/cancel', [SaleController::class, 'cancel'])->name('sales.cancel');
+Route::post('sales/{sale}/installments/{installment}/pay', [SaleController::class, 'payInstallment'])->name('sales.installments.pay');
 
 
 
@@ -63,18 +64,20 @@ Route::post('sales/{sale}/cancel', [SaleController::class, 'cancel'])->name('sal
 //historias y notas medicas
 Route::resource('histories', HistoryController::class);
 Route::post('histories/{id}/add-note',[HistoryController::class, 'addNote'])->name('histories.addNote');
- 
+
 
 //compras
 Route::resource('product_categories', ProductCategoryController::class )->except(['show']);
 Route::resource('products', ProductController::class)->except(['show']);
 Route::resource('suppliers', SupplierController::class)->except(['show']);
 Route::resource('purchases', PurchaseController::class);
-  
+
+Route::post('purchases/{purchase}/cancel', [PurchaseController::class, 'cancel'])->name('purchases.cancel');
 
 
-                
-//PDF 
+
+
+//PDF
 Route::get('users/pdf', [UserController::class, 'pdf'])->name('users.pdf');
 
 
@@ -97,5 +100,4 @@ Route::get('/suppliers/pdf', [SupplierController::class, 'pdf'])->name('supplier
 Route::get('/purchases/pdf', [PurchaseController::class, 'pdf'])->name('purchases.pdf');
 Route::get('/purchases/{purchasePrint}/print', [PurchaseController::class, 'print'])->name('purchases.print');
 
- 
-   
+

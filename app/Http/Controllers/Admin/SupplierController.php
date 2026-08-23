@@ -6,12 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Person;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class SupplierController extends Controller
 {
-    
+
     public function __construct()
     {
         $this->middleware('can:admin.suppliers.index')->only('index');
@@ -40,7 +41,8 @@ class SupplierController extends Controller
      */
     public function create()
     {
-        $persons = Person::where('status', 1)->orderBy('id', 'desc')->get();
+        // Solo personas que todavía no tienen un registro de proveedor asociado.
+        $persons = Person::where('status', 1)->whereDoesntHave('supplier')->orderBy('id', 'desc')->get();
         return view('admin.suppliers.create', compact('persons'));
     }
 
@@ -49,24 +51,102 @@ class SupplierController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $personMode = $request->person_mode === 'existing' ? 'existing' : 'new';
+
+        $rules = [
+            'person_mode' => 'required|in:new,existing',
             'company' => 'required',
-            'nit' => 'required|numeric', 
+            'nit' => 'required|numeric',
+        ];
 
-        ]);
+        $messages = [
+            'person_mode.required' => 'Debe indicar si la persona es nueva o ya existe.',
+            'company.required' => 'La empresa es obligatoria.',
+            'nit.required' => 'El NIT es obligatorio.',
+            'nit.numeric' => 'El NIT solo debe contener números.',
+        ];
 
-        Supplier::create([
-            'company' => ucfirst(strtolower($request->company)),
-            'nit' => $request->nit,
-            'person_id' => $request->person_id,
-            'status' => 1,
-        ]);
+        if ($personMode === 'existing') {
+            $rules['person_id'] = 'required|exists:people,id';
+            $messages['person_id.required'] = 'Debe seleccionar una persona.';
+        } else {
+            $rules = array_merge($rules, [
+                'name' => 'required',
+                'last_name_father' => 'required',
+                'last_name_mother' => 'required',
+                'identity_card' => 'required|numeric|unique:people,identity_card',
+                'birth_date' => 'required|date_format:Y-m-d',
+                'gender' => 'required',
+                'phone' => 'required|numeric',
+                'email' => 'required|email',
+                'address' => 'required',
+            ]);
+
+            $messages = array_merge($messages, [
+                'name.required' => 'El nombre es obligatorio.',
+                'last_name_father.required' => 'El apellido paterno es obligatorio.',
+                'last_name_mother.required' => 'El apellido materno es obligatorio.',
+                'identity_card.required' => 'El carnet de identidad es obligatorio.',
+                'identity_card.numeric' => 'El carnet de identidad solo debe contener números.',
+                'identity_card.unique' => 'Ese número de carnet de identidad ya está registrado.',
+                'birth_date.required' => 'La fecha de nacimiento es obligatoria.',
+                'birth_date.date_format' => 'La fecha de nacimiento no es válida.',
+                'gender.required' => 'Debe seleccionar el sexo.',
+                'phone.required' => 'El celular es obligatorio.',
+                'phone.numeric' => 'El celular solo debe contener números.',
+                'email.required' => 'El email es obligatorio.',
+                'email.email' => 'Ingrese un email válido.',
+                'address.required' => 'La dirección es obligatoria.',
+            ]);
+        }
+
+        $request->validate($rules, $messages);
+
+        DB::beginTransaction();
+        try {
+            if ($personMode === 'existing') {
+                $personId = $request->person_id;
+            } else {
+                $person = Person::create([
+                    'name' => ucwords(strtolower($request->name)),
+                    'last_name_father' => ucwords(strtolower($request->last_name_father)),
+                    'last_name_mother' => ucwords(strtolower($request->last_name_mother)),
+                    'identity_card' => $request->identity_card,
+                    'birth_date' => $request->birth_date,
+                    'gender' => $request->gender,
+                    'phone' => $request->phone,
+                    'email' => $request->email,
+                    'address' => $request->address,
+                    'status' => 1, // "Alta"
+                ]);
+                $personId = $person->id;
+            }
+
+            Supplier::create([
+                'company' => ucfirst(strtolower($request->company)),
+                'nit' => $request->nit,
+                'person_id' => $personId,
+                'status' => 1,
+            ]);
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            session()->flash('swal', [
+                'title' => 'Error',
+                'text' => 'No se pudo registrar el proveedor. Intente nuevamente.',
+                'icon' => 'error',
+            ]);
+
+            return back()->withInput();
+        }
 
         session()->flash('swal', [
             'title' => 'Proveedor Creado',
             'text' => '¡Bien Hecho!.',
             'icon' => 'success',
-        
+
         ]);
 
         return redirect()->route('admin.suppliers.index');
@@ -88,8 +168,8 @@ class SupplierController extends Controller
      */
     public function edit(Supplier $supplier)
     {
-        $persons = Person::all();
-        return view('admin.suppliers.edit', compact('supplier', 'persons'));
+        $supplier->load('person');
+        return view('admin.suppliers.edit', compact('supplier'));
     }
 
     /**
@@ -98,24 +178,80 @@ class SupplierController extends Controller
     public function update(Request $request, Supplier $supplier)
     {
         $request->validate([
+            'name' => 'required',
+            'last_name_father' => 'required',
+            'last_name_mother' => 'required',
+            'identity_card' => 'required|numeric|unique:people,identity_card,' . $supplier->person_id,
+            'birth_date' => 'required|date_format:Y-m-d',
+            'gender' => 'required',
+            'phone' => 'required|numeric',
+            'email' => 'required|email',
+            'address' => 'required',
+
             'company' => 'required',
-            'nit' => 'required', 
+            'nit' => 'required|numeric',
+            'status' => 'required|in:0,1',
+        ], [
+            'name.required' => 'El nombre es obligatorio.',
+            'last_name_father.required' => 'El apellido paterno es obligatorio.',
+            'last_name_mother.required' => 'El apellido materno es obligatorio.',
+            'identity_card.required' => 'El carnet de identidad es obligatorio.',
+            'identity_card.numeric' => 'El carnet de identidad solo debe contener números.',
+            'identity_card.unique' => 'Ese número de carnet de identidad ya está registrado.',
+            'birth_date.required' => 'La fecha de nacimiento es obligatoria.',
+            'birth_date.date_format' => 'La fecha de nacimiento no es válida.',
+            'gender.required' => 'Debe seleccionar el sexo.',
+            'phone.required' => 'El celular es obligatorio.',
+            'phone.numeric' => 'El celular solo debe contener números.',
+            'email.required' => 'El email es obligatorio.',
+            'email.email' => 'Ingrese un email válido.',
+            'address.required' => 'La dirección es obligatoria.',
 
+            'company.required' => 'La empresa es obligatoria.',
+            'nit.required' => 'El NIT es obligatorio.',
+            'nit.numeric' => 'El NIT solo debe contener números.',
+            'status.required' => 'Debe seleccionar el estado.',
         ]);
 
-        $supplier->update([ 
+        DB::beginTransaction();
+        try {
+            $supplier->person->update([
+                'name' => ucwords(strtolower($request->name)),
+                'last_name_father' => ucwords(strtolower($request->last_name_father)),
+                'last_name_mother' => ucwords(strtolower($request->last_name_mother)),
+                'identity_card' => $request->identity_card,
+                'birth_date' => $request->birth_date,
+                'gender' => $request->gender,
+                'phone' => $request->phone,
+                'email' => $request->email,
+                'address' => $request->address,
+            ]);
 
-            'company' => ucfirst(strtolower($request->company)),
-            'nit' => $request->nit,
-            'status' => 1,
-            'person_id' => $request->person_id,
-        ]);
+            $supplier->update([
+                'company' => ucfirst(strtolower($request->company)),
+                'nit' => $request->nit,
+                'status' => $request->status,
+            ]);
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            session()->flash('swal', [
+                'title' => 'Error',
+                'text' => 'No se pudo actualizar el proveedor. Intente nuevamente.',
+                'icon' => 'error',
+
+            ]);
+
+            return back()->withInput();
+        }
 
         session()->flash('swal', [
             'title' => 'Proveedor Actualizado',
             'text' => '¡Bien Hecho!.',
             'icon' => 'success',
-        
+
         ]);
 
         return redirect()->route('admin.suppliers.index');
@@ -134,7 +270,7 @@ class SupplierController extends Controller
             'title' => 'Proveedor Eliminado',
             'text' => '¡Bien Hecho!.',
             'icon' => 'success',
-        
+
         ]);
 
         return redirect()->route('admin.suppliers.index');

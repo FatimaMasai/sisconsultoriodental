@@ -23,7 +23,7 @@
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
                         <th scope="col" class="px-1 py-1">
-                            ID
+                            N° Compra
                         </th>
                         <th scope="col" class="px-3 py-2">
                             Proveedor
@@ -33,33 +33,55 @@
                         </th> 
                         <th scope="col" class="px-3 py-2">
                             Pago
-                        </th>  
+                        </th>
+                        <th scope="col" class="px-3 py-2">
+                            Estado
+                        </th>
                         <th scope="col" class="px-3 py-2">
                             Acciones
                         </th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($purchases as $purchase) 
+                    @foreach ($purchases as $purchase)
 
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
                             <th scope="row" class="px-1 py-1 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {{$purchase->id}}
+                                {{ $purchase->numero }}
                             </th>
                             <td class="px-3 py-2">
-                                {{$purchase->supplier->person->name}} {{$purchase->supplier->person->last_name_father}} {{$purchase->supplier->person->last_name_mother}}  
-                            </td>   
+                                {{$purchase->supplier->person->name}} {{$purchase->supplier->person->last_name_father}} {{$purchase->supplier->person->last_name_mother}}
+                            </td>
 
                             <td class="px-3 py-2">
-                                {{ $purchase->date }} 
-                            </td> 
+                                {{ $purchase->date }}
+                            </td>
                             <td class="px-3 py-2">
-                                Bs. {{ $purchase->total }} 
-                            </td>  
+                                {{ number_format($purchase->total, 0, '', '.') }} Bs.
+                            </td>
+
+                            <td class="px-3 py-2">
+                                @if ($purchase->status == 1)
+                                    <span class="text-green-600 font-semibold">Activa</span>
+                                @else
+                                    <span class="text-red-600 font-semibold">Anulada</span>
+                                @endif
+                            </td>
 
                             <td class="px-3 py-2" >
-                                <div class="flex space-x-2"> 
-                                     <a href="{{ route('admin.purchases.print', $purchase->id) }}" class="btn btn-orange text-xs" target="_blank">PDF</a> 
+                                <div class="flex space-x-2">
+                                     <a href="{{ route('admin.purchases.print', $purchase->id) }}" class="btn btn-orange text-xs" target="_blank">PDF</a>
+
+                                    @can('admin.purchases.cancel')
+                                        @if ($purchase->status == 1)
+                                            <form action="{{ route('admin.purchases.cancel', $purchase) }}" method="POST" class="delete-form">
+                                                @csrf
+                                                <button type="submit" class="btn btn-red text-xs">
+                                                    Anular
+                                                </button>
+                                            </form>
+                                        @endif
+                                    @endcan
                                 </div>
 
                             </td>

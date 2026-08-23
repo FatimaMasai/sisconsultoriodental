@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Patient;
 use App\Models\Person;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
@@ -47,8 +48,9 @@ class PatientController extends Controller
      */
     public function create()
     {
-        $persons = Person::where('status', 1)->orderBy('id', 'desc')->get();
-        return view('admin.patients.create', compact( 'persons'));
+        // Solo personas que todavía no tienen un registro de paciente asociado.
+        $persons = Person::where('status', 1)->whereDoesntHave('patient')->orderBy('id', 'desc')->get();
+        return view('admin.patients.create', compact('persons'));
     }
 
     /**
@@ -56,51 +58,113 @@ class PatientController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $personMode = $request->person_mode === 'existing' ? 'existing' : 'new';
+
+        $rules = [
+            'person_mode' => 'required|in:new,existing',
 
             'allergy' => 'required',
             'observation' => 'required',
             'recommended_by' => 'required',
-
             'responsible_person' => 'required',
             'medical_history' => 'required', //antecedentes
+        ];
 
-        ],
-        [
+        $messages = [
+            'person_mode.required' => 'Debe indicar si la persona es nueva o ya existe.',
             'allergy.required' => 'El campo alergia es obligatorio.',
             'observation.required' => 'El campo observación es obligatorio.',
             'recommended_by.required' => 'El campo recomendado por es obligatorio.',
-
             'responsible_person.required' => 'El campo persona responsable es obligatorio.',
             'medical_history.required' => 'El campo antecedentes es obligatorio.',
+        ];
 
-        ]);
+        if ($personMode === 'existing') {
+            $rules['person_id'] = 'required|exists:people,id';
+            $messages['person_id.required'] = 'Debe seleccionar una persona.';
+        } else {
+            $rules = array_merge($rules, [
+                'name' => 'required',
+                'last_name_father' => 'required',
+                'last_name_mother' => 'required',
+                'identity_card' => 'required|numeric|unique:people,identity_card',
+                'birth_date' => 'required|date_format:Y-m-d',
+                'gender' => 'required',
+                'phone' => 'required|numeric',
+                'email' => 'required|email',
+                'address' => 'required',
+            ]);
 
+            $messages = array_merge($messages, [
+                'name.required' => 'El nombre es obligatorio.',
+                'last_name_father.required' => 'El apellido paterno es obligatorio.',
+                'last_name_mother.required' => 'El apellido materno es obligatorio.',
+                'identity_card.required' => 'El carnet de identidad es obligatorio.',
+                'identity_card.numeric' => 'El carnet de identidad solo debe contener números.',
+                'identity_card.unique' => 'Ese número de carnet de identidad ya está registrado.',
+                'birth_date.required' => 'La fecha de nacimiento es obligatoria.',
+                'birth_date.date_format' => 'La fecha de nacimiento no es válida.',
+                'gender.required' => 'Debe seleccionar el sexo.',
+                'phone.required' => 'El celular es obligatorio.',
+                'phone.numeric' => 'El celular solo debe contener números.',
+                'email.required' => 'El email es obligatorio.',
+                'email.email' => 'Ingrese un email válido.',
+                'address.required' => 'La dirección es obligatoria.',
+            ]);
+        }
 
-        Patient::create([
+        $request->validate($rules, $messages);
 
-            'allergy' => ucfirst(strtolower($request->allergy)),
-            'observation' => ucfirst(strtolower($request->observation)),
-            'recommended_by' => ucfirst(strtolower($request->recommended_by)),
+        DB::beginTransaction();
+        try {
+            if ($personMode === 'existing') {
+                $personId = $request->person_id;
+            } else {
+                $person = Person::create([
+                    'name' => ucwords(strtolower($request->name)),
+                    'last_name_father' => ucwords(strtolower($request->last_name_father)),
+                    'last_name_mother' => ucwords(strtolower($request->last_name_mother)),
+                    'identity_card' => $request->identity_card,
+                    'birth_date' => $request->birth_date,
+                    'gender' => $request->gender,
+                    'phone' => $request->phone,
+                    'email' => $request->email,
+                    'address' => $request->address,
+                    'status' => 1, // "Alta"
+                ]);
+                $personId = $person->id;
+            }
 
-            'responsible_person' => ucfirst(strtolower($request->responsible_person)),
-            'medical_history' => ucfirst(strtolower($request->medical_history)), //antecedentes
+            Patient::create([
+                'allergy' => ucfirst(strtolower($request->allergy)),
+                'observation' => ucfirst(strtolower($request->observation)),
+                'recommended_by' => ucfirst(strtolower($request->recommended_by)),
+                'responsible_person' => ucfirst(strtolower($request->responsible_person)),
+                'medical_history' => ucfirst(strtolower($request->medical_history)), //antecedentes
+                'status' => 1, // "Alta"
+                'person_id' => $personId,
+            ]);
 
-            'status' => 1, // "Alta"
-            'person_id' => $request->person_id,
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
 
-        ]);
+            session()->flash('swal', [
+                'title' => 'Error',
+                'text' => 'No se pudo registrar el paciente. Intente nuevamente.',
+                'icon' => 'error',
+            ]);
 
+            return back()->withInput();
+        }
 
         session()->flash('swal', [
             'title' => 'Paciente Creado',
             'text' => '¡Bien Hecho!.',
             'icon' => 'success',
-        
         ]);
 
         return redirect()->route('admin.patients.index');
-
     }
 
     /**
@@ -116,8 +180,8 @@ class PatientController extends Controller
      */
     public function edit(Patient $patient)
     {
-        $persons = Person::all();
-        return view('admin.patients.edit', compact('patient', 'persons'));
+        $patient->load('person');
+        return view('admin.patients.edit', compact('patient'));
     }
 
     /**
@@ -126,45 +190,89 @@ class PatientController extends Controller
     public function update(Request $request, Patient $patient)
     {
         $request->validate([
+            'name' => 'required',
+            'last_name_father' => 'required',
+            'last_name_mother' => 'required',
+            'identity_card' => 'required|numeric|unique:people,identity_card,' . $patient->person_id,
+            'birth_date' => 'required|date_format:Y-m-d',
+            'gender' => 'required',
+            'phone' => 'required|numeric',
+            'email' => 'required|email',
+            'address' => 'required',
 
             'allergy' => 'required',
             'observation' => 'required',
             'recommended_by' => 'required',
-
             'responsible_person' => 'required',
             'medical_history' => 'required', //antecedentes
+            'status' => 'required|in:0,1',
+        ], [
+            'name.required' => 'El nombre es obligatorio.',
+            'last_name_father.required' => 'El apellido paterno es obligatorio.',
+            'last_name_mother.required' => 'El apellido materno es obligatorio.',
+            'identity_card.required' => 'El carnet de identidad es obligatorio.',
+            'identity_card.numeric' => 'El carnet de identidad solo debe contener números.',
+            'identity_card.unique' => 'Ese número de carnet de identidad ya está registrado.',
+            'birth_date.required' => 'La fecha de nacimiento es obligatoria.',
+            'birth_date.date_format' => 'La fecha de nacimiento no es válida.',
+            'gender.required' => 'Debe seleccionar el sexo.',
+            'phone.required' => 'El celular es obligatorio.',
+            'phone.numeric' => 'El celular solo debe contener números.',
+            'email.required' => 'El email es obligatorio.',
+            'email.email' => 'Ingrese un email válido.',
+            'address.required' => 'La dirección es obligatoria.',
 
-        ]);
-
-        $patient->update([
-
-            'allergy' => ucfirst(strtolower($request->allergy)),
-            'observation' => ucfirst(strtolower($request->observation)),
-            'recommended_by' => ucfirst(strtolower($request->recommended_by)),
-
-            'responsible_person' => ucfirst(strtolower($request->responsible_person)),
-            'medical_history' => ucfirst(strtolower($request->medical_history)),
-
-            'status' => $request->status, // El valor de status se actualiza con el select
-            'person_id' => $request->person_id,
-
-        ],[
             'allergy.required' => 'El campo alergia es obligatorio.',
             'observation.required' => 'El campo observación es obligatorio.',
             'recommended_by.required' => 'El campo recomendado por es obligatorio.',
-
             'responsible_person.required' => 'El campo persona responsable es obligatorio.',
             'medical_history.required' => 'El campo antecedentes es obligatorio.',
-
+            'status.required' => 'Debe seleccionar el estado.',
         ]);
 
+        DB::beginTransaction();
+        try {
+            $patient->person->update([
+                'name' => ucwords(strtolower($request->name)),
+                'last_name_father' => ucwords(strtolower($request->last_name_father)),
+                'last_name_mother' => ucwords(strtolower($request->last_name_mother)),
+                'identity_card' => $request->identity_card,
+                'birth_date' => $request->birth_date,
+                'gender' => $request->gender,
+                'phone' => $request->phone,
+                'email' => $request->email,
+                'address' => $request->address,
+            ]);
+
+            $patient->update([
+                'allergy' => ucfirst(strtolower($request->allergy)),
+                'observation' => ucfirst(strtolower($request->observation)),
+                'recommended_by' => ucfirst(strtolower($request->recommended_by)),
+                'responsible_person' => ucfirst(strtolower($request->responsible_person)),
+                'medical_history' => ucfirst(strtolower($request->medical_history)),
+                'status' => $request->status, // El valor de status se actualiza con el select
+            ]);
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            session()->flash('swal', [
+                'title' => 'Error',
+                'text' => 'No se pudo actualizar el paciente. Intente nuevamente.',
+                'icon' => 'error',
+            ]);
+
+            return back()->withInput();
+        }
+
         session()->flash('swal', [
-            'title' => 'Persona Actualizada',
+            'title' => 'Paciente Actualizado',
             'text' => '¡Bien Hecho!.',
             'icon' => 'success',
         ]);
 
-        return redirect()->route('admin.patients.index'); 
+        return redirect()->route('admin.patients.index');
 
     }
 
@@ -181,7 +289,7 @@ class PatientController extends Controller
             'text' => '¡Bien Hecho!.',
             'icon' => 'success',
         ]);
-        return redirect()->route('admin.patients.index'); 
+        return redirect()->route('admin.patients.index');
 
 
     }

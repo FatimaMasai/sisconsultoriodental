@@ -25,6 +25,7 @@ class PurchaseController extends Controller
         $this->middleware('can:admin.purchases.edit')->only('edit', 'update');
         $this->middleware('can:admin.purchases.destroy')->only('destroy');
         $this->middleware('can:admin.purchases.pdf')->only('pdf');
+        $this->middleware('can:admin.purchases.cancel')->only('cancel');
     }
 
 
@@ -181,6 +182,48 @@ class PurchaseController extends Controller
         ->setPaper([0, 0, 300, 600], 'portrait');   // Configurar el tamaño y la orientación del papel;
 
         //descargar pdf
-        return $pdf->stream('comprante_venta_' . $purchase->id . '.pdf'); 
+        return $pdf->stream('comprobante_' . $purchase->numero . '.pdf');
+    }
+
+    public function cancel(Purchase $purchase)
+    {
+        // Verificar si ya está anulada
+        if ($purchase->status == 0) {
+            return redirect()->back()->with('info', 'Esta compra ya está anulada.');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Cambiar estado de la compra
+            $purchase->update(['status' => 0]);
+
+            // Cambiar estado de los detalles (igual que se hace con las ventas)
+            foreach ($purchase->purchaseDetails as $detail) {
+                $detail->update(['subtotal' => 0]);
+            }
+
+            // Cambiar estado de los pagos si existen
+            foreach ($purchase->payments as $payment) {
+                $payment->update([
+                    'payment_status' => 'Anulado'
+                ]);
+            }
+
+            DB::commit();
+
+            session()->flash('swal', [
+                'title' => 'Compra anulada con éxito',
+                'text' => 'La compra fue anulada correctamente.',
+                'icon' => 'success'
+            ]);
+
+            return redirect()->route('admin.purchases.index');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->withErrors([
+                'error' => 'Ocurrió un error al anular la compra: ' . $e->getMessage()
+            ]);
+        }
     }
 }

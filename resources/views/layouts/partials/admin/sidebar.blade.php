@@ -17,14 +17,14 @@
                 'icon' => 'fa-solid fa-users',
                 'name' => 'Usuarios',
                 'route' => route('admin.users.index'),
-                'active' => request()->routeIs('users.*'),
+                'active' => request()->routeIs('admin.users.*'),
                 'can' => 'admin.users.index',
             ],
             [
                 'icon' => 'fa-solid fa-user-shield',
                 'name' => 'Lista de Roles',
                 'route' => route('admin.roles.index'),
-                'active' => request()->routeIs('roles.*'),
+                'active' => request()->routeIs('admin.roles.*'),
                 'can' => 'admin.roles.index',
             ], 
             
@@ -35,14 +35,14 @@
                 'icon' => 'fa-solid fa-box',
                 'name' => 'Servicio',
                 'route' => route('admin.services.index'),
-                'active' => request()->routeIs('services.*'),
+                'active' => request()->routeIs('admin.services.*'),
                 'can' => 'admin.services.index',
             ],
             [
                 'icon' => 'fa-solid fa-stethoscope',
                 'name' => 'Especialidad',
                 'route' => route('admin.specialities.index'),
-                'active' => request()->routeIs('specialities.*'),
+                'active' => request()->routeIs('admin.specialities.*'),
                 'can' => 'admin.specialities.index',
             ],
         ],
@@ -51,14 +51,14 @@
                 'icon' => 'fa-solid fa-cogs',
                 'name' => 'Servicio',
                 'route' => route('admin.service_categories.index'),
-                'active' => request()->routeIs('service_categories.*'),
+                'active' => request()->routeIs('admin.service_categories.*'),
                 'can' => 'admin.service_categories.index',
             ],
             [
                 'icon' => 'fa-solid fa-cogs',
                 'name' => 'Producto',
                 'route' => route('admin.product_categories.index'),
-                'active' => request()->routeIs('product_categories.*'),
+                'active' => request()->routeIs('admin.product_categories.*'),
                 'can' => 'admin.product_categories.index',
             ],
         ],
@@ -68,14 +68,14 @@
                 'icon' => 'fa-solid fa-users',
                 'name' => 'Datos personales',
                 'route' => route('admin.persons.index'),
-                'active' => request()->routeIs('persons.*'),
+                'active' => request()->routeIs('admin.persons.*'),
                 'can' => 'admin.persons.index',
             ],
             [
                 'icon' => 'fa-solid fa-user-injured',
                 'name' => 'Pacientes',
                 'route' => route('admin.patients.index'),
-                'active' => request()->routeIs('patients.*'),
+                'active' => request()->routeIs('admin.patients.*'),
                 'can' => 'admin.patients.index',
             ],
             
@@ -83,14 +83,14 @@
                 'icon' => 'fa-solid fa-user-md',
                 'name' => 'Doctor',
                 'route' => route('admin.doctors.index'),
-                'active' => request()->routeIs('doctors.*'),
+                'active' => request()->routeIs('admin.doctors.*'),
                 'can' => 'admin.doctors.index',
             ],
             [
                 'icon' => 'fa-solid fa-truck',
                 'name' => 'Proveedor',
                 'route' => route('admin.suppliers.index'),
-                'active' => request()->routeIs('suppliers.*'),
+                'active' => request()->routeIs('admin.suppliers.*'),
                 'can' => 'admin.suppliers.index',
             ],
         ],
@@ -99,14 +99,14 @@
                 'icon' => 'fa-solid fa-dollar-sign',
                 'name' => 'Comprobante de Servicio',
                 'route' => route('admin.sales.index'),
-                'active' => request()->routeIs('sales.*'),
+                'active' => request()->routeIs('admin.sales.*'),
                 'can' => 'admin.sales.index',
             ],
             [
                 'icon' => 'fa-solid fa-notes-medical',
                 'name' => 'Historial Médico',
                 'route' => route('admin.histories.index'),
-                'active' => request()->routeIs('histories.*'),
+                'active' => request()->routeIs('admin.histories.*'),
                 'can' => 'admin.histories.index',
             ],
         ],
@@ -116,14 +116,14 @@
                 'icon' => 'fa-solid fa-cube',
                 'name' => 'Producto',
                 'route' => route('admin.products.index'),
-                'active' => request()->routeIs('products.*'),
+                'active' => request()->routeIs('admin.products.*'),
                 'can' => 'admin.products.index',
             ],
             [
                 'icon' => 'fa-solid fa-shopping-cart',
                 'name' => 'Compras',
                 'route' => route('admin.purchases.index'),
-                'active' => request()->routeIs('purchases.*'),
+                'active' => request()->routeIs('admin.purchases.*'),
                 'can' => 'admin.purchases.index',
             ],
         ]
@@ -146,7 +146,8 @@
                         <li>
                             <a href="{{ $link['route'] }}" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group {{ $link['active'] ? 'bg-gray-100 dark:bg-gray-700' : '' }}">
                                 <span class="inline-flex w-6 h-6 justify-center items-center">
-                                    <i class="{{ $link['icon'] }} text-gray-500"></i>
+                                        {{-- <i class="{{ $link['icon'] }} text-gray-500"></i> --}}
+                                    <i class="{{ $link['icon'] }} {{ $link['active'] ? 'text-teal-600' : 'text-gray-500' }}"></i>
                                 </span>
                                 <span class="ml-2">{{ $link['name'] }}</span>
                             </a>
