@@ -15,6 +15,9 @@
        {{-- agregando el script de la libreria de sweetalert2 PASO 1--}}
        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+       {{-- libreria para generar el comprobante de pago como imagen (compartir por WhatsApp) --}}
+       <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
 
 
         {{-- kit de iconos font awesome --}}
@@ -59,10 +62,12 @@
             <script>
                 Swal.fire({!! json_encode(session('swal'))!!});
             </script>
-            
+
         @endif
-        
-        @livewireScripts 
+
+        @include('layouts.partials.admin.appointment-alerts')
+
+        @livewireScripts
 
 
 

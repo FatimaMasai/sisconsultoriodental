@@ -13,7 +13,7 @@ class AppointmentController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('can:admin.appointments.index')->only('index', 'events');
+        $this->middleware('can:admin.appointments.index')->only('index', 'events', 'upcomingAlerts');
         $this->middleware('can:admin.appointments.create')->only('create', 'store');
         $this->middleware('can:admin.appointments.edit')->only('edit', 'update', 'confirm', 'complete');
         $this->middleware('can:admin.appointments.cancel')->only('cancel');
@@ -56,6 +56,37 @@ class AppointmentController extends Controller
         });
 
         return response()->json($events);
+    }
+
+    /**
+     * Citas que están por empezar en los próximos 15 minutos, para mostrar
+     * una notificación al personal mientras tiene el sistema abierto
+     * (se consulta por AJAX desde el layout, ver appointment-alerts.blade.php).
+     */
+    public function upcomingAlerts()
+    {
+        $appointments = Appointment::with(['patient.person', 'doctor.person', 'service'])
+            ->whereIn('status', ['Programada', 'Confirmada'])
+            ->whereBetween('starts_at', [now(), now()->addMinutes(15)])
+            ->orderBy('starts_at')
+            ->get();
+
+        $alerts = $appointments->map(function (Appointment $appointment) {
+            $patientName = trim($appointment->patient->person->name . ' ' . $appointment->patient->person->last_name_father);
+            $doctorName = trim($appointment->doctor->person->name . ' ' . $appointment->doctor->person->last_name_father);
+
+            return [
+                'id' => $appointment->id,
+                'patient' => $patientName,
+                'doctor' => $doctorName,
+                'service' => optional($appointment->service)->name,
+                'time' => $appointment->starts_at->format('H:i'),
+                'minutes_until' => max(0, now()->diffInMinutes($appointment->starts_at, false)),
+                'url' => route('admin.appointments.edit', $appointment),
+            ];
+        });
+
+        return response()->json($alerts);
     }
 
     public function create(Request $request)

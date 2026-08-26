@@ -1,11 +1,9 @@
 <x-admin-layout>
-    <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
-        <div class="">
-            <x-label class="text-black text-xl font-semibold">
-                Listado de Doctores
-            </x-label>
-        </div>
-        <div class="">
+    <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between mb-6">
+        <x-label class="text-black text-lg sm:text-xl font-semibold">
+            Listado de Doctores
+        </x-label>
+        <div class="flex flex-wrap items-center gap-2">
             @can('admin.doctors.pdf')
                 <a href="{{ route('admin.doctors.pdf') }}" class="btn btn-orange" target="_blank">
                     <i class="fa-solid fa-file-pdf mr-1"></i> PDF

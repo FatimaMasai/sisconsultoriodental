@@ -1,5 +1,5 @@
 <x-admin-layout>
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
         <x-label class="text-black text-xl font-semibold">
             <i class="fa-solid fa-file-invoice-dollar text-gray-400 mr-1"></i>
             Detalle de Venta {{ $sale->numero }}
@@ -224,9 +224,41 @@
             </table>
         </div>
 
-        <x-label class="text-black text-lg font-semibold mb-4">
-            Historial de Pagos
-        </x-label>
+        <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
+            <x-label class="text-black text-lg font-semibold">
+                Historial de Cuotas Pagadas
+            </x-label>
+            @can('admin.sales.index')
+                <a href="{{ route('admin.sales.paid_installments.pdf', $sale) }}" class="btn btn-orange text-xs" target="_blank">
+                    <i class="fa-solid fa-file-pdf mr-1"></i> PDF
+                </a>
+            @endcan
+        </div>
+
+        @php
+            $pacientePersona = $sale->patient->person;
+            $nombrePaciente = trim($pacientePersona->name . ' ' . $pacientePersona->last_name_father);
+
+            $waReceiptPayload = function ($payment) use ($sale, $nombrePaciente, $pacientePersona) {
+                $concepto = $payment->payment_status === 'Cuota Inicial'
+                    ? 'Cuota inicial'
+                    : ($payment->installment ? 'Cuota #' . $payment->installment->number : $payment->payment_status);
+
+                $mensaje = "Hola {$nombrePaciente}, aquí está el comprobante de tu pago en Mi Consulta.";
+
+                return [
+                    'telefono' => $pacientePersona->whatsapp_phone,
+                    'monto' => 'Bs. ' . number_format($payment->amount, 0, '', '.'),
+                    'concepto' => $concepto,
+                    'paciente' => $nombrePaciente,
+                    'comprobante' => $sale->numero,
+                    'metodo' => $payment->payment_method,
+                    'fecha' => $payment->created_at->format('d/m/Y H:i'),
+                    'saldo' => 'Bs. ' . number_format($sale->saldo_pendiente, 0, '', '.'),
+                    'mensaje' => $mensaje,
+                ];
+            };
+        @endphp
 
         <div class="relative overflow-x-auto mb-6">
             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
@@ -237,6 +269,7 @@
                         <th scope="col" class="px-6 py-3">Método</th>
                         <th scope="col" class="px-6 py-3">Fecha</th>
                         <th scope="col" class="px-6 py-3">Estado</th>
+                        <th scope="col" class="px-6 py-3">Compartir</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -261,15 +294,37 @@
                                     <x-badge color="green">{{ $payment->payment_status }}</x-badge>
                                 @endif
                             </td>
+                            <td class="px-6 py-4">
+                                @if ($payment->payment_status !== 'Anulado')
+                                    <div class="flex items-center gap-2">
+                                        @if ($pacientePersona->whatsapp_phone)
+                                            <button type="button" onclick='shareReceiptAsImage(@json($waReceiptPayload($payment)))'
+                                               class="btn btn-green text-xs whitespace-nowrap inline-flex items-center gap-1">
+                                                <i class="fa-brands fa-whatsapp"></i> Compartir
+                                            </button>
+                                        @else
+                                            <span class="text-xs text-gray-400" title="El paciente no tiene teléfono registrado">
+                                                <i class="fa-brands fa-whatsapp"></i> Sin teléfono
+                                            </span>
+                                        @endif
+                                        <button type="button" onclick='downloadReceiptAsImage(@json($waReceiptPayload($payment)))'
+                                           class="btn btn-gray text-xs whitespace-nowrap inline-flex items-center gap-1">
+                                            <i class="fa-solid fa-download"></i> Descargar
+                                        </button>
+                                    </div>
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700">
-                            <td class="px-6 py-4 text-gray-400" colspan="5">Todavía no se registró ningún pago.</td>
+                            <td class="px-6 py-4 text-gray-400" colspan="6">Todavía no se registró ningún pago.</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
+
+        @include('admin.sales.partials.whatsapp-receipt')
     @else
         <x-label class="text-black text-lg font-semibold mb-4">
             Pago

@@ -64,6 +64,12 @@ Route::resource('sales', SaleController::class);
 
 Route::post('sales/{sale}/cancel', [SaleController::class, 'cancel'])->name('sales.cancel');
 Route::post('sales/{sale}/installments/{installment}/pay', [SaleController::class, 'payInstallment'])->name('sales.installments.pay');
+Route::get('sales/{sale}/cuotas-pagadas/pdf', [SaleController::class, 'salePaidInstallmentsPdf'])->name('sales.paid_installments.pdf');
+
+// Reporte de todas las cuotas pagadas (de cualquier venta a Crédito).
+Route::get('cuotas-pagadas', [SaleController::class, 'paidInstallments'])->name('installments.paid');
+Route::get('cuotas-pagadas/excel', [SaleController::class, 'paidInstallmentsExcel'])->name('installments.paid.excel');
+Route::get('cuotas-pagadas/pdf', [SaleController::class, 'paidInstallmentsPdf'])->name('installments.paid.pdf');
 
 
 
@@ -98,6 +104,7 @@ Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit_logs
 //citas (agenda)
 Route::get('appointments', [AppointmentController::class, 'index'])->name('appointments.index');
 Route::get('appointments/events', [AppointmentController::class, 'events'])->name('appointments.events');
+Route::get('appointments/upcoming-alerts', [AppointmentController::class, 'upcomingAlerts'])->name('appointments.upcoming_alerts');
 Route::get('appointments/create', [AppointmentController::class, 'create'])->name('appointments.create');
 Route::post('appointments', [AppointmentController::class, 'store'])->name('appointments.store');
 Route::get('appointments/{appointment}/edit', [AppointmentController::class, 'edit'])->name('appointments.edit');

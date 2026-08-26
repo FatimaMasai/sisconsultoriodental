@@ -1,5 +1,5 @@
 <x-admin-layout>
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
         <x-label class="text-black dark:text-white text-xl font-semibold">
             <i class="fa-solid fa-calendar-plus text-gray-400 mr-1"></i>
             Nueva Cita

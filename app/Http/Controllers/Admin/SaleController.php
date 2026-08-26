@@ -33,6 +33,7 @@ class SaleController extends Controller
         $this->middleware('can:admin.sales.pdf')->only('pdf', 'excel');
         $this->middleware('can:admin.sales.cancel')->only('cancel');
         $this->middleware('can:admin.sales.payInstallment')->only('payInstallment');
+        $this->middleware('can:admin.sales.index')->only('paidInstallments', 'paidInstallmentsExcel', 'paidInstallmentsPdf', 'salePaidInstallmentsPdf');
 
     }
 
@@ -129,6 +130,133 @@ class SaleController extends Controller
     }
 
     /**
+     * Consulta base del reporte de cuotas pagadas, con los mismos filtros
+     * (paciente/comprobante, rango de fechas) reutilizados por la pantalla
+     * y por la exportación a Excel, igual que filteredSales()/excel().
+     */
+    private function filteredPaidInstallments(Request $request)
+    {
+        $query = Installment::query()
+            ->where('status', 'Pagada')
+            ->with(['sale.patient.person', 'sale.doctor.person', 'payments']);
+
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $searchId = preg_replace('/^v-?/i', '', $search);
+
+            $query->where(function ($q) use ($search, $searchId) {
+                if (is_numeric($searchId)) {
+                    $q->orWhereHas('sale', fn ($s) => $s->where('id', (int) $searchId));
+                }
+
+                $q->orWhereHas('sale.patient.person', function ($personQuery) use ($search) {
+                    $personQuery->where('name', 'like', "%{$search}%")
+                        ->orWhere('last_name_father', 'like', "%{$search}%")
+                        ->orWhere('last_name_mother', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('paid_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('paid_at', '<=', $request->date_to);
+        }
+
+        if ($request->filled('payment_method')) {
+            $query->whereHas('payments', function ($q) use ($request) {
+                $q->where('payment_method', $request->payment_method);
+            });
+        }
+
+        return $query;
+    }
+
+    /**
+     * Reporte de todas las cuotas pagadas, de cualquier venta a Crédito.
+     */
+    public function paidInstallments(Request $request)
+    {
+        $baseQuery = $this->filteredPaidInstallments($request);
+
+        $hasFilters = $request->filled('search') || $request->filled('date_from') || $request->filled('date_to') || $request->filled('payment_method');
+
+        // Totales sobre TODO lo filtrado, no solo la página actual (se calculan
+        // antes de paginar, con un clone, para no consumir el query builder).
+        $totalCobrado = (clone $baseQuery)->sum('amount');
+        $totalCuotas = (clone $baseQuery)->count();
+
+        $installments = $baseQuery->orderBy('paid_at', 'desc')
+            ->paginate(50)
+            ->withQueryString();
+
+        return view('admin.sales.paid_installments', compact('installments', 'hasFilters', 'totalCobrado', 'totalCuotas'));
+    }
+
+    /**
+     * Exporta a Excel el reporte de cuotas pagadas, respetando los mismos
+     * filtros que estén aplicados en la pantalla.
+     */
+    public function paidInstallmentsExcel(Request $request)
+    {
+        $installments = $this->filteredPaidInstallments($request)->orderBy('paid_at', 'desc')->get();
+
+        $rows = $installments->map(function (Installment $installment) {
+            $sale = $installment->sale;
+            $paciente = trim($sale->patient->person->name . ' ' . $sale->patient->person->last_name_father . ' ' . $sale->patient->person->last_name_mother);
+            $metodo = optional($installment->payments->first())->payment_method ?? '—';
+
+            return [
+                $sale->numero,
+                $paciente,
+                $installment->number,
+                (float) $installment->amount,
+                $metodo,
+                $this->formatDate($installment->paid_at, 'd/m/Y H:i'),
+            ];
+        });
+
+        return $this->streamExcel('cuotas_pagadas_' . now()->format('Y-m-d') . '.xlsx', [
+            'Comprobante', 'Paciente', 'N° Cuota', 'Monto', 'Método de pago', 'Fecha de pago',
+        ], $rows);
+    }
+
+    /**
+     * Exporta a PDF el reporte de cuotas pagadas, respetando los mismos
+     * filtros que estén aplicados en la pantalla.
+     */
+    public function paidInstallmentsPdf(Request $request)
+    {
+        $installments = $this->filteredPaidInstallments($request)->orderBy('paid_at', 'desc')->get();
+
+        $totalCobrado = $installments->sum('amount');
+
+        $pdf = PDF::loadView('admin.sales.paid_installments_pdf', compact('installments', 'totalCobrado', 'request'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->stream('cuotas_pagadas_' . now()->format('Y-m-d') . '.pdf');
+    }
+
+    /**
+     * Reporte en PDF de las cuotas pagadas de UNA venta a Crédito en
+     * particular, pensado para entregárselo al paciente (por ejemplo por
+     * WhatsApp) como comprobante de cuánto lleva pagado.
+     */
+    public function salePaidInstallmentsPdf(Sale $sale)
+    {
+        $sale->load(['patient.person', 'doctor.person', 'payments.installment']);
+
+        $pagos = $sale->payments->where('payment_status', '!=', 'Anulado')->sortBy('created_at')->values();
+
+        $pdf = PDF::loadView('admin.sales.sale_paid_installments_pdf', compact('sale', 'pagos'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->stream('cuotas_pagadas_' . $sale->numero . '.pdf');
+    }
+
+    /**
      * Show the form for creating a new resource.
      */
     public function create()
@@ -173,8 +301,15 @@ class SaleController extends Controller
         ]);
 
         $paymentType = $request->payment_type;
+
+        // La Consulta se cobra siempre de inmediato (aunque el resto de la venta sea a
+        // crédito), así que si está entre los servicios vendidos también exige método de pago.
+        $serviceIds = collect($request->services)->pluck('service_id');
+        $hasConsulta = Service::whereIn('id', $serviceIds)->get()
+            ->contains(fn ($s) => trim(strtolower($s->name)) === 'consulta');
+
         $needsPaymentMethod = $paymentType === 'Contado'
-            || ($paymentType === 'Credito' && (float) $request->initial_amount > 0);
+            || ($paymentType === 'Credito' && ((float) $request->initial_amount > 0 || $hasConsulta));
 
         if ($needsPaymentMethod && ! $request->filled('payment_method')) {
             return redirect()->back()->withErrors([
@@ -196,10 +331,12 @@ class SaleController extends Controller
             ]);
 
             $total = 0;
+            $consultaTotal = 0; // suma de los subtotales del servicio "Consulta" en esta venta
 
             foreach ($request->services as $service) {
                 $serviceDetails = Service::findOrFail($service['service_id']);
                 $subtotal = $serviceDetails->price * $service['quantity'];
+                $esConsulta = trim(strtolower($serviceDetails->name)) === 'consulta';
 
                 // detalle venta
                 SaleDetail::create([
@@ -210,14 +347,18 @@ class SaleController extends Controller
                     'service_id' => $service['service_id'],
                 ]);
 
-                // historial
-                History::create([
-                    'description' => 'Venta de servicio',
-                    'date' => now(),
-                    'patient_id' => $request->patient_id,
-                    'doctor_id' => $request->doctor_id,
-                    'service_id' => $service['service_id'],
-                ]);
+                // historial: no aplica para "Consulta" (no implica tratamiento ni seguimiento)
+                if (! $esConsulta) {
+                    History::create([
+                        'description' => 'Venta de servicio',
+                        'date' => now(),
+                        'patient_id' => $request->patient_id,
+                        'doctor_id' => $request->doctor_id,
+                        'service_id' => $service['service_id'],
+                    ]);
+                } else {
+                    $consultaTotal += $subtotal;
+                }
 
                 $total += $subtotal;
             }
@@ -243,14 +384,28 @@ class SaleController extends Controller
                 $initialAmount = (float) $request->initial_amount;
                 $installmentsCount = (int) $request->installments_count;
 
-                if ($initialAmount >= $total) {
+                // La Consulta se paga siempre de inmediato, sin importar que el resto de
+                // la venta sea a crédito, así que no entra en el monto a financiar.
+                $totalFinanciable = round($total - $consultaTotal, 2);
+
+                if ($totalFinanciable > 0 && $initialAmount >= $totalFinanciable) {
                     DB::rollBack();
                     return redirect()->back()->withErrors([
-                        'initial_amount' => 'La cuota inicial debe ser menor al total de la venta.'
+                        'initial_amount' => 'La cuota inicial debe ser menor al monto financiable (sin contar la Consulta).'
                     ])->withInput();
                 }
 
-                // pago de la cuota inicial (si el paciente aportó algo por adelantado)
+                // cobro automático de la Consulta (se cobra sí o sí, de una vez)
+                if ($consultaTotal > 0) {
+                    Payment::create([
+                        'amount' => $consultaTotal,
+                        'payment_method' => $request->payment_method,
+                        'payment_status' => 'Consulta',
+                        'sale_id' => $sale->id,
+                    ]);
+                }
+
+                // pago de la cuota inicial (si el paciente aportó algo por adelantado sobre lo financiable)
                 if ($initialAmount > 0) {
                     Payment::create([
                         'amount' => $initialAmount,
@@ -260,22 +415,25 @@ class SaleController extends Controller
                     ]);
                 }
 
-                // generar el plan de cuotas mensuales sobre el saldo restante
+                // generar el plan de cuotas mensuales sobre el saldo restante (sin contar la Consulta)
                 // (el cálculo de montos vive en Installment::planAmounts() y
                 // tiene sus propios tests unitarios, ver tests/Unit)
-                $saldoFinanciado = round($total - $initialAmount, 2);
-                $montos = Installment::planAmounts($saldoFinanciado, $installmentsCount);
+                $saldoFinanciado = round($totalFinanciable - $initialAmount, 2);
 
-                foreach ($montos as $index => $monto) {
-                    $i = $index + 1;
+                if ($saldoFinanciado > 0 && $installmentsCount > 0) {
+                    $montos = Installment::planAmounts($saldoFinanciado, $installmentsCount);
 
-                    Installment::create([
-                        'number' => $i,
-                        'due_date' => Carbon::parse($sale->sale_date)->addMonthsNoOverflow($i),
-                        'amount' => $monto,
-                        'status' => 'Pendiente',
-                        'sale_id' => $sale->id,
-                    ]);
+                    foreach ($montos as $index => $monto) {
+                        $i = $index + 1;
+
+                        Installment::create([
+                            'number' => $i,
+                            'due_date' => Carbon::parse($sale->sale_date)->addMonthsNoOverflow($i),
+                            'amount' => $monto,
+                            'status' => 'Pendiente',
+                            'sale_id' => $sale->id,
+                        ]);
+                    }
                 }
             }
 

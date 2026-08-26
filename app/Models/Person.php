@@ -48,5 +48,20 @@ class Person extends Model
         return $this->hasOne(Supplier::class);
     }
 
+    /**
+     * Número de teléfono listo para armar un enlace de WhatsApp (wa.me),
+     * con el código de país de Bolivia (591) agregado si hace falta.
+     * Devuelve null si la persona no tiene teléfono registrado.
+     */
+    public function getWhatsappPhoneAttribute(): ?string
+    {
+        $digits = preg_replace('/\D+/', '', (string) $this->phone);
+
+        if ($digits === '') {
+            return null;
+        }
+
+        return str_starts_with($digits, '591') ? $digits : '591' . $digits;
+    }
 
 }

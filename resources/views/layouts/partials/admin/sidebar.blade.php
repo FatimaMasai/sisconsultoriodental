@@ -123,6 +123,13 @@
                 'active' => request()->routeIs('admin.histories.*'),
                 'can' => 'admin.histories.index',
             ],
+            [
+                'icon' => 'fa-solid fa-money-check-dollar',
+                'name' => 'Cuotas Pagadas',
+                'route' => route('admin.installments.paid'),
+                'active' => request()->routeIs('admin.installments.*'),
+                'can' => 'admin.sales.index',
+            ],
         ],
         'Compras de insumos' => [
             
@@ -141,10 +148,6 @@
                 'can' => 'admin.purchases.index',
             ], 
         ],
-        'Cons' => [
-            
-            
-        ]
         
     ];
 @endphp

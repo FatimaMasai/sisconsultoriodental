@@ -75,7 +75,14 @@ class Sale extends Model
 
         $pagadoEnCuotas = $this->installments->where('status', 'Pagada')->sum('amount');
 
-        return round($this->total - $this->initial_amount - $pagadoEnCuotas, 2);
+        // Pagos que se cobran de inmediato pero no son la cuota inicial del financiamiento
+        // ni el registro de una cuota ya pagada (por ejemplo, la Consulta, que siempre se
+        // cobra de una vez aunque el resto de la venta sea a crédito).
+        $pagadoDeInmediato = $this->payments
+            ->whereNotIn('payment_status', ['Cuota Inicial', 'Cuota', 'Anulado'])
+            ->sum('amount');
+
+        return round($this->total - $this->initial_amount - $pagadoDeInmediato - $pagadoEnCuotas, 2);
     }
 
     /**
@@ -94,6 +101,13 @@ class Sale extends Model
         }
 
         $cuotas = $this->installments;
+
+        if ($cuotas->isEmpty()) {
+            // No se generó ningún plan de cuotas (por ejemplo, una venta a crédito donde
+            // todo lo vendido era la Consulta, que se cobra de inmediato): no queda nada por pagar.
+            return 'Completado';
+        }
+
         $cuotasActivas = $cuotas->where('status', '!=', 'Anulada');
 
         if ($cuotasActivas->isEmpty()) {

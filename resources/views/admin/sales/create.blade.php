@@ -1,5 +1,5 @@
 <x-admin-layout>
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
         <x-label class="text-black dark:text-white text-xl font-semibold">
             <i class="fa-solid fa-file-invoice-dollar text-gray-400 mr-1"></i>
             Nueva Venta
@@ -85,7 +85,7 @@
                                     <x-select name="services[{{ $i }}][service_id]" class="rounded-lg w-full service-select" required>
                                         <option value="">Seleccione un servicio</option>
                                         @foreach ($services as $service)
-                                            <option value="{{ $service->id }}" data-price="{{ $service->price }}"
+                                            <option value="{{ $service->id }}" data-price="{{ $service->price }}" data-name="{{ $service->name }}"
                                                 @selected($oldService['service_id'] == $service->id)>
                                                 {{ $service->name }}
                                             </option>
@@ -192,6 +192,10 @@
                         <span>Total de la venta</span>
                         <strong id="credito-total">Bs. 0</strong>
                     </div>
+                    <div class="flex justify-between py-0.5 hidden text-amber-700 dark:text-amber-400" id="credito-consulta-row">
+                        <span>Consulta (se cobra de inmediato)</span>
+                        <strong id="credito-consulta">Bs. 0</strong>
+                    </div>
                     <div class="flex justify-between py-0.5">
                         <span>Cuota inicial</span>
                         <strong id="credito-inicial">Bs. 0</strong>
@@ -220,22 +224,28 @@
     <script>
         let serviceIndex = {{ count($oldServices) }};
         let currentTotal = 0;
+        let consultaTotal = 0; // suma de las filas cuyo servicio es "Consulta": se cobra siempre de inmediato
 
         // Recalcula el precio/subtotal de cada fila de servicios y el total general.
         function updateTotal() {
             currentTotal = 0;
+            consultaTotal = 0;
 
             document.querySelectorAll('.service-row').forEach(row => {
                 const select = row.querySelector('.service-select');
                 const quantity = parseFloat(row.querySelector('.service-quantity').value) || 0;
                 const option = select.selectedOptions[0];
                 const price = option ? (parseFloat(option.getAttribute('data-price')) || 0) : 0;
+                const name = option ? (option.getAttribute('data-name') || '').trim().toLowerCase() : '';
                 const subtotal = price * quantity;
 
                 row.querySelector('.service-price').textContent = 'Bs. ' + price.toFixed();
                 row.querySelector('.service-subtotal').textContent = 'Bs. ' + subtotal.toFixed();
 
                 currentTotal += subtotal;
+                if (name === 'consulta') {
+                    consultaTotal += subtotal;
+                }
             });
 
             document.getElementById('total').textContent = 'Bs. ' + currentTotal.toFixed();
@@ -256,7 +266,7 @@
                     <select name="services[${serviceIndex}][service_id]" class="rounded-lg w-full service-select border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm" required>
                         <option value="">Seleccione un servicio</option>
                         @foreach ($services as $service)
-                            <option value="{{ $service->id }}" data-price="{{ $service->price }}">{{ $service->name }}</option>
+                            <option value="{{ $service->id }}" data-price="{{ $service->price }}" data-name="{{ $service->name }}">{{ $service->name }}</option>
                         @endforeach
                     </select>
                 </td>
@@ -311,23 +321,45 @@
             contadoFields.classList.toggle('hidden', isCredito);
             creditoFields.classList.toggle('hidden', !isCredito);
 
-            document.getElementById('payment-method-hint').textContent = isCredito
-                ? 'Con qué paga la cuota inicial (si es mayor a 0).'
-                : 'Con qué paga el paciente hoy.';
-
             updateCreditoSummary();
+        }
+
+        function updatePaymentMethodHint() {
+            const isCredito = document.querySelector('input[name="payment_type"]:checked')?.value === 'Credito';
+            const hint = document.getElementById('payment-method-hint');
+
+            if (!isCredito) {
+                hint.textContent = 'Con qué paga el paciente hoy.';
+            } else if (consultaTotal > 0) {
+                hint.textContent = 'Con qué paga la Consulta hoy (y la cuota inicial, si corresponde).';
+            } else {
+                hint.textContent = 'Con qué paga la cuota inicial (si es mayor a 0).';
+            }
         }
 
         function updateCreditoSummary() {
             const initial = parseFloat(document.getElementById('initial_amount').value) || 0;
             const count = parseInt(document.getElementById('installments_count').value) || 0;
-            const saldo = Math.max(currentTotal - initial, 0);
+
+            // La Consulta se cobra siempre de inmediato, no entra al monto a financiar.
+            const financiable = Math.max(currentTotal - consultaTotal, 0);
+            const saldo = Math.max(financiable - initial, 0);
             const cuota = count > 0 ? saldo / count : 0;
 
             document.getElementById('credito-total').textContent = 'Bs. ' + currentTotal.toFixed();
             document.getElementById('credito-inicial').textContent = 'Bs. ' + initial.toFixed();
             document.getElementById('credito-saldo').textContent = 'Bs. ' + saldo.toFixed();
             document.getElementById('credito-cuota').textContent = 'Bs. ' + cuota.toFixed();
+
+            const consultaRow = document.getElementById('credito-consulta-row');
+            if (consultaTotal > 0) {
+                consultaRow.classList.remove('hidden');
+                document.getElementById('credito-consulta').textContent = 'Bs. ' + consultaTotal.toFixed();
+            } else {
+                consultaRow.classList.add('hidden');
+            }
+
+            updatePaymentMethodHint();
         }
 
         document.querySelectorAll('input[name="payment_type"]').forEach(radio => {
