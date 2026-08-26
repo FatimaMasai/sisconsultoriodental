@@ -9,8 +9,17 @@
                 'active' => request()->routeIs('panel.*'),
                 'can' => 'admin.dashboard',
             ],
-            
-             
+
+
+        ],
+        'Agenda' => [
+            [
+                'icon' => 'fa-solid fa-calendar-days',
+                'name' => 'Citas',
+                'route' => route('admin.appointments.index'),
+                'active' => request()->routeIs('admin.appointments.*'),
+                'can' => 'admin.appointments.index',
+            ],
         ],
         'Administracion' => [
             [
@@ -26,9 +35,14 @@
                 'route' => route('admin.roles.index'),
                 'active' => request()->routeIs('admin.roles.*'),
                 'can' => 'admin.roles.index',
-            ], 
-            
-             
+            ],
+            [
+                'icon' => 'fa-solid fa-clipboard-list',
+                'name' => 'Auditoría',
+                'route' => route('admin.audit_logs.index'),
+                'active' => request()->routeIs('admin.audit_logs.*'),
+                'can' => 'admin.audit_logs.index',
+            ],
         ],
         'Servicio y especilidad' => [ 
             [
@@ -125,15 +139,19 @@
                 'route' => route('admin.purchases.index'),
                 'active' => request()->routeIs('admin.purchases.*'),
                 'can' => 'admin.purchases.index',
-            ],
+            ], 
+        ],
+        'Cons' => [
+            
+            
         ]
         
     ];
 @endphp
 
 
-<aside id="logo-sidebar" :class="{'translate-x-0 ease-out': sidebarOpen, '-translate-x-full ease-ind': !sidebarOpen}" class="fixed top-0 left-0 z-40 w-64 h-screen pt-20 transition-transform -translate-x-full bg-white border-r border-gray-200 sm:translate-x-0 dark:bg-gray-800 dark:border-gray-700" aria-label="Sidebar">
-    <div class="h-full px-3 pb-4 overflow-y-auto bg-white dark:bg-gray-800"> 
+<aside id="logo-sidebar" :class="{'translate-x-0 ease-out': sidebarOpen, '-translate-x-full ease-ind': !sidebarOpen}" class="fixed top-0 left-0 z-40 w-64 h-screen h-[100dvh] pt-20 transition-transform -translate-x-full bg-white border-r border-gray-200 sm:translate-x-0 dark:bg-gray-800 dark:border-gray-700" aria-label="Sidebar">
+    <div class="h-full px-3 pb-20 overflow-y-auto overscroll-contain touch-pan-y bg-white dark:bg-gray-800" style="-webkit-overflow-scrolling: touch;">
         <ul class="space-y-2 font-medium">
 
             @foreach ($menuModules as $module => $links)
@@ -144,7 +162,8 @@
                 @foreach ($links as $link)
                     @can($link['can'])
                         <li>
-                            <a href="{{ $link['route'] }}" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group {{ $link['active'] ? 'bg-gray-100 dark:bg-gray-700' : '' }}">
+                            <a href="{{ $link['route'] }}" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100
+                             dark:hover:bg-gray-700 group {{ $link['active'] ? 'bg-gray-100 dark:bg-gray-700' : '' }}">
                                 <span class="inline-flex w-6 h-6 justify-center items-center">
                                         {{-- <i class="{{ $link['icon'] }} text-gray-500"></i> --}}
                                     <i class="{{ $link['icon'] }} {{ $link['active'] ? 'text-teal-600' : 'text-gray-500' }}"></i>

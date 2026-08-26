@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Doctor;
 use App\Models\Person;
 use App\Models\Speciality;
+use App\Http\Controllers\Concerns\ExportsExcel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -16,6 +17,7 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class DoctorController extends Controller
 {
+    use ExportsExcel;
 
     public function __construct()
     {
@@ -23,17 +25,27 @@ class DoctorController extends Controller
         $this->middleware('can:admin.doctors.index')->only('index');
         $this->middleware('can:admin.doctors.create')->only('create', 'store');
         $this->middleware('can:admin.doctors.edit')->only('edit', 'update');
-        $this->middleware('can:admin.doctors.pdf')->only('pdf');
+        $this->middleware('can:admin.doctors.pdf')->only('pdf', 'excel');
     }
 
 
-    public function index()
+    public function index(Request $request)
     {
-        $doctors = Doctor::where('status',1)->orderBy('id', 'desc')->paginate(10);
+        $query = Doctor::with(['person', 'speciality'])->where('status', 1);
 
-         // Calcula la edad de cada persona asociada al paciente
-         foreach ($doctors as $doctor) {
-            // Calcula la edad de la persona asociada al paciente
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->whereHas('person', function ($personQuery) use ($search) {
+                $personQuery->where('name', 'like', "%{$search}%")
+                    ->orWhere('last_name_father', 'like', "%{$search}%")
+                    ->orWhere('last_name_mother', 'like', "%{$search}%");
+            });
+        }
+
+        $doctors = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
+
+        // Calcula la edad de cada persona asociada al doctor
+        foreach ($doctors as $doctor) {
             $doctor->person->age = Carbon::parse($doctor->person->birth_date)->age;
         }
 
@@ -283,5 +295,24 @@ class DoctorController extends Controller
 
         return $pdf->stream('admin.doctors.pdf');
 
+    }
+
+    public function excel()
+    {
+        $doctors = Doctor::where('status', 1)->with(['person', 'speciality'])->orderBy('id', 'desc')->get();
+
+        $rows = $doctors->map(function (Doctor $doctor) {
+            return [
+                trim($doctor->person->name . ' ' . $doctor->person->last_name_father . ' ' . $doctor->person->last_name_mother),
+                $doctor->speciality->name ?? '—',
+                $doctor->person->gender,
+                $doctor->person->phone,
+                $this->formatDate($doctor->person->created_at),
+            ];
+        });
+
+        return $this->streamExcel('doctores_' . now()->format('Y-m-d') . '.xlsx', [
+            'Nombre', 'Especialidad', 'Sexo', 'Celular', 'Fecha de registro',
+        ], $rows);
     }
 }

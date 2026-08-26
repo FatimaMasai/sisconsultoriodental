@@ -4,25 +4,40 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Person;
+use App\Http\Controllers\Concerns\ExportsExcel;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use Barryvdh\DomPDF\Facade\Pdf as PDF; 
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class PersonController extends Controller
 {
+    use ExportsExcel;
+
     public function __construct()
     {
         $this->middleware('can:admin.persons.index')->only('index');
         $this->middleware('can:admin.persons.create')->only('create', 'store');
         $this->middleware('can:admin.persons.edit')->only('edit', 'update');
         $this->middleware('can:admin.persons.destroy')->only('destroy');
-        $this->middleware('can:admin.persons.pdf')->only('pdf');
+        $this->middleware('can:admin.persons.pdf')->only('pdf', 'excel');
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $persons = Person::where('status',1)->orderBy('id', 'desc')->paginate(10);
-         
+        $query = Person::where('status', 1);
+
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('last_name_father', 'like', "%{$search}%")
+                    ->orWhere('last_name_mother', 'like', "%{$search}%")
+                    ->orWhere('identity_card', 'like', "%{$search}%");
+            });
+        }
+
+        $persons = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
+
         // Calcula la edad de cada persona
         foreach ($persons as $person) {
             $person->age = Carbon::parse($person->birth_date)->age; // Esto calculará la edad
@@ -205,11 +220,32 @@ class PersonController extends Controller
     {
          // Obtener las categorías de servicio activas
         $persons = Person::where('status',1)->orderBy('id', 'desc')->get();
-        
+
         // Generar el PDF a partir de la vista 'persons.pdf
-        $pdf = PDF::loadView('admin.persons.pdf', compact('persons')); 
+        $pdf = PDF::loadView('admin.persons.pdf', compact('persons'));
 
         // Mostrar el PDF en el navegador
         return $pdf->stream('admin.persons.pdf');
     }
-} 
+
+    public function excel()
+    {
+        $persons = Person::where('status', 1)->orderBy('id', 'desc')->get();
+
+        $rows = $persons->map(function (Person $person) {
+            return [
+                trim($person->name . ' ' . $person->last_name_father . ' ' . $person->last_name_mother),
+                $person->identity_card,
+                $person->phone,
+                $person->gender,
+                $person->email,
+                $person->address,
+                $this->formatDate($person->created_at),
+            ];
+        });
+
+        return $this->streamExcel('personas_' . now()->format('Y-m-d') . '.xlsx', [
+            'Nombre completo', 'Carnet', 'Celular', 'Sexo', 'Email', 'Dirección', 'Fecha de registro',
+        ], $rows);
+    }
+}

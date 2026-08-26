@@ -1,5 +1,5 @@
 <x-admin-layout>
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
         <div class="">
             <x-label class="text-black text-xl font-semibold">
                 Listado de Personas
@@ -7,7 +7,12 @@
         </div>
         <div class="">
             @can('admin.persons.pdf')
-                <a href="{{ route('admin.persons.pdf') }}" class="btn btn-orange" target="_blank">PDF</a>
+                <a href="{{ route('admin.persons.pdf') }}" class="btn btn-orange" target="_blank">
+                    <i class="fa-solid fa-file-pdf mr-1"></i> PDF
+                </a>
+                <a href="{{ route('admin.persons.excel') }}" class="btn btn-green">
+                    <i class="fa-solid fa-file-excel mr-1"></i> Excel
+                </a>
             @endcan
             @can('admin.persons.create')
                 <a href="{{route('admin.persons.create')}}" class="btn btn-green">
@@ -15,107 +20,93 @@
                 </a>
             @endcan
         </div>
-    </div> 
+    </div>
 
-    @livewire('admin.person-search')
+    {{-- Filtro de búsqueda --}}
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6">
+        <form method="GET" action="{{ route('admin.persons.index') }}" class="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div class="relative flex-1 sm:min-w-[220px]">
+                <label class="sr-only">Buscar</label>
+                <input type="text" name="search" value="{{ request('search') }}"
+                    class="input-label rounded-lg w-full" placeholder="Buscar por nombre o carnet">
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+                <button type="submit" class="btn btn-blue rounded-lg text-sm whitespace-nowrap">
+                    <i class="fa-solid fa-magnifying-glass mr-1"></i> Buscar
+                </button>
+                @if (request('search'))
+                    <a href="{{ route('admin.persons.index') }}" class="btn btn-gray rounded-lg text-sm whitespace-nowrap">
+                        <i class="fa-solid fa-xmark mr-1"></i> Limpiar
+                    </a>
+                @endif
+            </div>
+        </form>
+    </div>
 
-    {{-- @if ($persons->count())
+    @if ($persons->count())
 
         <div class="relative overflow-x-auto">
             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
-                        <th scope="col" class="px-3 py-2">
-                            ID
-                        </th>
-                        <th scope="col" class="px-3 py-2">
-                            Nombre Completo
-                        </th> 
-                        <th scope="col" class="px-3 py-2">
-                            Edad
-                        </th> 
-                        <th scope="col" class="px-3 py-2">
-                            Celular
-                        </th> 
-                        <th scope="col" class="px-3 py-2">
-                            Sexo
-                        </th> 
-                        <th scope="col" class="px-3 py-2">
-                            Dirección
-                        </th> 
-                        <th scope="col" class="px-3 py-2">
-                            Estado
-                        </th> 
-                        <th scope="col" class="px-3 py-2">
-                            Acciones
-                        </th>
+                        <th scope="col" class="px-3 py-2">ID</th>
+                        <th scope="col" class="px-3 py-2">Nombre Completo</th>
+                        <th scope="col" class="px-3 py-2">Edad</th>
+                        <th scope="col" class="px-3 py-2">Celular</th>
+                        <th scope="col" class="px-3 py-2">Sexo</th>
+                        <th scope="col" class="px-3 py-2">Dirección</th>
+                        <th scope="col" class="px-3 py-2">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($persons as $person) 
-
+                    @foreach ($persons as $person)
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
                             <th scope="row" class="px-3 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {{$person->id}}
+                                {{ $person->id }}
                             </th>
                             <td class="px-3 py-2">
-                                {{$person->name}} {{$person->last_name_father}} {{$person->last_name_mother}}
-                            </td>  
+                                {{ $person->name }} {{ $person->last_name_father }} {{ $person->last_name_mother }}
+                            </td>
                             <td class="px-3 py-2">
                                 {{ $person->age }} Años
-                            </td> 
+                            </td>
                             <td class="px-3 py-2">
-                                {{ $person->phone }} 
-                            </td> 
+                                {{ $person->phone }}
+                            </td>
                             <td class="px-3 py-2">
-                                {{ $person->gender }} 
-                            </td> 
-
+                                {{ $person->gender }}
+                            </td>
                             <td class="px-3 py-2">
-                                {{ $person->address }} 
-                            </td> 
+                                {{ $person->address }}
+                            </td>
                             <td class="px-3 py-2">
-                                <span class="{{ $person->status ? 'text-green-500' : 'text-red-500' }}">
-                                    {{ $person->status ? 'Alta' : 'Baja' }}
-                                </span>
-                            </td> 
-
-                            <td class="px-3 py-2" >
                                 <div class="flex space-x-2">
-
                                     @can('admin.persons.edit')
                                         <a href="{{route('admin.persons.edit', $person)}}" class="btn btn-blue text-xs">Editar</a>
                                     @endcan
-                                
-                                    
+
                                     @can('admin.persons.destroy')
                                         <form class="delete-form" action="{{route('admin.persons.destroy', $person)}}" method="POST">
-
                                             @csrf
                                             @method('DELETE')
-            
                                             <button class="btn btn-red text-xs">
                                                 Eliminar
                                             </button>
-
                                         </form>
                                     @endcan
-
                                 </div>
-
                             </td>
                         </tr>
                     @endforeach
-
                 </tbody>
             </table>
 
             <div class="mt-4">
-                {{$persons->links()}}
+                {{ $persons->links() }}
             </div>
 
         </div>
-        
+
     @else
 
         <div class="flex items-center p-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400" role="alert">
@@ -125,13 +116,16 @@
 
             <span class="sr-only">Info</span>
             <div>
-                <span class="font-medium">Info alert!</span> Todavia no hay personas registradas.
+                <span class="font-medium">Info alert!</span>
+                @if (request('search'))
+                    No se encontraron personas con esa búsqueda.
+                @else
+                    Todavia no hay personas registradas.
+                @endif
             </div>
         </div>
 
-    @endif --}}
-
-
+    @endif
 
     {{-- agregando el script de la libreria de sweetalert2 PASO 3--}}
 
@@ -158,10 +152,9 @@
                     });
             })
         })
-    
-    </script> 
-    
+
+    </script>
+
 @endpush
 
- 
 </x-admin-layout>

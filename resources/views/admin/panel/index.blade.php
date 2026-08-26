@@ -8,68 +8,58 @@
         </p>
     </div>
 
-    {{-- Resumen principal: siempre en una sola fila horizontal en escritorio, apilado/2x2 en pantallas chicas --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5">
-            <div class="flex items-center justify-between mb-2">
-                <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-medium">Ventas Totales</p>
+    {{-- Resumen principal: un solo bloque, repartido a lo ancho (igual que el filtro de ventas) --}}
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center shrink-0">
                     <i class="fa-solid fa-sack-dollar text-green-600 dark:text-green-400 text-sm"></i>
                 </div>
+                <div>
+                    <p class="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400 font-medium whitespace-nowrap">Ventas Totales</p>
+                    <p class="text-lg font-bold text-gray-900 dark:text-white leading-tight whitespace-nowrap">{{ number_format($totalSales, 0, '', '.') }} Bs.</p>
+                </div>
             </div>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ number_format($totalSales, 0, '', '.') }} Bs.</p>
-            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Ventas activas, sin contar anuladas</p>
-        </div>
 
-        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5">
-            <div class="flex items-center justify-between mb-2">
-                <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-medium">Compras Totales</p>
+            <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-full bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center shrink-0">
                     <i class="fa-solid fa-cart-shopping text-orange-600 dark:text-orange-400 text-sm"></i>
                 </div>
+                <div>
+                    <p class="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400 font-medium whitespace-nowrap">Compras Totales</p>
+                    <p class="text-lg font-bold text-gray-900 dark:text-white leading-tight whitespace-nowrap">{{ number_format($totalPurchases, 0, '', '.') }} Bs.</p>
+                </div>
             </div>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ number_format($totalPurchases, 0, '', '.') }} Bs.</p>
-            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Compras activas, sin contar anuladas</p>
-        </div>
 
-        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5">
-            <div class="flex items-center justify-between mb-2">
-                <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-medium">Cuotas Vencidas</p>
+            <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center shrink-0">
                     <i class="fa-solid fa-triangle-exclamation text-red-500 dark:text-red-400 text-sm"></i>
                 </div>
-            </div>
-
-            @if ($cuotasVencidasCount > 0)
-                <p class="text-2xl font-bold text-red-600">Bs. {{ number_format($cuotasVencidasMonto, 0, '', '.') }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {{ $cuotasVencidasCount }} {{ $cuotasVencidasCount == 1 ? 'cuota vencida' : 'cuotas vencidas' }} sin pagar
-                </p>
-            @else
-                <p class="text-2xl font-bold text-green-600">
-                    <i class="fa-solid fa-circle-check text-lg"></i> Al día
-                </p>
-                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">No hay cuotas vencidas</p>
-            @endif
-        </div>
-
-        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5">
-            <div class="flex items-center justify-between mb-2">
-                <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-medium">Cuotas por Cobrar Este Mes</p>
-                <div class="w-9 h-9 rounded-full bg-yellow-50 dark:bg-yellow-900/20 flex items-center justify-center shrink-0">
-                    <i class="fa-solid fa-calendar-days text-yellow-600 dark:text-yellow-400 text-sm"></i>
+                <div>
+                    <p class="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400 font-medium whitespace-nowrap">Cuotas Vencidas</p>
+                    @if ($cuotasVencidasCount > 0)
+                        <p class="text-lg font-bold text-red-600 leading-tight whitespace-nowrap">Bs. {{ number_format($cuotasVencidasMonto, 0, '', '.') }}</p>
+                    @else
+                        <p class="text-lg font-bold text-green-600 leading-tight whitespace-nowrap">
+                            <i class="fa-solid fa-circle-check text-sm"></i> Al día
+                        </p>
+                    @endif
                 </div>
             </div>
 
-            @if ($cuotasMesCount > 0)
-                <p class="text-2xl font-bold text-yellow-600">Bs. {{ number_format($cuotasMesMonto, 0, '', '.') }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {{ $cuotasMesCount }} {{ $cuotasMesCount == 1 ? 'cuota' : 'cuotas' }} con vencimiento este mes
-                </p>
-            @else
-                <p class="text-2xl font-bold text-gray-400 dark:text-gray-500">—</p>
-                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">No hay cuotas por cobrar este mes</p>
-            @endif
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full bg-yellow-50 dark:bg-yellow-900/20 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-calendar-days text-yellow-600 dark:text-yellow-400 text-sm"></i>
+                </div>
+                <div>
+                    <p class="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400 font-medium whitespace-nowrap">Por Cobrar (Mes)</p>
+                    @if ($cuotasMesCount > 0)
+                        <p class="text-lg font-bold text-yellow-600 leading-tight whitespace-nowrap">Bs. {{ number_format($cuotasMesMonto, 0, '', '.') }}</p>
+                    @else
+                        <p class="text-lg font-bold text-gray-400 dark:text-gray-500 leading-tight">—</p>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
 
@@ -85,16 +75,20 @@
         ];
     @endphp
 
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-        @foreach ($resumen as $item)
-            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-center">
-                <div class="w-8 h-8 mx-auto mb-2 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
-                    <i class="fa-solid {{ $item['icon'] }} text-blue-500 dark:text-blue-400 text-xs"></i>
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            @foreach ($resumen as $item)
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center shrink-0">
+                        <i class="fa-solid {{ $item['icon'] }} text-blue-500 dark:text-blue-400 text-xs"></i>
+                    </div>
+                    <div>
+                        <p class="text-lg font-bold text-gray-900 dark:text-white leading-tight">{{ $item['value'] }}</p>
+                        <p class="text-[11px] text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ $item['label'] }}</p>
+                    </div>
                 </div>
-                <p class="text-lg font-bold text-gray-900 dark:text-white leading-tight">{{ $item['value'] }}</p>
-                <p class="text-[11px] text-gray-500 dark:text-gray-400">{{ $item['label'] }}</p>
-            </div>
-        @endforeach
+            @endforeach
+        </div>
     </div>
 
     {{-- Tendencia mensual --}}

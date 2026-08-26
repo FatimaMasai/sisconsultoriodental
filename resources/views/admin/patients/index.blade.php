@@ -1,5 +1,5 @@
 <x-admin-layout>
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
         <div class="">
             <x-label class="text-black text-xl font-semibold">
                 Listado de Pacientes
@@ -7,7 +7,12 @@
         </div>
         <div class="">
             @can('admin.patients.pdf')
-                <a href="{{ route('admin.patients.pdf') }}" class="btn btn-orange" target="_blank">PDF</a>
+                <a href="{{ route('admin.patients.pdf') }}" class="btn btn-orange" target="_blank">
+                    <i class="fa-solid fa-file-pdf mr-1"></i> PDF
+                </a>
+                <a href="{{ route('admin.patients.excel') }}" class="btn btn-green">
+                    <i class="fa-solid fa-file-excel mr-1"></i> Excel
+                </a>
             @endcan
             @can('admin.patients.create')
                 <a href="{{route('admin.patients.create')}}" class="btn btn-green">
@@ -15,106 +20,97 @@
                 </a>
             @endcan
         </div>
-    </div> 
+    </div>
 
-    @livewire('admin.patient-search')
- 
+    {{-- Filtro de búsqueda --}}
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6">
+        <form method="GET" action="{{ route('admin.patients.index') }}" class="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div class="relative flex-1 sm:min-w-[220px]">
+                <label class="sr-only">Buscar</label>
+                <input type="text" name="search" value="{{ request('search') }}"
+                    class="input-label rounded-lg w-full" placeholder="Buscar por nombre">
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+                <button type="submit" class="btn btn-blue rounded-lg text-sm whitespace-nowrap">
+                    <i class="fa-solid fa-magnifying-glass mr-1"></i> Buscar
+                </button>
+                @if (request('search'))
+                    <a href="{{ route('admin.patients.index') }}" class="btn btn-gray rounded-lg text-sm whitespace-nowrap">
+                        <i class="fa-solid fa-xmark mr-1"></i> Limpiar
+                    </a>
+                @endif
+            </div>
+        </form>
+    </div>
 
-    {{-- @if ($patients->count())
+    @if ($patients->count())
 
         <div class="relative overflow-x-auto">
             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
-                        <th scope="col" class="px-1 py-1">
-                            ID
-                        </th>
-                        <th scope="col" class="px-3 py-2">
-                            Paciente
-                        </th> 
-                        <th scope="col" class="px-3 py-2">
-                            Edad
-                        </th> 
-                <th scope="col" class="px-3 py-2">
-                            Sexo 
-                        </th>   
-                        <th scope="col" class="px-3 py-2">
-                            Alergia
-                        </th> 
-                        <th scope="col" class="px-3 py-2">
-                            Observación
-                        </th> 
-                        <th scope="col" class="px-3 py-2">
-                            Antecedentes
-                        </th> 
-                        <th scope="col" class="px-3 py-2">
-                            Acciones
-                        </th>
+                        <th scope="col" class="px-3 py-2">ID</th>
+                        <th scope="col" class="px-3 py-2">Paciente</th>
+                        <th scope="col" class="px-3 py-2">Edad</th>
+                        <th scope="col" class="px-3 py-2">Sexo</th>
+                        <th scope="col" class="px-3 py-2">Alergia</th>
+                        <th scope="col" class="px-3 py-2">Observación</th>
+                        <th scope="col" class="px-3 py-2">Antecedentes</th>
+                        <th scope="col" class="px-3 py-2">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($patients as $patient) 
-
+                    @foreach ($patients as $patient)
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
-                            <th scope="row" class="px-1 py-1 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {{$patient->id}}
+                            <th scope="row" class="px-3 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                {{ $patient->id }}
                             </th>
                             <td class="px-3 py-2">
-                                {{$patient->person->name}} {{$patient->person->last_name_father}} {{$patient->person->last_name_mother}}
-                            </td>  
+                                {{ $patient->person->name }} {{ $patient->person->last_name_father }} {{ $patient->person->last_name_mother }}
+                            </td>
                             <td class="px-3 py-2">
                                 {{ $patient->person->age }} Años
-                            </td> 
+                            </td>
                             <td class="px-3 py-2">
-                                {{ $patient->person->gender }}  
-                            </td>  
+                                {{ $patient->person->gender }}
+                            </td>
                             <td class="px-3 py-2">
-                                {{ $patient->allergy }} 
-                            </td> 
-
+                                {{ $patient->allergy }}
+                            </td>
                             <td class="px-3 py-2">
-                                {{ $patient->observation }} 
-                            </td> 
+                                {{ $patient->observation }}
+                            </td>
                             <td class="px-3 py-2">
-                                {{ $patient->medical_history }}    
-                            </td> 
- 
-
-                            <td class="px-3 py-2" >
+                                {{ $patient->medical_history }}
+                            </td>
+                            <td class="px-3 py-2">
                                 <div class="flex space-x-2">
-
-                                    @can('admin.patients.edit' )
+                                    @can('admin.patients.edit')
                                         <a href="{{route('admin.patients.edit', $patient)}}" class="btn btn-blue text-xs">Editar</a>
                                     @endcan
-                                
-                                    @can('admin.patients.destroy' )
-                                        <form class="delete-form" action="{{route('admin.patients.destroy', $patient)}}" method="POST">
 
+                                    @can('admin.patients.destroy')
+                                        <form class="delete-form" action="{{route('admin.patients.destroy', $patient)}}" method="POST">
                                             @csrf
                                             @method('DELETE')
-            
                                             <button class="btn btn-red text-xs">
                                                 Eliminar
                                             </button>
-
                                         </form>
                                     @endcan
-                                    
                                 </div>
-
                             </td>
                         </tr>
                     @endforeach
-
                 </tbody>
             </table>
 
             <div class="mt-4">
-                {{$patients->links()}}
+                {{ $patients->links() }}
             </div>
 
         </div>
-        
+
     @else
 
         <div class="flex items-center p-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400" role="alert">
@@ -124,13 +120,16 @@
 
             <span class="sr-only">Info</span>
             <div>
-                <span class="font-medium">Info alert!</span> Todavia no hay pacientes registrados.
+                <span class="font-medium">Info alert!</span>
+                @if (request('search'))
+                    No se encontraron pacientes con esa búsqueda.
+                @else
+                    Todavia no hay pacientes registrados.
+                @endif
             </div>
         </div>
 
-    @endif --}}
-
-
+    @endif
 
     {{-- agregando el script de la libreria de sweetalert2 PASO 3--}}
 
@@ -157,10 +156,9 @@
                     });
             })
         })
-    
-    </script> 
-    
+
+    </script>
+
 @endpush
 
- 
 </x-admin-layout>

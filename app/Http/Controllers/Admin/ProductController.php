@@ -5,28 +5,39 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Http\Controllers\Concerns\ExportsExcel;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf as PDF; 
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class ProductController extends Controller
 {
-    
+    use ExportsExcel;
+
     public function __construct()
     {
         $this->middleware('can:admin.products.index')->only('index');
         $this->middleware('can:admin.products.create')->only('create', 'store');
         $this->middleware('can:admin.products.edit')->only('edit', 'update');
         $this->middleware('can:admin.products.destroy')->only('destroy');
-        $this->middleware('can:admin.products.pdf')->only('pdf');
+        $this->middleware('can:admin.products.pdf')->only('pdf', 'excel');
     }
 
 
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::where('status', 1)
-        ->orderBy('id', 'desc')
-        ->paginate(10);
+        $query = Product::with('productCategory')->where('status', 1);
 
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhereHas('productCategory', function ($categoryQuery) use ($search) {
+                        $categoryQuery->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $products = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
 
         return view('admin.products.index', compact('products'));
 
@@ -135,13 +146,30 @@ class ProductController extends Controller
     {
         // Obtener las categorías de servicio activas
         $products = Product::where('status',1)->orderBy('id', 'desc')->get();
-        
+
         // Generar el PDF a partir de la vista 'Product.pdf
-        $pdf = PDF::loadView('admin.products.pdf', compact('products')); 
+        $pdf = PDF::loadView('admin.products.pdf', compact('products'));
 
         // Mostrar el PDF en el navegador
         return $pdf->stream('admin.products.pdf');
     }
 
+    public function excel()
+    {
+        $products = Product::where('status', 1)->with('productCategory')->orderBy('id', 'desc')->get();
+
+        $rows = $products->map(function (Product $product) {
+            return [
+                $product->name,
+                $product->productCategory->name ?? '—',
+                (float) $product->price,
+                $this->formatDate($product->created_at),
+            ];
+        });
+
+        return $this->streamExcel('productos_' . now()->format('Y-m-d') . '.xlsx', [
+            'Producto', 'Categoría', 'Precio', 'Fecha de registro',
+        ], $rows);
+    }
 
 }

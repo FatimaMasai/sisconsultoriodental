@@ -3,28 +3,31 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\PurchaseDetail;
 use App\Models\Supplier;
+use App\Http\Controllers\Concerns\ExportsExcel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 
-use Barryvdh\DomPDF\Facade\Pdf as PDF; 
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use NumberToWords\NumberToWords;
 
 class PurchaseController extends Controller
 {
-    
+    use ExportsExcel;
+
     public function __construct()
     {
         $this->middleware('can:admin.purchases.index')->only('index');
         $this->middleware('can:admin.purchases.create')->only('create', 'store');
         $this->middleware('can:admin.purchases.edit')->only('edit', 'update');
         $this->middleware('can:admin.purchases.destroy')->only('destroy');
-        $this->middleware('can:admin.purchases.pdf')->only('pdf');
+        $this->middleware('can:admin.purchases.pdf')->only('pdf', 'excel');
         $this->middleware('can:admin.purchases.cancel')->only('cancel');
     }
 
@@ -185,6 +188,46 @@ class PurchaseController extends Controller
         return $pdf->stream('comprobante_' . $purchase->numero . '.pdf');
     }
 
+    /**
+     * Consulta base para los reportes de compras (PDF/Excel): todas las
+     * compras (activas o anuladas), igual que ya se muestran en el listado.
+     */
+    private function purchasesForExport()
+    {
+        return Purchase::with('supplier.person')->orderBy('id', 'desc')->get();
+    }
+
+    public function pdf()
+    {
+        $purchases = $this->purchasesForExport();
+
+        $pdf = PDF::loadView('admin.purchases.pdf', compact('purchases'));
+
+        return $pdf->stream('listado_compras.pdf');
+    }
+
+    public function excel()
+    {
+        $purchases = $this->purchasesForExport();
+
+        $rows = $purchases->map(function (Purchase $purchase) {
+            $contacto = trim($purchase->supplier->person->name . ' ' . $purchase->supplier->person->last_name_father);
+
+            return [
+                $this->formatDate($purchase->date),
+                $purchase->supplier->company,
+                $contacto,
+                $purchase->supplier->nit,
+                (float) $purchase->total,
+                $purchase->status == 1 ? 'Activa' : 'Anulada',
+            ];
+        });
+
+        return $this->streamExcel('compras_' . now()->format('Y-m-d') . '.xlsx', [
+            'Fecha', 'Proveedor', 'Contacto', 'NIT', 'Total', 'Estado',
+        ], $rows);
+    }
+
     public function cancel(Purchase $purchase)
     {
         // Verificar si ya está anulada
@@ -208,6 +251,15 @@ class PurchaseController extends Controller
                     'payment_status' => 'Anulado'
                 ]);
             }
+
+            $purchase->loadMissing('supplier');
+
+            AuditLog::record(
+                'purchase.cancelled',
+                $purchase,
+                "Anuló la compra a {$purchase->supplier->company} (total: {$purchase->total})",
+                ['total' => (float) $purchase->total, 'supplier_id' => $purchase->supplier_id]
+            );
 
             DB::commit();
 

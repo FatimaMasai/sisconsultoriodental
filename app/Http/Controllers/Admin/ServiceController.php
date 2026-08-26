@@ -5,12 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Service;
 use App\Models\ServiceCategory;
+use App\Http\Controllers\Concerns\ExportsExcel;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf as PDF; 
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class ServiceController extends Controller
 {
-    
+    use ExportsExcel;
 
     public function __construct()
     {
@@ -18,12 +19,26 @@ class ServiceController extends Controller
         $this->middleware('can:admin.services.create')->only('create', 'store');
         $this->middleware('can:admin.services.edit')->only('edit', 'update');
         $this->middleware('can:admin.services.destroy')->only('destroy');
-        $this->middleware('can:admin.services.pdf')->only('pdf');
+        $this->middleware('can:admin.services.pdf')->only('pdf', 'excel');
     }
 
-    public function index()
-    { 
-        return view('admin.services.index');
+    public function index(Request $request)
+    {
+        $query = Service::with('serviceCategory')->where('status', 1);
+
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhereHas('serviceCategory', function ($categoryQuery) use ($search) {
+                        $categoryQuery->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $services = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
+
+        return view('admin.services.index', compact('services'));
     }
 
     /**
@@ -139,14 +154,30 @@ class ServiceController extends Controller
     {
         // Obtener las categorías de servicio activas
         $services = Service::where('status',1)->orderBy('id', 'desc')->get();
-        
+
         // Generar el PDF a partir de la vista 'service.pdf
-        $pdf = PDF::loadView('admin.services.pdf', compact('services')); 
+        $pdf = PDF::loadView('admin.services.pdf', compact('services'));
 
         // Mostrar el PDF en el navegador
         return $pdf->stream('admin.services.pdf');
     }
 
+    public function excel()
+    {
+        $services = Service::where('status', 1)->with('serviceCategory')->orderBy('id', 'desc')->get();
 
+        $rows = $services->map(function (Service $service) {
+            return [
+                $service->name,
+                $service->serviceCategory->name ?? '—',
+                (float) $service->price,
+                $this->formatDate($service->created_at),
+            ];
+        });
+
+        return $this->streamExcel('servicios_' . now()->format('Y-m-d') . '.xlsx', [
+            'Servicio', 'Categoría', 'Precio', 'Fecha de registro',
+        ], $rows);
+    }
 
 }

@@ -1,14 +1,22 @@
 <x-admin-layout>
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
         <div class="">
             <x-label class="text-black text-xl font-semibold">
                 Listado de Compras
             </x-label>
         </div>
         <div class="">
+            @can('admin.purchases.pdf')
+                <a href="{{ route('admin.purchases.pdf') }}" class="btn btn-orange" target="_blank">
+                    <i class="fa-solid fa-file-pdf mr-1"></i> PDF
+                </a>
+                <a href="{{ route('admin.purchases.excel') }}" class="btn btn-green">
+                    <i class="fa-solid fa-file-excel mr-1"></i> Excel
+                </a>
+            @endcan
             @can('admin.purchases.create')
                 <a href="{{route('admin.purchases.create')}}" class="btn btn-green">
-                    Nuevo
+                    <i class="fa-solid fa-plus mr-1"></i> Nuevo
                 </a>
             @endcan
         </div>
@@ -70,14 +78,16 @@
 
                             <td class="px-3 py-2" >
                                 <div class="flex space-x-2">
-                                     <a href="{{ route('admin.purchases.print', $purchase->id) }}" class="btn btn-orange text-xs" target="_blank">PDF</a>
+                                     <a href="{{ route('admin.purchases.print', $purchase->id) }}" class="btn btn-orange text-xs" target="_blank">
+                                        <i class="fa-solid fa-file-pdf mr-1"></i> PDF
+                                    </a>
 
                                     @can('admin.purchases.cancel')
                                         @if ($purchase->status == 1)
                                             <form action="{{ route('admin.purchases.cancel', $purchase) }}" method="POST" class="delete-form">
                                                 @csrf
                                                 <button type="submit" class="btn btn-red text-xs">
-                                                    Anular
+                                                    <i class="fa-solid fa-ban mr-1"></i> Anular
                                                 </button>
                                             </form>
                                         @endif

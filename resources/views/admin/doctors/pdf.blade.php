@@ -29,6 +29,12 @@
 </head>
 <body>
 
+    @if (function_exists('imagecreatefrompng') && file_exists(public_path('images/logo.png')))
+        <div style="text-align: center; margin-bottom: 10px;">
+            <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/logo.png'))) }}" alt="Mi Consulta" style="height: 42px;">
+        </div>
+    @endif
+
     <h1>Listado de Doctor</h1>
 
     <table>

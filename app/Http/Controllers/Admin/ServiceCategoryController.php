@@ -4,25 +4,33 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ServiceCategory;
+use App\Http\Controllers\Concerns\ExportsExcel;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf as PDF; 
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class ServiceCategoryController extends Controller
 {
-    
+    use ExportsExcel;
+
     public function __construct()
     {
         $this->middleware('can:admin.service_categories.index')->only('index');
         $this->middleware('can:admin.service_categories.create')->only('create', 'store');
         $this->middleware('can:admin.service_categories.edit')->only('edit', 'update');
         $this->middleware('can:admin.service_categories.destroy')->only('destroy');
-        $this->middleware('can:admin.service_categories.pdf')->only('pdf');
+        $this->middleware('can:admin.service_categories.pdf')->only('pdf', 'excel');
     }
 
 
-    public function index()
+    public function index(Request $request)
     {
-        $service_categories = ServiceCategory::where('status',1)->orderBy('id', 'desc')->paginate(10);
+        $query = ServiceCategory::where('status', 1);
+
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . trim($request->search) . '%');
+        }
+
+        $service_categories = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
         return view('admin.service_categories.index', compact('service_categories'));
     }
 
@@ -141,14 +149,28 @@ class ServiceCategoryController extends Controller
     {
         // Obtener las categorías de servicio activas
         $service_categories = ServiceCategory::where('status',1)->orderBy('id', 'desc')->get();
-        
+
         // Generar el PDF a partir de la vista 'service_categories.pdf
-        $pdf = PDF::loadView('admin.service_categories.pdf', compact('service_categories')); 
+        $pdf = PDF::loadView('admin.service_categories.pdf', compact('service_categories'));
 
         // Mostrar el PDF en el navegador
         return $pdf->stream('admin.service_categories.pdf');
     }
 
+    public function excel()
+    {
+        $service_categories = ServiceCategory::where('status', 1)->orderBy('id', 'desc')->get();
 
+        $rows = $service_categories->map(function (ServiceCategory $category) {
+            return [
+                $category->name,
+                $this->formatDate($category->created_at),
+            ];
+        });
+
+        return $this->streamExcel('categorias_servicio_' . now()->format('Y-m-d') . '.xlsx', [
+            'Nombre', 'Fecha de registro',
+        ], $rows);
+    }
 
 }

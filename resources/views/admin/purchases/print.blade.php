@@ -64,6 +64,9 @@
 
     <!-- Encabezado -->
     <div class="header">
+        @if (function_exists('imagecreatefrompng') && file_exists(public_path('images/logo.png')))
+            <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/logo.png'))) }}" alt="Mi Consulta" style="height: 42px; margin-bottom: 10px;">
+        @endif
         <h1>COMPROBANTE DE COMPRA</h1>
         <p>Compra: {{ $purchase->numero }}</p>
     </div>

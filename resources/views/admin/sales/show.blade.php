@@ -43,8 +43,8 @@
                 @php $estadoCredito = $sale->estado_credito; @endphp
                 @if ($estadoCredito === 'Completado')
                     <x-badge color="green"><i class="fa-solid fa-check mr-1"></i> Completado</x-badge>
-                @elseif ($estadoCredito === 'Con mora')
-                    <x-badge color="red"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Con mora</x-badge>
+                @elseif ($estadoCredito === 'Pendiente')
+                    <x-badge color="red"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Pendiente</x-badge>
                 @elseif ($estadoCredito === 'Anulado')
                     <x-badge color="gray">Anulado</x-badge>
                 @else

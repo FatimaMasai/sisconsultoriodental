@@ -21,3 +21,10 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Archivos propios / de trabajo, no deben ir al repo
+/.claude
+*.zip
+_ide_helper.php
+_ide_helper_models.php
+apuntes*

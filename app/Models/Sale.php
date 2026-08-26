@@ -84,7 +84,7 @@ class Sale extends Model
      *   - null        => la venta es al Contado, no aplica.
      *   - 'Anulado'   => la venta fue anulada, no hay nada que cobrar.
      *   - 'Completado'=> todas las cuotas están pagadas, el paciente ya no debe.
-     *   - 'Con mora'  => tiene al menos una cuota vencida sin pagar.
+     *   - 'Pendiente' => tiene al menos una cuota vencida sin pagar (no se cobra mora, solo queda pendiente).
      *   - 'Al día'    => le quedan cuotas pendientes, pero ninguna vencida todavía.
      */
     public function getEstadoCreditoAttribute(): ?string
@@ -106,7 +106,7 @@ class Sale extends Model
 
         $tieneVencidas = $cuotasActivas->contains(fn (Installment $cuota) => $cuota->estado_actual === 'Vencida');
 
-        return $tieneVencidas ? 'Con mora' : 'Al día';
+        return $tieneVencidas ? 'Pendiente' : 'Al día';
     }
 
 }

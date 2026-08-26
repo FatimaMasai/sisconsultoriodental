@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\Doctor;
 use App\Models\History;
 use App\Models\Installment;
@@ -11,6 +12,7 @@ use App\Models\Payment;
 use App\Models\Sale;
 use App\Models\SaleDetail;
 use App\Models\Service;
+use App\Http\Controllers\Concerns\ExportsExcel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,13 +23,14 @@ use NumberToWords\NumberToWords;
 
 class SaleController extends Controller
 {
+    use ExportsExcel;
 
     public function __construct()
     {
         $this->middleware('can:admin.sales.index')->only('index', 'show');
         $this->middleware('can:admin.sales.create')->only('create', 'store');
         $this->middleware('can:admin.sales.edit')->only('edit', 'update');
-        $this->middleware('can:admin.sales.pdf')->only('pdf');
+        $this->middleware('can:admin.sales.pdf')->only('pdf', 'excel');
         $this->middleware('can:admin.sales.cancel')->only('cancel');
         $this->middleware('can:admin.sales.payInstallment')->only('payInstallment');
 
@@ -36,11 +39,27 @@ class SaleController extends Controller
 
     public function index(Request $request)
     {
-        // Obtener todas las ventas (activas o anuladas), con filtros de búsqueda opcionales
-        $query = Sale::with(['patient.person', 'doctor.person', 'installments']);
+        $query = $this->filteredSales($request);
 
         $hasFilters = $request->filled('search') || $request->filled('payment_type')
             || $request->filled('date_from') || $request->filled('date_to');
+
+        $sales = $query->orderBy('id', 'DESC') // Ordenar las ventas por id
+            ->paginate(50) // Paginación para limitar los resultados
+            ->withQueryString(); // conservar los filtros al cambiar de página
+
+        // Pasar las ventas a la vista
+        return view('admin.sales.index', compact('sales', 'hasFilters'));
+    }
+
+    /**
+     * Consulta de ventas (activas o anuladas) con los mismos filtros de
+     * búsqueda que usa index(). Reutilizada también por excel() para que
+     * la exportación respete los filtros aplicados en el listado.
+     */
+    private function filteredSales(Request $request)
+    {
+        $query = Sale::with(['patient.person', 'doctor.person', 'installments']);
 
         if ($request->filled('search')) {
             $search = trim($request->search);
@@ -72,12 +91,41 @@ class SaleController extends Controller
             $query->whereDate('sale_date', '<=', $request->date_to);
         }
 
-        $sales = $query->orderBy('id', 'DESC') // Ordenar las ventas por id
-            ->paginate(50) // Paginación para limitar los resultados
-            ->withQueryString(); // conservar los filtros al cambiar de página
+        return $query;
+    }
 
-        // Pasar las ventas a la vista
-        return view('admin.sales.index', compact('sales', 'hasFilters'));
+    /**
+     * Exporta a Excel el listado de ventas, respetando los mismos filtros
+     * (búsqueda, tipo de pago, rango de fechas) que estén aplicados en el
+     * listado. Incluye el estado de crédito, algo que el PDF de recibo
+     * individual no muestra.
+     */
+    public function excel(Request $request)
+    {
+        $sales = $this->filteredSales($request)->orderBy('id', 'desc')->get();
+
+        $rows = $sales->map(function (Sale $sale) {
+            $paciente = trim($sale->patient->person->name . ' ' . $sale->patient->person->last_name_father . ' ' . $sale->patient->person->last_name_mother);
+            $doctor = trim($sale->doctor->person->name . ' ' . $sale->doctor->person->last_name_father);
+
+            return [
+                $sale->numero,
+                $this->formatDate($sale->sale_date),
+                $paciente,
+                $doctor,
+                $sale->payment_type,
+                (float) $sale->total,
+                (float) $sale->initial_amount,
+                (float) $sale->saldo_pendiente,
+                $sale->estado_credito ?? '—',
+                $sale->status == 1 ? 'Activa' : 'Anulada',
+            ];
+        });
+
+        return $this->streamExcel('ventas_' . now()->format('Y-m-d') . '.xlsx', [
+            'Comprobante', 'Fecha', 'Paciente', 'Doctor', 'Tipo de pago',
+            'Total', 'Cuota inicial', 'Saldo pendiente', 'Estado de crédito', 'Estado',
+        ], $rows);
     }
 
     /**
@@ -213,17 +261,13 @@ class SaleController extends Controller
                 }
 
                 // generar el plan de cuotas mensuales sobre el saldo restante
+                // (el cálculo de montos vive en Installment::planAmounts() y
+                // tiene sus propios tests unitarios, ver tests/Unit)
                 $saldoFinanciado = round($total - $initialAmount, 2);
-                $montoBase = round($saldoFinanciado / $installmentsCount, 2);
-                $acumulado = 0;
+                $montos = Installment::planAmounts($saldoFinanciado, $installmentsCount);
 
-                for ($i = 1; $i <= $installmentsCount; $i++) {
-                    // la última cuota absorbe el ajuste de redondeo para que la suma cuadre exacto
-                    $monto = $i < $installmentsCount
-                        ? $montoBase
-                        : round($saldoFinanciado - $acumulado, 2);
-
-                    $acumulado += $monto;
+                foreach ($montos as $index => $monto) {
+                    $i = $index + 1;
 
                     Installment::create([
                         'number' => $i,
@@ -241,7 +285,7 @@ class SaleController extends Controller
             DB::commit();
 
             session()->flash('swal', [
-                'title' => 'Venta Realizada con éxito.',
+                'title' => 'El pago se realizó con éxito.',
                 'text' => 'Bien hecho!',
                 'icon' => 'success'
             ]);
@@ -406,6 +450,16 @@ class SaleController extends Controller
                     $installment->update(['status' => 'Anulada']);
                 }
             }
+
+            $sale->loadMissing('patient.person');
+            $paciente = trim($sale->patient->person->name . ' ' . $sale->patient->person->last_name_father);
+
+            AuditLog::record(
+                'sale.cancelled',
+                $sale,
+                "Anuló la venta {$sale->numero} (paciente: {$paciente}, total: {$sale->total})",
+                ['total' => (float) $sale->total, 'patient_id' => $sale->patient_id]
+            );
 
             DB::commit();
 

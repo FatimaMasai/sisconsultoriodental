@@ -1,11 +1,16 @@
 <x-admin-layout>
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
         <div class="">
             <x-label class="text-black text-xl font-semibold">
                 Comprobante de servicios
             </x-label>
         </div>
         <div class="">
+            @can('admin.sales.pdf')
+                <a href="{{ route('admin.sales.excel', request()->query()) }}" class="btn btn-green">
+                    <i class="fa-solid fa-file-excel mr-1"></i> Excel
+                </a>
+            @endcan
             @can('admin.sales.create')
                 <a href="{{route('admin.sales.create')}}" class="btn btn-green">
                     <i class="fa-solid fa-plus mr-1"></i> Nuevo
@@ -15,42 +20,52 @@
     </div>
 
     {{-- Filtro de búsqueda --}}
-    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-6">
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6">
+        <div class="flex items-center gap-2 mb-4">
+            <i class="fa-solid fa-filter text-gray-400"></i>
+            <x-label class="text-black dark:text-white text-base font-semibold">Filtrar Ventas</x-label>
+        </div>
+
         <form method="GET" action="{{ route('admin.sales.index') }}">
-            <div class="flex flex-wrap items-center gap-2">
-                <div class="relative flex-1 min-w-[160px]">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 text-gray-400 text-sm">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </span>
-                    <x-input type="text" name="search" value="{{ request('search') }}"
-                        class="rounded-lg pl-8 w-full" placeholder="Paciente o N° de venta" />
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
+                <div class="relative flex-1 sm:min-w-[220px]">
+                    <label class="sr-only">Paciente o # de venta</label>
+                    <input type="text" name="search" value="{{ request('search') }}"
+                        class="input-label rounded-lg w-full" placeholder="Paciente o N° de venta">
                 </div>
 
-                <x-select name="payment_type" class="rounded-lg shrink-0 w-28">
-                    <option value="">Todos</option>
-                    <option value="Contado" @selected(request('payment_type') == 'Contado')>Contado</option>
-                    <option value="Credito" @selected(request('payment_type') == 'Credito')>Crédito</option>
-                </x-select>
+                <div class="shrink-0">
+                    <label class="sr-only">Tipo de venta</label>
+                    <x-select name="payment_type" class="input-label rounded-lg w-full sm:w-36">
+                        <option value="">Todos</option>
+                        <option value="Contado" @selected(request('payment_type') == 'Contado')>Contado</option>
+                        <option value="Credito" @selected(request('payment_type') == 'Credito')>Crédito</option>
+                    </x-select>
+                </div>
 
-                <x-input type="date" name="date_from" value="{{ request('date_from') }}"
-                    title="Desde" class="rounded-lg shrink-0 w-36" />
+                <div class="shrink-0">
+                    <label class="sr-only">Desde</label>
+                    <input type="date" name="date_from" value="{{ request('date_from') }}" class="input-label rounded-lg w-full sm:w-40">
+                </div>
 
-                <x-input type="date" name="date_to" value="{{ request('date_to') }}"
-                    title="Hasta" class="rounded-lg shrink-0 w-36" />
+                <div class="shrink-0">
+                    <label class="sr-only">Hasta</label>
+                    <input type="date" name="date_to" value="{{ request('date_to') }}" class="input-label rounded-lg w-full sm:w-40">
+                </div>
 
                 <div class="flex items-center gap-2 shrink-0">
-                    <button type="submit" class="btn btn-blue rounded-lg text-sm py-1.5">
+                    <button type="submit" class="btn btn-blue rounded-lg text-sm whitespace-nowrap">
                         <i class="fa-solid fa-magnifying-glass mr-1"></i> Buscar
                     </button>
                     @if ($hasFilters)
-                        <a href="{{ route('admin.sales.index') }}" class="btn btn-gray rounded-lg text-sm py-1.5">
+                        <a href="{{ route('admin.sales.index') }}" class="btn btn-gray rounded-lg text-sm whitespace-nowrap">
                             <i class="fa-solid fa-xmark mr-1"></i> Limpiar
                         </a>
                     @endif
                 </div>
             </div>
 
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-3">
                 @if ($hasFilters)
                     {{ $sales->total() }} resultado(s) con estos filtros
                 @else
@@ -67,7 +82,7 @@
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
                         <th scope="col" class="px-3 py-2">
-                            N° Venta
+                            ID
                         </th>
                         <th scope="col" class="px-3 py-2">
                             Paciente
@@ -102,7 +117,7 @@
 
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40">
                             <th scope="row" class="px-3 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {{ $sale->numero }}
+                                {{$sale->id}}
                             </th>
                             <td class="px-3 py-2">
                                 {{$sale->patient->person->name}} {{$sale->patient->person->last_name_father}} {{$sale->patient->person->last_name_mother}}
@@ -131,8 +146,8 @@
                                     @php $estadoCredito = $sale->estado_credito; @endphp
                                     @if ($estadoCredito === 'Completado')
                                         <x-badge color="green">Completado</x-badge>
-                                    @elseif ($estadoCredito === 'Con mora')
-                                        <x-badge color="red">Con mora</x-badge>
+                                    @elseif ($estadoCredito === 'Pendiente')
+                                        <x-badge color="red">Pendiente</x-badge>
                                     @elseif ($estadoCredito === 'Anulado')
                                         <span class="text-gray-400">—</span>
                                     @else

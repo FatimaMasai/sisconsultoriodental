@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Person;
 use App\Models\Supplier;
+use App\Http\Controllers\Concerns\ExportsExcel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -12,6 +13,7 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class SupplierController extends Controller
 {
+    use ExportsExcel;
 
     public function __construct()
     {
@@ -19,15 +21,27 @@ class SupplierController extends Controller
         $this->middleware('can:admin.suppliers.create')->only('create', 'store');
         $this->middleware('can:admin.suppliers.edit')->only('edit', 'update');
         $this->middleware('can:admin.suppliers.destroy')->only('destroy');
-        $this->middleware('can:admin.suppliers.pdf')->only('pdf');
+        $this->middleware('can:admin.suppliers.pdf')->only('pdf', 'excel');
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $suppliers = Supplier::where('status',1)
-        ->with('person') //obtiene los datos de la tabla persona
-        ->orderBy('id', 'desc')
-        ->paginate(10);
+        $query = Supplier::where('status', 1)->with('person');
+
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('company', 'like', "%{$search}%")
+                    ->orWhere('nit', 'like', "%{$search}%")
+                    ->orWhereHas('person', function ($personQuery) use ($search) {
+                        $personQuery->where('name', 'like', "%{$search}%")
+                            ->orWhere('last_name_father', 'like', "%{$search}%")
+                            ->orWhere('last_name_mother', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $suppliers = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
 
         foreach ($suppliers as $supplier) {
             // Calcula la edad de la persona asociada al proveedor
@@ -283,5 +297,24 @@ class SupplierController extends Controller
 
         return $pdf->stream('admin.suppliers.pdf');
 
+    }
+
+    public function excel()
+    {
+        $suppliers = Supplier::where('status', 1)->with('person')->orderBy('id', 'desc')->get();
+
+        $rows = $suppliers->map(function (Supplier $supplier) {
+            return [
+                trim($supplier->person->name . ' ' . $supplier->person->last_name_father . ' ' . $supplier->person->last_name_mother),
+                $supplier->person->phone,
+                $supplier->nit,
+                $supplier->company,
+                $this->formatDate($supplier->person->created_at),
+            ];
+        });
+
+        return $this->streamExcel('proveedores_' . now()->format('Y-m-d') . '.xlsx', [
+            'Nombre', 'Celular', 'NIT', 'Empresa', 'Fecha de registro',
+        ], $rows);
     }
 }

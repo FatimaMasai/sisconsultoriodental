@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Patient;
 use App\Models\Person;
+use App\Http\Controllers\Concerns\ExportsExcel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -12,6 +13,8 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class PatientController extends Controller
 {
+    use ExportsExcel;
+
     /**
      * Display a listing of the resource.
      */
@@ -22,15 +25,23 @@ class PatientController extends Controller
         $this->middleware('can:admin.patients.create')->only('create', 'store');
         $this->middleware('can:admin.patients.edit')->only('edit', 'update');
         $this->middleware('can:admin.patients.destroy')->only('destroy');
-        $this->middleware('can:admin.patients.pdf')->only('pdf');
+        $this->middleware('can:admin.patients.pdf')->only('pdf', 'excel');
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $patients = Patient::where('status',1)
-        ->with('person') // Esto carga la relación 'person' para obtener los datos de la persona
-        ->orderBy('id', 'desc')
-        ->paginate(10);
+        $query = Patient::where('status', 1)->with('person');
+
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->whereHas('person', function ($personQuery) use ($search) {
+                $personQuery->where('name', 'like', "%{$search}%")
+                    ->orWhere('last_name_father', 'like', "%{$search}%")
+                    ->orWhere('last_name_mother', 'like', "%{$search}%");
+            });
+        }
+
+        $patients = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
 
          // Calcula la edad de cada persona asociada al paciente
         foreach ($patients as $patient) {
@@ -302,5 +313,28 @@ class PatientController extends Controller
 
         return $pdf->stream('admin.patients.pdf');
 
+    }
+
+    public function excel()
+    {
+        $patients = Patient::where('status', 1)->with('person')->orderBy('id', 'desc')->get();
+
+        $rows = $patients->map(function (Patient $patient) {
+            $edad = $patient->person->birth_date ? Carbon::parse($patient->person->birth_date)->age : '';
+
+            return [
+                trim($patient->person->name . ' ' . $patient->person->last_name_father . ' ' . $patient->person->last_name_mother),
+                $patient->person->gender,
+                $edad,
+                $patient->person->phone,
+                $patient->allergy,
+                $patient->observation,
+                $this->formatDate($patient->person->created_at),
+            ];
+        });
+
+        return $this->streamExcel('pacientes_' . now()->format('Y-m-d') . '.xlsx', [
+            'Paciente', 'Sexo', 'Edad', 'Celular', 'Alergias', 'Observación', 'Fecha de registro',
+        ], $rows);
     }
 }

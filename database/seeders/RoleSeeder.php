@@ -291,6 +291,11 @@ class RoleSeeder extends Seeder
             'description' => 'Cancelar ventas',
         ])->syncRoles([$role1, $role3]);
 
+        Permission::create([
+            'name' => 'admin.sales.payInstallment',
+            'description' => 'Registrar pago de cuotas',
+        ])->syncRoles([$role1, $role3]);
+
 
         //historia clinica
         Permission::create([
@@ -436,8 +441,39 @@ class RoleSeeder extends Seeder
             'description' => 'Imprimir compras',
         ])->syncRoles([$role1, $role4]);
 
+        Permission::create([
+            'name' => 'admin.purchases.cancel',
+            'description' => 'Anular compras',
+        ])->syncRoles([$role1, $role4]);
 
 
+        //citas (agenda)
+        Permission::create([
+            'name' => 'admin.appointments.index',
+            'description' => 'Ver la agenda de citas',
+        ])->syncRoles([$role1, $role2, $role3]);
+
+        Permission::create([
+            'name' => 'admin.appointments.create',
+            'description' => 'Agendar citas',
+        ])->syncRoles([$role1, $role3]);
+
+        Permission::create([
+            'name' => 'admin.appointments.edit',
+            'description' => 'Editar citas',
+        ])->syncRoles([$role1, $role3]);
+
+        Permission::create([
+            'name' => 'admin.appointments.cancel',
+            'description' => 'Cancelar citas',
+        ])->syncRoles([$role1, $role3]);
+
+
+        //auditoría
+        Permission::create([
+            'name' => 'admin.audit_logs.index',
+            'description' => 'Ver la bitácora de anulaciones',
+        ])->syncRoles([$role1]);
 
 
 
