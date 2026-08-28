@@ -8,6 +8,9 @@
         <title>{{ config('app.name', 'Mi Consulta') }} — Sistema de gestión para consultorios médicos</title>
         <meta name="description" content="Ventas al contado y a crédito, historial de tus pacientes y control de pagos, todo en el mismo lugar — sin importar tu especialidad.">
 
+        <!-- Ícono de la pestaña -->
+        <link rel="icon" type="image/png" href="{{ asset('images/logo-icon.png') }}">
+
         <!-- Google Analytics (GA4) -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-KP4LMY861N"></script>
         <script>
