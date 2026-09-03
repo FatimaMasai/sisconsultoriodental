@@ -29,27 +29,11 @@ class DoctorController extends Controller
     }
 
 
-    public function index(Request $request)
+    public function index()
     {
-        $query = Doctor::with(['person', 'speciality'])->where('status', 1);
-
-        if ($request->filled('search')) {
-            $search = trim($request->search);
-            $query->whereHas('person', function ($personQuery) use ($search) {
-                $personQuery->where('name', 'like', "%{$search}%")
-                    ->orWhere('last_name_father', 'like', "%{$search}%")
-                    ->orWhere('last_name_mother', 'like', "%{$search}%");
-            });
-        }
-
-        $doctors = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
-
-        // Calcula la edad de cada persona asociada al doctor
-        foreach ($doctors as $doctor) {
-            $doctor->person->age = Carbon::parse($doctor->person->birth_date)->age;
-        }
-
-        return view('admin.doctors.index', compact('doctors'));
+        // El listado y la búsqueda en tiempo real los maneja el componente
+        // Livewire admin.doctor-search (ver app/Livewire/Admin/DoctorSearch.php).
+        return view('admin.doctors.index');
     }
 
     /**
@@ -89,7 +73,7 @@ class DoctorController extends Controller
             $rules = array_merge($rules, [
                 'name' => 'required',
                 'last_name_father' => 'required',
-                'last_name_mother' => 'required',
+                'last_name_mother' => 'nullable',
                 'identity_card' => 'required|numeric|unique:people,identity_card',
                 'birth_date' => 'required|date_format:Y-m-d',
                 'gender' => 'required',
@@ -101,7 +85,6 @@ class DoctorController extends Controller
             $messages = array_merge($messages, [
                 'name.required' => 'El nombre es obligatorio.',
                 'last_name_father.required' => 'El apellido paterno es obligatorio.',
-                'last_name_mother.required' => 'El apellido materno es obligatorio.',
                 'identity_card.required' => 'El carnet de identidad es obligatorio.',
                 'identity_card.numeric' => 'El carnet de identidad solo debe contener números.',
                 'identity_card.unique' => 'Ese número de carnet de identidad ya está registrado.',
@@ -126,7 +109,7 @@ class DoctorController extends Controller
                 $person = Person::create([
                     'name' => ucwords(strtolower($request->name)),
                     'last_name_father' => ucwords(strtolower($request->last_name_father)),
-                    'last_name_mother' => ucwords(strtolower($request->last_name_mother)),
+                    'last_name_mother' => $request->last_name_mother ? ucwords(strtolower($request->last_name_mother)) : null,
                     'identity_card' => $request->identity_card,
                     'birth_date' => $request->birth_date,
                     'gender' => $request->gender,
@@ -195,7 +178,7 @@ class DoctorController extends Controller
         $request->validate([
             'name' => 'required',
             'last_name_father' => 'required',
-            'last_name_mother' => 'required',
+            'last_name_mother' => 'nullable',
             'identity_card' => 'required|numeric|unique:people,identity_card,' . $doctor->person_id,
             'birth_date' => 'required|date_format:Y-m-d',
             'gender' => 'required',
@@ -208,7 +191,6 @@ class DoctorController extends Controller
         ], [
             'name.required' => 'El nombre es obligatorio.',
             'last_name_father.required' => 'El apellido paterno es obligatorio.',
-            'last_name_mother.required' => 'El apellido materno es obligatorio.',
             'identity_card.required' => 'El carnet de identidad es obligatorio.',
             'identity_card.numeric' => 'El carnet de identidad solo debe contener números.',
             'identity_card.unique' => 'Ese número de carnet de identidad ya está registrado.',
@@ -231,7 +213,7 @@ class DoctorController extends Controller
             $doctor->person->update([
                 'name' => ucwords(strtolower($request->name)),
                 'last_name_father' => ucwords(strtolower($request->last_name_father)),
-                'last_name_mother' => ucwords(strtolower($request->last_name_mother)),
+                'last_name_mother' => $request->last_name_mother ? ucwords(strtolower($request->last_name_mother)) : null,
                 'identity_card' => $request->identity_card,
                 'birth_date' => $request->birth_date,
                 'gender' => $request->gender,

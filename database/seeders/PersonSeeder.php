@@ -18,7 +18,7 @@ class PersonSeeder extends Seeder
         $faker = Faker::create('es_ES');
 
 
-        foreach (range(1, 15) as $i) {
+        foreach (range(1, 150) as $i) {
             Person::create([
                 'name' => $faker->firstName,
                 'last_name_father' => $faker->lastName,

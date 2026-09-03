@@ -77,6 +77,8 @@ Route::get('cuotas-pagadas/pdf', [SaleController::class, 'paidInstallmentsPdf'])
 //historias y notas medicas
 Route::resource('histories', HistoryController::class);
 Route::post('histories/{id}/add-note',[HistoryController::class, 'addNote'])->name('histories.addNote');
+Route::post('histories/{id}/photos', [HistoryController::class, 'storePhoto'])->name('histories.photos.store');
+Route::delete('histories/photos/{id}', [HistoryController::class, 'destroyPhoto'])->name('histories.photos.destroy');
 
 
 //compras

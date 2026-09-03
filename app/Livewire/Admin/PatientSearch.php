@@ -13,15 +13,22 @@ class PatientSearch extends Component
 
     public $search = '';
 
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
+        $search = trim($this->search);
+
         $patients = Patient::where('status', 1) // Filtramos por estado activo
-            ->whereHas('person', function ($query) {
-                // Aplicamos las búsquedas sobre los campos de la tabla 'persons'
-                $query->where('name', 'LIKE', '%' . $this->search . '%')
-                    ->orWhere('last_name_father', 'LIKE', '%' . $this->search . '%')
-                    ->orWhere('last_name_mother', 'LIKE', '%' . $this->search . '%')
-                    ->orWhere('identity_card', 'LIKE', '%' . $this->search . '%');
+            ->when($search !== '', function ($query) use ($search) {
+                $query->whereHas('person', function ($personQuery) use ($search) {
+                    $personQuery->where('name', 'LIKE', '%' . $search . '%')
+                        ->orWhere('last_name_father', 'LIKE', '%' . $search . '%')
+                        ->orWhere('last_name_mother', 'LIKE', '%' . $search . '%');
+                });
             })
             ->with('person') // Cargamos la relación 'person' para obtener los datos de la persona asociada
             ->orderBy('id', 'desc')

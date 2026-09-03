@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Doctor;
 use App\Models\History;
+use App\Models\HistoryPhoto;
 use App\Models\Patient;
 use App\Models\Service;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf as PDF; 
+use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class HistoryController extends Controller
 {
@@ -28,11 +30,15 @@ class HistoryController extends Controller
 
         $this->middleware('can:admin.histories.addNote')->only('addNote');
         $this->middleware('can:admin.histories.pdf')->only('pdf');
+
+        $this->middleware('can:admin.histories.photos.store')->only('storePhoto');
+        $this->middleware('can:admin.histories.photos.destroy')->only('destroyPhoto');
     }
     public function index()
     {
-        $histories = History::with('patient.person', 'doctor.person', 'service')->orderBy('id', 'DESC')->paginate(50);
-        return view('admin.histories.index', compact('histories'));
+        // El listado y la búsqueda en tiempo real los maneja el componente
+        // Livewire admin.history-search (ver app/Livewire/Admin/HistorySearch.php).
+        return view('admin.histories.index');
     }
     /**
      * Show the form for creating a new resource.
@@ -90,7 +96,7 @@ class HistoryController extends Controller
 
      public function show($id)
     {
-        $history = History::with('patient.person', 'doctor.person', 'service')->findOrFail($id);
+        $history = History::with('patient.person', 'doctor.person', 'service', 'photos')->findOrFail($id);
            // Asegurarse de que las notas estén ordenadas de forma descendente
         $history->notes = $history->notes()->orderBy('created_at', 'desc')->get();
 
@@ -141,6 +147,64 @@ class HistoryController extends Controller
         ]);
 
         return redirect()->route('admin.histories.show', $history->id);
+    }
+
+    /**
+     * Sube una o varias fotos (Antes/Después) para un historial médico.
+     */
+    public function storePhoto(Request $request, $id)
+    {
+        $history = History::findOrFail($id);
+
+        $request->validate([
+            'type' => 'required|in:antes,despues',
+            'photos' => 'required|array|min:1',
+            'photos.*' => 'image|mimes:jpg,jpeg,png,webp|max:5120',
+        ], [
+            'type.required' => 'Debe indicar si la foto es "Antes" o "Después".',
+            'photos.required' => 'Debe seleccionar al menos una foto.',
+            'photos.*.image' => 'El archivo debe ser una imagen.',
+            'photos.*.mimes' => 'Formatos permitidos: JPG, PNG o WEBP.',
+            'photos.*.max' => 'Cada foto no debe superar los 5MB.',
+        ]);
+
+        foreach ($request->file('photos') as $file) {
+            $path = $file->store('histories/' . $history->id, 'public');
+
+            HistoryPhoto::create([
+                'history_id' => $history->id,
+                'type' => $request->type,
+                'path' => $path,
+            ]);
+        }
+
+        session()->flash('swal', [
+            'title' => 'Fotos agregadas',
+            'text' => 'Se guardaron las fotos correctamente.',
+            'icon' => 'success',
+        ]);
+
+        return redirect()->route('admin.histories.show', $history->id);
+    }
+
+    /**
+     * Elimina una foto (Antes/Después) de un historial médico.
+     */
+    public function destroyPhoto($id)
+    {
+        $photo = HistoryPhoto::findOrFail($id);
+        $historyId = $photo->history_id;
+
+        Storage::disk('public')->delete($photo->path);
+        $photo->delete();
+
+        session()->flash('swal', [
+            'title' => 'Foto eliminada',
+            'text' => 'Se eliminó la foto correctamente.',
+            'icon' => 'success',
+        ]);
+
+        return redirect()->route('admin.histories.show', $historyId);
     }
 
     public function pdf($id)

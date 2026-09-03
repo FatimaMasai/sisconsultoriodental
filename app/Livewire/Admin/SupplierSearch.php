@@ -4,34 +4,44 @@ namespace App\Livewire\Admin;
 
 use App\Models\Supplier;
 use Livewire\Component;
-
 use Livewire\WithPagination;
 use Carbon\Carbon;
 
+/**
+ * Buscador en tiempo real de Proveedores: filtra por nombre, empresa
+ * o NIT a medida que se escribe.
+ */
 class SupplierSearch extends Component
 {
-
     use WithPagination;
 
     public $search = '';
 
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
 
     public function render()
     {
+        $search = trim($this->search);
 
-        $suppliers = Supplier::where('status', 1) // Filtramos por estado activo
-            ->whereHas('person', function ($query) {
-                // Aplicamos las búsquedas sobre los campos de la tabla 'persons'
-                $query->where('name', 'LIKE', '%' . $this->search . '%')
-                    ->orWhere('last_name_father', 'LIKE', '%' . $this->search . '%')
-                    ->orWhere('last_name_mother', 'LIKE', '%' . $this->search . '%')
-                    ->orWhere('identity_card', 'LIKE', '%' . $this->search . '%');
+        $suppliers = Supplier::where('status', 1)
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('company', 'LIKE', '%' . $search . '%')
+                        ->orWhere('nit', 'LIKE', '%' . $search . '%')
+                        ->orWhereHas('person', function ($personQuery) use ($search) {
+                            $personQuery->where('name', 'LIKE', '%' . $search . '%')
+                                ->orWhere('last_name_father', 'LIKE', '%' . $search . '%')
+                                ->orWhere('last_name_mother', 'LIKE', '%' . $search . '%');
+                        });
+                });
             })
-            ->with('person') // Cargamos la relación 'person' para obtener los datos de la persona asociada
+            ->with('person')
             ->orderBy('id', 'desc')
             ->paginate(10);
 
-        // Calcula la edad de cada persona asociada al paciente
         foreach ($suppliers as $supplier) {
             $supplier->person->age = Carbon::parse($supplier->person->birth_date)->age;
         }

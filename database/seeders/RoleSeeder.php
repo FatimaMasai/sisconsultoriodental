@@ -333,6 +333,16 @@ class RoleSeeder extends Seeder
             'description' => 'Imprimir historias clinicas',
         ])->syncRoles([$role1, $role2]);
 
+        Permission::create([
+            'name' => 'admin.histories.photos.store',
+            'description' => 'Subir fotos de antes/después al historial médico',
+        ])->syncRoles([$role1, $role2]);
+
+        Permission::create([
+            'name' => 'admin.histories.photos.destroy',
+            'description' => 'Eliminar fotos de antes/después del historial médico',
+        ])->syncRoles([$role1, $role2]);
+
 
         //categoria de productos
         Permission::create([

@@ -22,23 +22,11 @@ class ServiceController extends Controller
         $this->middleware('can:admin.services.pdf')->only('pdf', 'excel');
     }
 
-    public function index(Request $request)
+    public function index()
     {
-        $query = Service::with('serviceCategory')->where('status', 1);
-
-        if ($request->filled('search')) {
-            $search = trim($request->search);
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhereHas('serviceCategory', function ($categoryQuery) use ($search) {
-                        $categoryQuery->where('name', 'like', "%{$search}%");
-                    });
-            });
-        }
-
-        $services = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
-
-        return view('admin.services.index', compact('services'));
+        // El listado y la búsqueda en tiempo real los maneja el componente
+        // Livewire admin.service-search (ver app/Livewire/Admin/ServiceSearch.php).
+        return view('admin.services.index');
     }
 
     /**

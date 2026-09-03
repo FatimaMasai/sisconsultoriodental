@@ -24,18 +24,11 @@ class ProductCategoryController extends Controller
         $this->middleware('can:admin.product_categories.destroy')->only('destroy');
         $this->middleware('can:admin.product_categories.pdf')->only('pdf', 'excel');
     }
-    public function index(Request $request)
+    public function index()
     {
-        $query = ProductCategory::where('status', 1);
-
-        if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . trim($request->search) . '%');
-        }
-
-        $product_categories = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
-
-        return view('admin.product_categories.index', compact('product_categories'));
-
+        // El listado y la búsqueda en tiempo real los maneja el componente
+        // Livewire admin.product-category-search (ver app/Livewire/Admin/ProductCategorySearch.php).
+        return view('admin.product_categories.index');
     }
 
     /**

@@ -34,6 +34,10 @@ class History extends Model
 {
     return $this->hasMany(HistoryNote::class);
 }
-    
+
+    public function photos()
+    {
+        return $this->hasMany(HistoryPhoto::class);
+    }
 
 }

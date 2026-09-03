@@ -23,24 +23,11 @@ class ProductController extends Controller
     }
 
 
-    public function index(Request $request)
+    public function index()
     {
-        $query = Product::with('productCategory')->where('status', 1);
-
-        if ($request->filled('search')) {
-            $search = trim($request->search);
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhereHas('productCategory', function ($categoryQuery) use ($search) {
-                        $categoryQuery->where('name', 'like', "%{$search}%");
-                    });
-            });
-        }
-
-        $products = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
-
-        return view('admin.products.index', compact('products'));
-
+        // El listado y la búsqueda en tiempo real los maneja el componente
+        // Livewire admin.product-search (ver app/Livewire/Admin/ProductSearch.php).
+        return view('admin.products.index');
     }
 
     /**

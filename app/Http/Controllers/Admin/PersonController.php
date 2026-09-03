@@ -22,28 +22,11 @@ class PersonController extends Controller
         $this->middleware('can:admin.persons.pdf')->only('pdf', 'excel');
     }
 
-    public function index(Request $request)
+    public function index()
     {
-        $query = Person::where('status', 1);
-
-        if ($request->filled('search')) {
-            $search = trim($request->search);
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('last_name_father', 'like', "%{$search}%")
-                    ->orWhere('last_name_mother', 'like', "%{$search}%")
-                    ->orWhere('identity_card', 'like', "%{$search}%");
-            });
-        }
-
-        $persons = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
-
-        // Calcula la edad de cada persona
-        foreach ($persons as $person) {
-            $person->age = Carbon::parse($person->birth_date)->age; // Esto calculará la edad
-        }
-
-        return view('admin.persons.index', compact('persons'));
+        // El listado y la búsqueda en tiempo real los maneja el componente
+        // Livewire admin.person-search (ver app/Livewire/Admin/PersonSearch.php).
+        return view('admin.persons.index');
     }
 
     /**
@@ -62,7 +45,7 @@ class PersonController extends Controller
         $request->validate([
             'name' => 'required',
             'last_name_father' => 'required',
-            'last_name_mother' => 'required', 
+            'last_name_mother' => 'nullable',
 
             'identity_card' => 'required|numeric|unique:people,identity_card',
             'birth_date' => 'required|date_format:Y-m-d',
@@ -76,7 +59,6 @@ class PersonController extends Controller
         [
             'name.required' => 'El nombre es obligatorio.',
             'last_name_father.required' => 'El apellido paterno es obligatorio.',
-            'last_name_mother.required' => 'El apellido materno es obligatorio.',
             'identity_card.required' => 'El carnet de identidad es obligatorio.',
             'identity_card.numeric' => 'El carnet de identidad solo debe contener números.',
             'identity_card.unique' => 'Ese número de carnet de identidad ya está registrado.',
@@ -93,7 +75,7 @@ class PersonController extends Controller
         Person::create([
             'name' => ucwords(strtolower($request->name)),
             'last_name_father' => ucwords(strtolower($request->last_name_father)),
-            'last_name_mother' => ucwords(strtolower($request->last_name_mother)),
+            'last_name_mother' => $request->last_name_mother ? ucwords(strtolower($request->last_name_mother)) : null,
 
             'identity_card' => $request->identity_card,
             'birth_date' => $request->birth_date,
@@ -140,9 +122,9 @@ class PersonController extends Controller
         $request->validate([
             'name' => 'required',
             'last_name_father' => 'required',
-            'last_name_mother' => 'required', 
+            'last_name_mother' => 'nullable',
 
-             
+
             'identity_card' => 'required|numeric|unique:people,identity_card,' . $person->id, // Evitar conflicto con el valor actual
 
             'birth_date' => 'required|date_format:Y-m-d',
@@ -157,7 +139,6 @@ class PersonController extends Controller
         [
             'name.required' => 'El nombre es obligatorio.',
             'last_name_father.required' => 'El apellido paterno es obligatorio.',
-            'last_name_mother.required' => 'El apellido materno es obligatorio.',
             'identity_card.required' => 'El carnet de identidad es obligatorio.',
             'identity_card.numeric' => 'El carnet de identidad solo debe contener números.',
             'identity_card.unique' => 'Ese número de carnet de identidad ya está registrado.',
@@ -176,7 +157,7 @@ class PersonController extends Controller
         $person->update([
             'name' => ucwords(strtolower($request->name)),
             'last_name_father' => ucwords(strtolower($request->last_name_father)),
-            'last_name_mother' => ucwords(strtolower($request->last_name_mother)),
+            'last_name_mother' => $request->last_name_mother ? ucwords(strtolower($request->last_name_mother)) : null,
 
             'identity_card' => $request->identity_card,
             'birth_date' => $request->birth_date,

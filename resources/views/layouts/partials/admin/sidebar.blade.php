@@ -20,6 +20,13 @@
                 'active' => request()->routeIs('admin.appointments.*'),
                 'can' => 'admin.appointments.index',
             ],
+            [
+                'icon' => 'fa-solid fa-notes-medical',
+                'name' => 'Historial Pacientes',
+                'route' => route('admin.histories.index'),
+                'active' => request()->routeIs('admin.histories.*'),
+                'can' => 'admin.histories.index',
+            ],
         ],
         'Administracion' => [
             [
@@ -78,13 +85,13 @@
         ],
 
         'Recepción' => [
-            [
-                'icon' => 'fa-solid fa-users',
-                'name' => 'Datos personales',
-                'route' => route('admin.persons.index'),
-                'active' => request()->routeIs('admin.persons.*'),
-                'can' => 'admin.persons.index',
-            ],
+            // [
+            //     'icon' => 'fa-solid fa-users',
+            //     'name' => 'Datos personales',
+            //     'route' => route('admin.persons.index'),
+            //     'active' => request()->routeIs('admin.persons.*'),
+            //     'can' => 'admin.persons.index',
+            // ],
             [
                 'icon' => 'fa-solid fa-user-injured',
                 'name' => 'Pacientes',
@@ -116,13 +123,7 @@
                 'active' => request()->routeIs('admin.sales.*'),
                 'can' => 'admin.sales.index',
             ],
-            [
-                'icon' => 'fa-solid fa-notes-medical',
-                'name' => 'Historial Médico',
-                'route' => route('admin.histories.index'),
-                'active' => request()->routeIs('admin.histories.*'),
-                'can' => 'admin.histories.index',
-            ],
+            
             [
                 'icon' => 'fa-solid fa-money-check-dollar',
                 'name' => 'Cuotas Pagadas',

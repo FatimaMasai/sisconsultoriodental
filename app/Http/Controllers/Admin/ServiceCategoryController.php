@@ -22,16 +22,11 @@ class ServiceCategoryController extends Controller
     }
 
 
-    public function index(Request $request)
+    public function index()
     {
-        $query = ServiceCategory::where('status', 1);
-
-        if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . trim($request->search) . '%');
-        }
-
-        $service_categories = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
-        return view('admin.service_categories.index', compact('service_categories'));
+        // El listado y la búsqueda en tiempo real los maneja el componente
+        // Livewire admin.service-category-search (ver app/Livewire/Admin/ServiceCategorySearch.php).
+        return view('admin.service_categories.index');
     }
 
     /**

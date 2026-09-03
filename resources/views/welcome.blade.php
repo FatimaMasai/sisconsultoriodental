@@ -381,23 +381,29 @@
 
             <div class="mt-10 grid sm:grid-cols-2 gap-6 max-w-3xl">
                 <div class="reveal bg-white rounded-xl border border-slate-200 p-6 transition-transform hover:-translate-y-1 hover:shadow-lg">
-                    <span class="text-[11px] font-bold tracking-widest text-slate-400">INSTALACIÓN · PAGO ÚNICO</span>
-                    <p class="mt-2 text-4xl font-extrabold text-slate-900">Bs 800</p>
+                    <span class="text-[11px] font-bold tracking-widest text-slate-400">MENSUAL</span>
+                    <p class="mt-2 text-4xl font-extrabold text-slate-900">Bs 399<span class="text-base font-semibold text-slate-500">/mes</span></p>
                     <ul class="mt-6 space-y-2 text-sm text-slate-600">
                         <li class="flex items-start gap-2">
                             <span class="inline-block w-1.5 h-1.5 rounded-full bg-teal-500 mt-1.5"></span>
-                            Sistema completo instalado
+                            Soporte por WhatsApp incluido
                         </li>
                         <li class="flex items-start gap-2">
                             <span class="inline-block w-1.5 h-1.5 rounded-full bg-teal-500 mt-1.5"></span>
-                            Tu dominio y configuración inicial incluidos
+                            Respaldo de datos
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="inline-block w-1.5 h-1.5 rounded-full bg-teal-500 mt-1.5"></span>
+                            Actualizaciones del sistema
                         </li>
                     </ul>
                 </div>
 
-                <div class="reveal bg-white rounded-xl border-2 border-teal-400 p-6 transition-transform hover:-translate-y-1 hover:shadow-lg" style="transition-delay:.1s">
-                    <span class="text-[11px] font-bold tracking-widest text-teal-600">MEMBRESÍA · DESDE EL SEGUNDO MES</span>
-                    <p class="mt-2 text-4xl font-extrabold text-slate-900">Bs 400<span class="text-base font-semibold text-slate-500">/mes</span></p>
+                <div class="reveal relative bg-white rounded-xl border-2 border-teal-400 p-6 transition-transform hover:-translate-y-1 hover:shadow-lg" style="transition-delay:.1s">
+                    <span class="absolute -top-3 right-6 bg-teal-500 text-white text-[11px] font-bold tracking-widest px-3 py-1 rounded-full shadow">RECOMENDADO</span>
+                    <span class="text-[11px] font-bold tracking-widest text-teal-600">ANUAL</span>
+                    <p class="mt-2 text-4xl font-extrabold text-slate-900">Bs 1999<span class="text-base font-semibold text-slate-500">/año</span></p>
+                    <p class="mt-1 text-sm text-slate-500">Equivale a Bs 166/mes</p>
                     <ul class="mt-6 space-y-2 text-sm text-slate-600">
                         <li class="flex items-start gap-2">
                             <span class="inline-block w-1.5 h-1.5 rounded-full bg-teal-500 mt-1.5"></span>

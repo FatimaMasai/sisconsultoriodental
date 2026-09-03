@@ -4,35 +4,44 @@ namespace App\Livewire\Admin;
 
 use App\Models\Person;
 use Livewire\Component;
-use Livewire\WithPagination; //agreamos
+use Livewire\WithPagination;
+use Carbon\Carbon;
 
-use Carbon\Carbon; //agreamos
-
+/**
+ * Buscador en tiempo real de Personas: filtra por nombre, apellidos
+ * o carnet de identidad a medida que se escribe, sin recargar la página.
+ */
 class PersonSearch extends Component
 {
+    use WithPagination;
 
-    use WithPagination; //agreamos
-    public $search = ''; //agreamos
+    public $search = '';
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
 
     public function render()
     {
-        $persons = Person::where('status', 1) // Primero filtramos por estado activo
-            
-            ->where(function ($query) {
-                // Aplicamos las búsquedas solo sobre los campos relevantes
-                $query->where('name', 'LIKE', '%' . $this->search . '%')
-                    ->orWhere('last_name_father', 'LIKE', '%' . $this->search . '%')
-                    ->orWhere('last_name_mother', 'LIKE', '%' . $this->search . '%')
-                    ->orWhere('identity_card', 'LIKE', '%' . $this->search . '%');
+        $search = trim($this->search);
+
+        $persons = Person::where('status', 1)
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'LIKE', '%' . $search . '%')
+                        ->orWhere('last_name_father', 'LIKE', '%' . $search . '%')
+                        ->orWhere('last_name_mother', 'LIKE', '%' . $search . '%')
+                        ->orWhere('identity_card', 'LIKE', '%' . $search . '%');
+                });
             })
             ->orderBy('id', 'desc')
             ->paginate(10);
 
-            // Calcula la edad de cada persona
         foreach ($persons as $person) {
-            $person->age = Carbon::parse($person->birth_date)->age; // Esto calculará la edad
+            $person->age = Carbon::parse($person->birth_date)->age;
         }
 
-        return view('livewire.admin.person-search', compact('persons')); 
+        return view('livewire.admin.person-search', compact('persons'));
     }
 }

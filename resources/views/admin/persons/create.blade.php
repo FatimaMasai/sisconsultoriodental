@@ -33,9 +33,9 @@
                         placeholder="Cuellar" required />
                 </div>
                 <div>
-                    <x-label class="form-label">Apellido Materno <span class="text-red-500">*</span></x-label>
+                    <x-label class="form-label">Apellido Materno</x-label>
                     <x-input value="{{ old('last_name_mother') }}" name="last_name_mother" class="input-label rounded-lg w-full"
-                        placeholder="Paz" required />
+                        placeholder="Paz" />
                 </div>
 
                 <div>
