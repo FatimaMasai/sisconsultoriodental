@@ -10,19 +10,51 @@
                     <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
                 </svg>
             </button>
-            <a href="{{ route('admin.dashboard')}}" class="flex items-center ms-2 md:me-24">
-                <img src="{{ asset('images/logo.png') }}" alt="Mi Consulta" class="brand-logo-full" style="height: clamp(26px, 5vw, 38px); width: auto;">
-                <img src="{{ asset('images/logo-icon.svg') }}" alt="Mi Consulta" class="brand-logo-icon" style="height: 30px; width: auto; display: none;">
+            @php $logoUrl = \App\Models\ClinicSetting::instance()->logoUrl(); @endphp
+            {{-- El logo va en una "chapita" blanca fija (no cambia con el
+                 tema): así, si el archivo del logo tiene fondo blanco en
+                 vez de transparente, se ve como una insignia prolija en
+                 vez de un rectángulo blanco suelto sobre el menú oscuro. --}}
+            <a href="{{ route('admin.dashboard')}}"
+                class="brand-badge flex items-center ms-2 md:me-6 bg-white rounded-lg px-3 py-1.5 shadow-sm ring-1 ring-black/5">
+                <img src="{{ $logoUrl }}" alt="Wellness Centro Integral" class="brand-logo-full" style="height: 40px; width: auto;">
+                <img src="{{ $logoUrl }}" alt="Wellness Centro Integral" class="brand-logo-icon" style="height: 28px; width: auto; display: none;">
             </a>
             </div>
 
+            {{-- En celular el logo completo (con el texto "Control para tu
+                 Consultorio") ocupa mucho ancho al lado del botón de menú,
+                 el modo oscuro y el usuario. Acá abajo de 640px (el mismo
+                 quiebre "sm" que ya usa el resto del layout para el menú
+                 lateral) se muestra una versión más chica y con menos
+                 relleno, para que todo entre cómodo en una sola fila. --}}
             <style>
-                @media (max-width: 420px) {
+                @media (max-width: 639px) {
                     .brand-logo-full { display: none !important; }
                     .brand-logo-icon { display: inline-block !important; }
+                    .brand-badge { padding: 0.25rem 0.5rem !important; }
                 }
             </style>
             <div class="flex items-center">
+                {{-- Botón de modo claro/oscuro: cada usuario elige el suyo,
+                     se guarda en este navegador (localStorage) y se lee de
+                     nuevo antes de pintar la página en layouts/admin.blade.php
+                     para que no haya parpadeo. --}}
+                <button type="button"
+                    x-data="{ dark: document.documentElement.classList.contains('dark') }"
+                    x-on:click="
+                        dark = !dark;
+                        document.documentElement.classList.toggle('dark', dark);
+                        localStorage.setItem('theme', dark ? 'dark' : 'light');
+                        window.dispatchEvent(new CustomEvent('theme-changed', { detail: { dark } }));
+                    "
+                    class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 mr-2"
+                    title="Cambiar tema claro/oscuro">
+                    <i class="fa-solid fa-moon" x-show="!dark"></i>
+                    <i class="fa-solid fa-sun" x-show="dark" style="display: none;"></i>
+                    <span class="sr-only">Cambiar tema</span>
+                </button>
+
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())

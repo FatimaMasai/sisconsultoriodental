@@ -11,9 +11,17 @@ class Payment extends Model
         'payment_method',
         'payment_status',
 
+        // Datos de conciliación cuando el pago se hizo por QR (VeriPagos).
+        'qr_movimiento_id',
+        'qr_remitente',
+
         'sale_id',
         'purchase_id',
         'installment_id',
+    ];
+
+    protected $casts = [
+        'qr_remitente' => 'array',
     ];
     public function sale()
     {

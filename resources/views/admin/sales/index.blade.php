@@ -76,11 +76,11 @@
     @if ($sales->count())
 
         <div class="relative overflow-x-auto">
-            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+            <table class="table-stack w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
                         <th scope="col" class="px-3 py-2">
-                            ID
+                            N°
                         </th>
                         <th scope="col" class="px-3 py-2">
                             Paciente
@@ -114,24 +114,24 @@
                     @foreach ($sales as $sale)
 
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40">
-                            <th scope="row" class="px-3 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {{$sale->id}}
+                            <th scope="row" data-label="ID" class="px-3 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                {{ ($sales->currentPage() - 1) * $sales->perPage() + $loop->iteration }}
                             </th>
-                            <td class="px-3 py-2">
+                            <td data-label="Paciente" class="px-3 py-2">
                                 {{$sale->patient->person->name}} {{$sale->patient->person->last_name_father}} {{$sale->patient->person->last_name_mother}}
                             </td>
-                            <td class="px-3 py-2">
+                            <td data-label="Doctor" class="px-3 py-2">
                                 {{ $sale->doctor->person->name }}  {{$sale->doctor->person->last_name_father}} {{$sale->doctor->person->last_name_mother}}
                             </td>
 
-                            <td class="px-3 py-2">
+                            <td data-label="Fecha" class="px-3 py-2">
                                 {{ $sale->sale_date }}
                             </td>
-                            <td class="px-3 py-2">
+                            <td data-label="Pago" class="px-3 py-2">
                                 {{ number_format($sale->total, 0, '', '.') }} Bs.
                             </td>
 
-                            <td class="px-3 py-2">
+                            <td data-label="Tipo" class="px-3 py-2">
                                 @if ($sale->payment_type === 'Credito')
                                     <x-badge color="blue">Crédito</x-badge>
                                 @else
@@ -139,7 +139,7 @@
                                 @endif
                             </td>
 
-                            <td class="px-3 py-2">
+                            <td data-label="Cuotas" class="px-3 py-2">
                                 @if ($sale->payment_type === 'Credito')
                                     @php $estadoCredito = $sale->estado_credito; @endphp
                                     @if ($estadoCredito === 'Completado')
@@ -156,7 +156,7 @@
                                 @endif
                             </td>
 
-                            <td class="px-3 py-2">
+                            <td data-label="Estado" class="px-3 py-2">
                                 @if ($sale->status == 1)
                                     <x-badge color="green">Activa</x-badge>
                                 @else

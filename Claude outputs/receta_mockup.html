@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Boceto - Receta Médica</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    background: #e7e9ec;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 40px 16px;
+    display: flex;
+    justify-content: center;
+  }
+  .hoja {
+    background: #ffffff;
+    width: 720px;
+    max-width: 100%;
+    padding: 0 0 36px 0;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .membrete {
+    background: #0f172a;
+    color: #fff;
+    padding: 22px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .marca {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .marca span {
+    color: #2dd4bf;
+  }
+  .marca small {
+    display: block;
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 2px;
+    color: #cbd5e1;
+    margin-top: 2px;
+  }
+  .doctor-info {
+    text-align: right;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #cbd5e1;
+  }
+  .doctor-info strong {
+    color: #fff;
+    font-size: 14px;
+  }
+  .datos-paciente {
+    display: flex;
+    justify-content: space-between;
+    padding: 18px 32px;
+    border-bottom: 1px dashed #cbd5e1;
+    font-size: 13px;
+    color: #334155;
+  }
+  .datos-paciente div span {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94a3b8;
+    margin-bottom: 2px;
+  }
+  .cuerpo {
+    padding: 24px 32px 0 32px;
+  }
+  .rp {
+    font-size: 34px;
+    font-weight: 700;
+    color: #0f766e;
+    font-family: Georgia, serif;
+    margin-bottom: 4px;
+  }
+  .linea-med {
+    border-bottom: 1px solid #e2e8f0;
+    padding: 12px 4px 12px 10px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .num {
+    color: #0f766e;
+    font-weight: 700;
+    font-size: 14px;
+    min-width: 18px;
+  }
+  .texto-med {
+    font-size: 14.5px;
+    color: #1e293b;
+    line-height: 1.4;
+  }
+  .texto-med .principal {
+    font-weight: 600;
+  }
+  .indicaciones {
+    margin-top: 22px;
+    padding: 14px 16px;
+    background: #f8fafc;
+    border-left: 3px solid #2dd4bf;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #475569;
+  }
+  .indicaciones span {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #0f766e;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 40px 32px 0 32px;
+    font-size: 12px;
+    color: #64748b;
+  }
+  .firma {
+    text-align: center;
+    width: 220px;
+  }
+  .firma .linea {
+    border-top: 1px solid #94a3b8;
+    margin-bottom: 6px;
+  }
+  .etiqueta-boceto {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 12px;
+    margin-bottom: 14px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+<div>
+  <div class="etiqueta-boceto">Boceto — así se vería impresa la receta</div>
+  <div class="hoja">
+    <div class="membrete">
+      <div class="marca">
+        well<span>ness</span>
+        <small>CENTRO INTEGRAL</small>
+      </div>
+      <div class="doctor-info">
+        <strong>Dra. Camila Rojas</strong>
+        Nutrición · Mat. Prof. 4521<br>
+        22 de agosto de 2026
+      </div>
+    </div>
+
+    <div class="datos-paciente">
+      <div><span>Paciente</span>Natalia Georgia Lema Moreno</div>
+      <div><span>Edad</span>35 años</div>
+      <div><span>N.° Historia</span>EXP-0042</div>
+    </div>
+
+    <div class="cuerpo">
+      <div class="rp">℞</div>
+
+      <div class="linea-med">
+        <div class="num">1.</div>
+        <div class="texto-med"><span class="principal">Metformina 850mg</span> — 1 comprimido cada 12 horas, después de las comidas, por 30 días.</div>
+      </div>
+      <div class="linea-med">
+        <div class="num">2.</div>
+        <div class="texto-med"><span class="principal">Vitamina D3 2000 UI</span> — 1 vez al día en el desayuno, por 60 días.</div>
+      </div>
+      <div class="linea-med">
+        <div class="num">3.</div>
+        <div class="texto-med"><span class="principal">Omega 3</span> — 1 cápsula al almuerzo, por 30 días.</div>
+      </div>
+
+      <div class="indicaciones">
+        <span>Indicaciones generales</span>
+        Aumentar consumo de agua a 2 litros diarios. Control de peso en 30 días. Evitar bebidas azucaradas.
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>Wellness Centro Integral<br>Tarija, Bolivia</div>
+      <div class="firma">
+        <div class="linea"></div>
+        Firma y sello del profesional
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

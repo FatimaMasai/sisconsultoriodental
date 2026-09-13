@@ -26,11 +26,11 @@
     @if ($histories->count())
 
         <div class="relative overflow-x-auto">
-            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+            <table class="table-stack w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
                         <th scope="col" class="px-3 py-2">
-                            ID
+                            N°
                         </th>
                         <th scope="col" class="px-3 py-2">
                             Paciente
@@ -53,19 +53,19 @@
                     @foreach ($histories as $history)
 
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
-                            <th scope="row" class="px-3 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {{ $history->id }}
+                            <th scope="row" data-label="ID" class="px-3 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                {{ ($histories->currentPage() - 1) * $histories->perPage() + $loop->iteration }}
                             </th>
-                            <td class="px-3 py-2">
+                            <td data-label="Paciente" class="px-3 py-2">
                                 {{ $history->patient->person->name }} {{ $history->patient->person->last_name_father }} {{ $history->patient->person->last_name_mother }}
                             </td>
-                            <td class="px-3 py-2">
+                            <td data-label="Servicio" class="px-3 py-2">
                                 {{ $history->service->name }}
                             </td>
-                            <td class="px-3 py-2">
+                            <td data-label="Fecha" class="px-3 py-2">
                                 {{ $history->created_at->format('d/m/Y H:i') }}
                             </td>
-                            <td class="px-3 py-2">
+                            <td data-label="Doctor" class="px-3 py-2">
                                 {{ $history->doctor->person->name }} {{ $history->doctor->person->last_name_father }} {{ $history->doctor->person->last_name_mother }}
                             </td>
 

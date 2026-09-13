@@ -5,6 +5,6 @@
     </svg> --}}
    
     {{-- <img src="{{ asset('images/dental.png') }}" alt="Logo" class="w-32 h-32 mx-auto mb-4 rounded-full"> --}}
-    <img src="{{ asset('images/miconsulta.png') }}" alt="Logo" class="w-32 h-32 mx-auto mb-4 rounded-full">
+    <img src="{{ \App\Models\ClinicSetting::instance()->logoUrl() }}" alt="Wellness Centro Integral" class="h-16 sm:h-20 w-auto mx-auto mb-4">
 
 </a>

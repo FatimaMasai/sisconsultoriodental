@@ -49,7 +49,7 @@
             </div>
 
             <div class="relative overflow-x-auto">
-                <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                <table class="table-stack w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
                         <tr>
                             <th scope="col" class="px-4 py-2">Producto</th>
@@ -69,7 +69,7 @@
 
                         @foreach ($oldProducts as $i => $oldProduct)
                             <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700 product-row">
-                                <td class="px-4 py-2">
+                                <td data-label="Producto" class="px-4 py-2">
                                     <x-select name="products[{{ $i }}][product_id]" class="rounded-lg w-full product-select" required>
                                         <option value="">Seleccione un producto</option>
                                         @foreach ($products as $product)
@@ -80,13 +80,13 @@
                                         @endforeach
                                     </x-select>
                                 </td>
-                                <td class="px-4 py-2">
+                                <td data-label="Cant." class="px-4 py-2">
                                     <input type="number" name="products[{{ $i }}][quantity]"
                                         class="product-quantity rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm w-full"
                                         min="1" value="{{ $oldProduct['quantity'] ?? 1 }}" required>
                                 </td>
-                                <td class="px-4 py-2 product-price text-gray-700 dark:text-gray-300">Bs. 0</td>
-                                <td class="px-4 py-2 product-subtotal font-medium text-gray-900 dark:text-white">Bs. 0</td>
+                                <td data-label="Precio" class="px-4 py-2 product-price text-gray-700 dark:text-gray-300">Bs. 0</td>
+                                <td data-label="Subtotal" class="px-4 py-2 product-subtotal font-medium text-gray-900 dark:text-white">Bs. 0</td>
                                 <td class="px-4 py-2 text-center">
                                     <button type="button" class="remove-product text-red-500 hover:text-red-700" title="Quitar producto">
                                         <i class="fa-solid fa-trash-can"></i>
@@ -174,7 +174,7 @@
             const row = document.createElement('tr');
             row.classList.add('product-row', 'bg-white', 'dark:bg-gray-800', 'border-b', 'dark:border-gray-700');
             row.innerHTML = `
-                <td class="px-4 py-2">
+                <td data-label="Producto" class="px-4 py-2">
                     <select name="products[${productIndex}][product_id]" class="rounded-lg w-full product-select border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm" required>
                         <option value="">Seleccione un producto</option>
                         @foreach ($products as $product)
@@ -182,11 +182,11 @@
                         @endforeach
                     </select>
                 </td>
-                <td class="px-4 py-2">
+                <td data-label="Cant." class="px-4 py-2">
                     <input type="number" name="products[${productIndex}][quantity]" class="product-quantity rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm w-full" min="1" value="1" required>
                 </td>
-                <td class="px-4 py-2 product-price text-gray-700 dark:text-gray-300">Bs. 0</td>
-                <td class="px-4 py-2 product-subtotal font-medium text-gray-900 dark:text-white">Bs. 0</td>
+                <td data-label="Precio" class="px-4 py-2 product-price text-gray-700 dark:text-gray-300">Bs. 0</td>
+                <td data-label="Subtotal" class="px-4 py-2 product-subtotal font-medium text-gray-900 dark:text-white">Bs. 0</td>
                 <td class="px-4 py-2 text-center">
                     <button type="button" class="remove-product text-red-500 hover:text-red-700" title="Quitar producto">
                         <i class="fa-solid fa-trash-can"></i>

@@ -26,10 +26,10 @@
     @if ($products->count())
 
         <div class="relative overflow-x-auto">
-            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+            <table class="table-stack w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
-                        <th scope="col" class="px-3 py-2">ID</th>
+                        <th scope="col" class="px-3 py-2">N°</th>
                         <th scope="col" class="px-3 py-2">Producto</th>
                         <th scope="col" class="px-3 py-2">Categoría</th>
                         <th scope="col" class="px-3 py-2">Precio</th>
@@ -39,16 +39,16 @@
                 <tbody>
                     @foreach ($products as $product)
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
-                            <th scope="row" class="px-3 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {{ $product->id }}
+                            <th scope="row" data-label="ID" class="px-3 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                {{ ($products->currentPage() - 1) * $products->perPage() + $loop->iteration }}
                             </th>
-                            <td class="px-3 py-2">
+                            <td data-label="Producto" class="px-3 py-2">
                                 {{ $product->name }}
                             </td>
-                            <td class="px-3 py-2">
+                            <td data-label="Categoría" class="px-3 py-2">
                                 {{ $product->productCategory->name ?? '—' }}
                             </td>
-                            <td class="px-3 py-2">
+                            <td data-label="Precio" class="px-3 py-2">
                                 {{ $product->price }} Bs.
                             </td>
                             <td class="px-3 py-2">

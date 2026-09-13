@@ -27,12 +27,17 @@ class ServiceSearch extends Component
 
         $services = Service::where('status', 1)
             ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'LIKE', '%' . $search . '%')
-                        ->orWhereHas('serviceCategory', function ($categoryQuery) use ($search) {
-                            $categoryQuery->where('name', 'LIKE', '%' . $search . '%');
-                        });
-                });
+                // Palabra por palabra, para que encuentre coincidencias sin importar el orden.
+                $words = preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY);
+
+                foreach ($words as $word) {
+                    $query->where(function ($q) use ($word) {
+                        $q->where('name', 'LIKE', '%' . $word . '%')
+                            ->orWhereHas('serviceCategory', function ($categoryQuery) use ($word) {
+                                $categoryQuery->where('name', 'LIKE', '%' . $word . '%');
+                            });
+                    });
+                }
             })
             ->with('serviceCategory')
             ->orderBy('id', 'desc')

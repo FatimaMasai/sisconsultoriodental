@@ -21,7 +21,7 @@ class User extends Authenticatable
     use HasProfilePhoto;
     use Notifiable;
     use TwoFactorAuthenticatable;
-    use HasRoles;  // <-- Agregamos 
+    use HasRoles;  // <-- Agregamos
 
     /**
      * The attributes that are mass assignable.
@@ -66,5 +66,15 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Registro de Doctor vinculado a esta cuenta, si corresponde. Se usa
+     * para saber la especialidad del médico que inició sesión y aplicar
+     * la restricción de acceso al historial clínico.
+     */
+    public function doctor()
+    {
+        return $this->hasOne(Doctor::class);
     }
 }

@@ -20,10 +20,21 @@ class UserSearch extends Component
    
     public function render()
     {
-        $users = User::where('name', 'like', '%' . $this->search . '%')
-                    ->orWhere('email', 'like', '%' . $this->search . '%')
-                    ->orderBy('id', 'desc')
-                    ->paginate(10);
+        $search = trim($this->search);
+
+        $users = User::when($search !== '', function ($query) use ($search) {
+                // Palabra por palabra, para que encuentre coincidencias sin importar el orden.
+                $words = preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY);
+
+                foreach ($words as $word) {
+                    $query->where(function ($q) use ($word) {
+                        $q->where('name', 'LIKE', '%' . $word . '%')
+                            ->orWhere('email', 'LIKE', '%' . $word . '%');
+                    });
+                }
+            })
+            ->orderBy('id', 'desc')
+            ->paginate(10);
 
         return view('livewire.admin.user-search', compact('users'));
     }

@@ -83,6 +83,15 @@
                             <option value="Masculino" @selected(old('gender') == 'Masculino')>Masculino</option>
                         </x-select>
                     </div>
+                    <div>
+                        <x-label class="form-label">Estado Civil</x-label>
+                        <x-select name="civil_status" class="input-label rounded-lg w-full">
+                            <option value="">—</option>
+                            @foreach (\App\Models\Person::CIVIL_STATUSES as $estadoCivil)
+                                <option value="{{ $estadoCivil }}" @selected(old('civil_status') == $estadoCivil)>{{ $estadoCivil }}</option>
+                            @endforeach
+                        </x-select>
+                    </div>
                 </div>
             </div>
 
@@ -164,27 +173,27 @@
 
             <div class="grid gap-4 md:grid-cols-2">
                 <div>
-                    <x-label class="form-label">Alergia <span class="text-red-500">*</span></x-label>
+                    <x-label class="form-label">Alergia</x-label>
                     <x-input value="{{ old('allergy') }}" name="allergy" class="input-label rounded-lg w-full"
                         placeholder="Ingrese alergias del paciente" />
                 </div>
                 <div>
-                    <x-label class="form-label">Observación <span class="text-red-500">*</span></x-label>
+                    <x-label class="form-label">Observación</x-label>
                     <x-input value="{{ old('observation') }}" name="observation" class="input-label rounded-lg w-full"
                         placeholder="Ingrese observaciones importantes del paciente" />
                 </div>
                 <div>
-                    <x-label class="form-label">Recomendado por <span class="text-red-500">*</span></x-label>
+                    <x-label class="form-label">Recomendado por</x-label>
                     <x-input value="{{ old('recommended_by') }}" name="recommended_by" class="input-label rounded-lg w-full"
                         placeholder="Nombre de la persona que recomendó" />
                 </div>
                 <div>
-                    <x-label class="form-label">Responsable <span class="text-red-500">*</span></x-label>
+                    <x-label class="form-label">Responsable</x-label>
                     <x-input value="{{ old('responsible_person') }}" name="responsible_person" class="input-label rounded-lg w-full"
                         placeholder="Nombre de la persona responsable" />
                 </div>
                 <div class="md:col-span-2">
-                    <x-label class="form-label">Antecedentes <span class="text-red-500">*</span></x-label>
+                    <x-label class="form-label">Antecedentes</x-label>
                     <x-input value="{{ old('medical_history') }}" name="medical_history" class="input-label rounded-lg w-full"
                         placeholder="Ingrese antecedentes médicos del paciente" />
                 </div>

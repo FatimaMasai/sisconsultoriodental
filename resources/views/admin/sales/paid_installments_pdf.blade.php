@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cuotas Pagadas</title>
+    <title>Historial de Abonos</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -39,13 +39,15 @@
 </head>
 <body>
 
-    @if (function_exists('imagecreatefrompng') && file_exists(public_path('images/logo.png')))
+    @php $logoDataUri = \App\Models\ClinicSetting::instance()->logoBase64(); @endphp
+    @if ($logoDataUri)
         <div style="text-align: center; margin-bottom: 10px;">
-            <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/logo.png'))) }}" alt="Mi Consulta" style="height: 42px;">
+            <img src="{{ $logoDataUri }}" alt="Mi Consulta" style="height: 42px;">
         </div>
     @endif
 
-    <h1>Reporte de Cuotas Pagadas</h1>
+    <h1>Reporte de Historial de Abonos</h1>
+    @include('admin.settings.partials.pdf-contact-line')
     <p class="subtitulo">
         Generado el {{ now()->format('d/m/Y H:i') }}
         @if ($request->filled('search'))
@@ -66,35 +68,37 @@
                 <th>#</th>
                 <th>Comprobante</th>
                 <th>Paciente</th>
-                <th>Cuota</th>
+                <th>Concepto</th>
                 <th>Monto</th>
                 <th>Método</th>
                 <th>Fecha de pago</th>
             </tr>
         </thead>
         <tbody>
-            @forelse ($installments as $index => $installment)
+            @forelse ($abonos as $index => $payment)
                 @php
-                    $sale = $installment->sale;
+                    $sale = $payment->sale;
                     $paciente = trim($sale->patient->person->name . ' ' . $sale->patient->person->last_name_father . ' ' . $sale->patient->person->last_name_mother);
-                    $metodoPago = optional($installment->payments->first())->payment_method ?? '—';
+                    $concepto = $payment->payment_status === 'Cuota Inicial'
+                        ? 'Cuota inicial'
+                        : ($payment->installment ? 'Cuota #' . $payment->installment->number : $payment->payment_status);
                 @endphp
                 <tr>
                     <td>{{ $index + 1 }}</td>
                     <td>{{ $sale->numero }}</td>
                     <td>{{ $paciente }}</td>
-                    <td>#{{ $installment->number }}</td>
-                    <td>Bs. {{ number_format($installment->amount, 0, '', '.') }}</td>
-                    <td>{{ $metodoPago }}</td>
-                    <td>{{ $installment->paid_at->format('d/m/Y H:i') }}</td>
+                    <td>{{ $concepto }}</td>
+                    <td>Bs. {{ number_format($payment->amount, 0, '', '.') }}</td>
+                    <td>{{ $payment->payment_method }}</td>
+                    <td>{{ $payment->created_at->format('d/m/Y H:i') }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" style="text-align: center;">No se encontraron cuotas pagadas.</td>
+                    <td colspan="7" style="text-align: center;">No se encontraron abonos.</td>
                 </tr>
             @endforelse
         </tbody>
-        @if ($installments->count())
+        @if ($abonos->count())
             <tfoot>
                 <tr>
                     <td colspan="4"></td>

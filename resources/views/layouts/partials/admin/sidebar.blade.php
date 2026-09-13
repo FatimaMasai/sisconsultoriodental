@@ -23,8 +23,8 @@
             [
                 'icon' => 'fa-solid fa-notes-medical',
                 'name' => 'Historial Pacientes',
-                'route' => route('admin.histories.index'),
-                'active' => request()->routeIs('admin.histories.*'),
+                'route' => route('admin.expedientes.index'),
+                'active' => request()->routeIs('admin.expedientes.*') || request()->routeIs('admin.histories.*'),
                 'can' => 'admin.histories.index',
             ],
         ],
@@ -85,13 +85,13 @@
         ],
 
         'Recepción' => [
-            // [
-            //     'icon' => 'fa-solid fa-users',
-            //     'name' => 'Datos personales',
-            //     'route' => route('admin.persons.index'),
-            //     'active' => request()->routeIs('admin.persons.*'),
-            //     'can' => 'admin.persons.index',
-            // ],
+            [
+                'icon' => 'fa-solid fa-users',
+                'name' => 'Datos personales',
+                'route' => route('admin.persons.index'),
+                'active' => request()->routeIs('admin.persons.*'),
+                'can' => 'admin.persons.index',
+            ],
             [
                 'icon' => 'fa-solid fa-user-injured',
                 'name' => 'Pacientes',
@@ -123,17 +123,24 @@
                 'active' => request()->routeIs('admin.sales.*'),
                 'can' => 'admin.sales.index',
             ],
-            
+            [
+                'icon' => 'fa-solid fa-money-bill-transfer',
+                'name' => 'Cobros pendientes',
+                'route' => route('admin.sales.pending-charges'),
+                'active' => request()->routeIs('admin.sales.pending-charges'),
+                'can' => 'admin.sales.create',
+            ],
+
             [
                 'icon' => 'fa-solid fa-money-check-dollar',
-                'name' => 'Cuotas Pagadas',
+                'name' => 'Historial de Abonos',
                 'route' => route('admin.installments.paid'),
                 'active' => request()->routeIs('admin.installments.*'),
                 'can' => 'admin.sales.index',
             ],
         ],
         'Compras de insumos' => [
-            
+
             [
                 'icon' => 'fa-solid fa-cube',
                 'name' => 'Producto',
@@ -147,9 +154,22 @@
                 'route' => route('admin.purchases.index'),
                 'active' => request()->routeIs('admin.purchases.*'),
                 'can' => 'admin.purchases.index',
-            ], 
+            ],
         ],
-        
+        'Configuración' => [
+            [
+                'icon' => 'fa-solid fa-palette',
+                'name' => 'Apariencia',
+                'route' => route('admin.settings.appearance.index'),
+                'active' => request()->routeIs('admin.settings.appearance.*'),
+                'can' => 'admin.settings.appearance',
+            ],
+            // Google Calendar se saca del menú a pedido del cliente (el
+            // paquete todavía no está instalado). Las rutas, el controlador,
+            // la vista y el permiso quedan intactos por si se activa más
+            // adelante instalando el paquete correspondiente.
+        ],
+
     ];
 @endphp
 
@@ -170,7 +190,8 @@
                              dark:hover:bg-gray-700 group {{ $link['active'] ? 'bg-gray-100 dark:bg-gray-700' : '' }}">
                                 <span class="inline-flex w-6 h-6 justify-center items-center">
                                         {{-- <i class="{{ $link['icon'] }} text-gray-500"></i> --}}
-                                    <i class="{{ $link['icon'] }} {{ $link['active'] ? 'text-teal-600' : 'text-gray-500' }}"></i>
+                                    <i class="{{ $link['icon'] }} {{ $link['active'] ? '' : 'text-gray-500' }}"
+                                        @style([$link['active'] ? 'color: var(--brand-primary)' : ''])></i>
                                 </span>
                                 <span class="ml-2">{{ $link['name'] }}</span>
                             </a>

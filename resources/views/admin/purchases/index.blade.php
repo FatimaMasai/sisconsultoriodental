@@ -25,7 +25,7 @@
     @if ($purchases->count())
 
         <div class="relative overflow-x-auto">
-            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+            <table class="table-stack w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
                         <th scope="col" class="px-1 py-1">
@@ -52,21 +52,21 @@
                     @foreach ($purchases as $purchase)
 
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
-                            <th scope="row" class="px-1 py-1 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            <th scope="row" data-label="N° Compra" class="px-1 py-1 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                 {{ $purchase->numero }}
                             </th>
-                            <td class="px-3 py-2">
+                            <td data-label="Proveedor" class="px-3 py-2">
                                 {{$purchase->supplier->person->name}} {{$purchase->supplier->person->last_name_father}} {{$purchase->supplier->person->last_name_mother}}
                             </td>
 
-                            <td class="px-3 py-2">
+                            <td data-label="Fecha" class="px-3 py-2">
                                 {{ $purchase->date }}
                             </td>
-                            <td class="px-3 py-2">
+                            <td data-label="Pago" class="px-3 py-2">
                                 {{ number_format($purchase->total, 0, '', '.') }} Bs.
                             </td>
 
-                            <td class="px-3 py-2">
+                            <td data-label="Estado" class="px-3 py-2">
                                 @if ($purchase->status == 1)
                                     <span class="text-green-600 font-semibold">Activa</span>
                                 @else

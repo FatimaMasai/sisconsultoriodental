@@ -11,8 +11,18 @@
     } 
 
 
+/* Antes era @apply bg-green-500 text-white hover:bg-green-700 (fijo).
+   Ahora usa el color de marca configurable desde Configuración >
+   Apariencia (--brand-primary, definido en layouts/admin.blade.php), con
+   ese mismo verde como respaldo si la variable no está definida. Es el
+   botón de la acción principal de cada pantalla (Guardar, Confirmar,
+   Autorizar); eliminar/cancelar siguen con su color fijo a propósito. */
 .btn-green {
-    @apply bg-green-500 text-white hover:bg-green-700;
+    background-color: var(--brand-primary, #22c55e);
+    color: #fff;
+    }
+.btn-green:hover {
+    filter: brightness(0.88);
     }
     
 .btn-gray {

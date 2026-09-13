@@ -32,7 +32,7 @@ return [
     |
     */
 
-    'lifetime' => (int) env('SESSION_LIFETIME', 120),
+    'lifetime' => (int) env('SESSION_LIFETIME', 1), // TEMPORAL: para reproducir el bug de sesión expirada. Volver a 120 después.
 
     'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),
 

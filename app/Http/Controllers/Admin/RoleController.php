@@ -9,6 +9,20 @@ use Spatie\Permission\Models\Permission;
 
 class RoleController extends Controller
 {
+    // Antes este controlador no tenía ningún constructor, por lo que
+    // cualquier usuario logueado (sin importar su rol) podía crear, editar
+    // o eliminar roles y sus permisos entrando directo por la URL. Se
+    // protege igual que el resto de los controladores del panel: cada
+    // acción exige el permiso admin.roles.* correspondiente (todos
+    // asignados solo al rol Admin en RoleSeeder).
+    public function __construct()
+    {
+        $this->middleware('can:admin.roles.index')->only('index', 'show');
+        $this->middleware('can:admin.roles.create')->only('create', 'store');
+        $this->middleware('can:admin.roles.edit')->only('edit', 'update');
+        $this->middleware('can:admin.roles.destroy')->only('destroy');
+    }
+
     /**
      * Display a listing of the resource.
      */

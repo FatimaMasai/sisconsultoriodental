@@ -24,10 +24,19 @@ class PatientSearch extends Component
 
         $patients = Patient::where('status', 1) // Filtramos por estado activo
             ->when($search !== '', function ($query) use ($search) {
-                $query->whereHas('person', function ($personQuery) use ($search) {
-                    $personQuery->where('name', 'LIKE', '%' . $search . '%')
-                        ->orWhere('last_name_father', 'LIKE', '%' . $search . '%')
-                        ->orWhere('last_name_mother', 'LIKE', '%' . $search . '%');
+                // Se busca palabra por palabra (ej. "Ana Luján" = "Ana" y "Luján")
+                // para que encuentre el nombre aunque esté repartido entre nombre,
+                // apellido paterno y materno, no solo dentro de una sola columna.
+                $words = preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY);
+
+                $query->whereHas('person', function ($personQuery) use ($words) {
+                    foreach ($words as $word) {
+                        $personQuery->where(function ($q) use ($word) {
+                            $q->where('name', 'LIKE', '%' . $word . '%')
+                                ->orWhere('last_name_father', 'LIKE', '%' . $word . '%')
+                                ->orWhere('last_name_mother', 'LIKE', '%' . $word . '%');
+                        });
+                    }
                 });
             })
             ->with('person') // Cargamos la relación 'person' para obtener los datos de la persona asociada

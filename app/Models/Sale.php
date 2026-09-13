@@ -11,6 +11,7 @@ class Sale extends Model
         'sale_date',
         //'description',
         'total',
+        'discount', // Bs. de descuento restado del subtotal para llegar a "total"
         'status',
 
         'payment_type',   // Contado | Credito
@@ -65,7 +66,26 @@ class Sale extends Model
     }
 
     /**
+     * Subtotal antes del descuento (suma de los servicios vendidos). No se
+     * guarda en la base de datos: "total" ya queda guardado con el
+     * descuento restado, así que el subtotal siempre se puede reconstruir
+     * sumándole de nuevo el descuento.
+     */
+    public function getSubtotalAttribute(): float
+    {
+        return round((float) $this->total + (float) $this->discount, 2);
+    }
+
+    /**
      * Saldo pendiente de pago de la venta (solo aplica a ventas a Credito).
+     *
+     * Desde que los pagos a Crédito pasaron a ser "abonos libres" (cualquier
+     * monto, cualquier fecha, sin plan de cuotas fijo), el saldo es
+     * simplemente el total menos todo lo que se pagó y no fue anulado. Esta
+     * misma fórmula sigue dando el resultado correcto para ventas viejas que
+     * todavía tienen cuota inicial y/o cuotas generadas por el sistema
+     * anterior, porque esos montos también quedaron registrados como Payment
+     * (con payment_status 'Cuota Inicial' o 'Cuota').
      */
     public function getSaldoPendienteAttribute(): float
     {
@@ -73,16 +93,9 @@ class Sale extends Model
             return 0;
         }
 
-        $pagadoEnCuotas = $this->installments->where('status', 'Pagada')->sum('amount');
+        $pagado = $this->payments->where('payment_status', '!=', 'Anulado')->sum('amount');
 
-        // Pagos que se cobran de inmediato pero no son la cuota inicial del financiamiento
-        // ni el registro de una cuota ya pagada (por ejemplo, la Consulta, que siempre se
-        // cobra de una vez aunque el resto de la venta sea a crédito).
-        $pagadoDeInmediato = $this->payments
-            ->whereNotIn('payment_status', ['Cuota Inicial', 'Cuota', 'Anulado'])
-            ->sum('amount');
-
-        return round($this->total - $this->initial_amount - $pagadoDeInmediato - $pagadoEnCuotas, 2);
+        return round($this->total - $pagado, 2);
     }
 
     /**
@@ -90,9 +103,13 @@ class Sale extends Model
      * si el paciente ya terminó de pagar o todavía debe:
      *   - null        => la venta es al Contado, no aplica.
      *   - 'Anulado'   => la venta fue anulada, no hay nada que cobrar.
-     *   - 'Completado'=> todas las cuotas están pagadas, el paciente ya no debe.
-     *   - 'Pendiente' => tiene al menos una cuota vencida sin pagar (no se cobra mora, solo queda pendiente).
-     *   - 'Al día'    => le quedan cuotas pendientes, pero ninguna vencida todavía.
+     *   - 'Completado'=> el saldo pendiente ya es 0 (o menos).
+     *   - 'Pendiente' => todavía queda saldo por cobrar.
+     *
+     * Antes esto distinguía además "Vencida" vs "Al día" según la fecha de
+     * vencimiento de cada cuota del plan fijo. Con los abonos libres ya no
+     * hay fechas de vencimiento que respetar, así que esa distinción se cae:
+     * ahora es simplemente "debe" o "no debe".
      */
     public function getEstadoCreditoAttribute(): ?string
     {
@@ -100,27 +117,11 @@ class Sale extends Model
             return null;
         }
 
-        $cuotas = $this->installments;
-
-        if ($cuotas->isEmpty()) {
-            // No se generó ningún plan de cuotas (por ejemplo, una venta a crédito donde
-            // todo lo vendido era la Consulta, que se cobra de inmediato): no queda nada por pagar.
-            return 'Completado';
-        }
-
-        $cuotasActivas = $cuotas->where('status', '!=', 'Anulada');
-
-        if ($cuotasActivas->isEmpty()) {
+        if ($this->status == 0) {
             return 'Anulado';
         }
 
-        if ($cuotasActivas->every(fn (Installment $cuota) => $cuota->status === 'Pagada')) {
-            return 'Completado';
-        }
-
-        $tieneVencidas = $cuotasActivas->contains(fn (Installment $cuota) => $cuota->estado_actual === 'Vencida');
-
-        return $tieneVencidas ? 'Pendiente' : 'Al día';
+        return $this->saldo_pendiente <= 0 ? 'Completado' : 'Pendiente';
     }
 
 }

@@ -17,8 +17,7 @@ class PersonSeeder extends Seeder
     {
         $faker = Faker::create('es_ES');
 
-
-        foreach (range(1, 150) as $i) {
+        foreach (range(1, 1000) as $i) {
             Person::create([
                 'name' => $faker->firstName,
                 'last_name_father' => $faker->lastName,
@@ -31,9 +30,6 @@ class PersonSeeder extends Seeder
                 'address' => $faker->address,
                 'status' => true,
             ]);
-        }$faker = Faker::create();
-
-
-        
+        }
     }
 }

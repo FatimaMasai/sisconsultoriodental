@@ -42,4 +42,14 @@ return [
         'default_country_code' => env('WHATSAPP_DEFAULT_COUNTRY_CODE', '+591'),
     ],
 
+    // Cobro por QR (VeriPagos / BCP). El Basic Auth de la API usa el usuario
+    // de la cuenta VeriPagos (VERIPAGOS_AUTH_USER) + su contraseña; el
+    // secret_key es aparte y va en el cuerpo de cada petición.
+    'veripagos' => [
+        'base_url' => env('VERIPAGOS_BASE_URL', 'https://veripagos.com/api/bcp'),
+        'secret_key' => env('VERIPAGOS_SECRET_KEY'),
+        'auth_user' => env('VERIPAGOS_AUTH_USER'),
+        'auth_password' => env('VERIPAGOS_AUTH_PASSWORD'),
+    ],
+
 ];

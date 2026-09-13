@@ -1,9 +1,13 @@
 <?php
 
+use App\Http\Controllers\Admin\AppearanceSettingController;
 use App\Http\Controllers\Admin\AppointmentController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DoctorController;
+use App\Http\Controllers\Admin\ExpedienteController;
+use App\Http\Controllers\Admin\FormTemplateController;
+use App\Http\Controllers\Admin\GoogleCalendarController;
 use App\Http\Controllers\Admin\HistoryController;
 use App\Http\Controllers\Admin\PatientController;
 use App\Http\Controllers\Admin\PersonController;
@@ -17,6 +21,7 @@ use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\SpecialityController;
 use App\Http\Controllers\Admin\SupplierController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\VeriPagosController;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/', function()
@@ -24,14 +29,22 @@ use Illuminate\Support\Facades\Route;
 //     return view('admin.dashboard');
 // })->name('dasboard');
 
-Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
-Route::get('/dashboard2', [DashboardController::class, 'dashboard2'])->name('dashboard2');
+// can:admin.dashboard: antes esta ruta solo pedía estar logueado (sin
+// ningún permiso), así que cualquier usuario recién registrado —sin rol
+// todavía asignado por el admin— podía ver las cifras del panel (ventas,
+// cuotas vencidas, etc.) con solo entrar a /admin/dashboard a mano. Ahora
+// que el registro público está habilitado en el login, esto importa más:
+// con el permiso, alguien sin rol asignado no puede entrar hasta que el
+// admin le agregue uno (Admin/Doctor/Recepcionista/Compras ya lo tienen,
+// ver RoleSeeder).
+Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard')->middleware('can:admin.dashboard');
+Route::get('/dashboard2', [DashboardController::class, 'dashboard2'])->name('dashboard2')->middleware('can:admin.dashboard');
 // Route::get('/', function() {
 //     return redirect()->route('login');  // Redirige a la página de login
 // });
 
 //rutas de administrador
-Route::get('dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
+Route::get('dashboard', [DashboardController::class, 'dashboard'])->name('dashboard')->middleware('can:admin.dashboard');
 
 
 // Cambiar contraseña (colocar antes del resource)
@@ -56,29 +69,86 @@ Route::resource('patients', PatientController::class)->except(['show']);
 Route::resource('specialities', SpecialityController::class)->except(['show']);
 Route::resource('doctors', DoctorController::class)->except(['show']);
 
+// Acceso por especialidad: autorizar/revocar que un doctor vea también el
+// historial clínico de pacientes de otra especialidad.
+Route::post('doctors/{doctor}/speciality-access', [DoctorController::class, 'grantSpecialityAccess'])->name('doctors.speciality_access.store');
+Route::delete('doctors/{doctor}/speciality-access/{grant}', [DoctorController::class, 'revokeSpecialityAccess'])->name('doctors.speciality_access.destroy');
+
 // Debe ir antes del resource: 'sales' tiene ruta 'show' (GET sales/{sale}),
 // así que si "excel" fuera después, Laravel intentaría interpretar "excel"
 // como un id de venta en vez de llegar al método excel().
 Route::get('sales/excel', [SaleController::class, 'excel'])->name('sales.excel');
+// Mismo motivo: debe ir antes del resource para que "pendientes-cobro" no se
+// interprete como un id de venta.
+Route::get('sales/pendientes-cobro', [SaleController::class, 'pendingCharges'])->name('sales.pending-charges');
 Route::resource('sales', SaleController::class);
 
 Route::post('sales/{sale}/cancel', [SaleController::class, 'cancel'])->name('sales.cancel');
 Route::post('sales/{sale}/installments/{installment}/pay', [SaleController::class, 'payInstallment'])->name('sales.installments.pay');
 Route::get('sales/{sale}/cuotas-pagadas/pdf', [SaleController::class, 'salePaidInstallmentsPdf'])->name('sales.paid_installments.pdf');
 
+// Abonos libres de una venta a Crédito (reemplaza al plan de cuotas fijas para ventas nuevas).
+Route::post('sales/{sale}/abonos', [SaleController::class, 'addAbono'])->name('sales.abonos.store');
+Route::get('sales/{sale}/abonos/{payment}/print', [SaleController::class, 'printAbono'])->name('sales.abonos.print');
+
 // Reporte de todas las cuotas pagadas (de cualquier venta a Crédito).
 Route::get('cuotas-pagadas', [SaleController::class, 'paidInstallments'])->name('installments.paid');
 Route::get('cuotas-pagadas/excel', [SaleController::class, 'paidInstallmentsExcel'])->name('installments.paid.excel');
 Route::get('cuotas-pagadas/pdf', [SaleController::class, 'paidInstallmentsPdf'])->name('installments.paid.pdf');
 
+// Cobro por QR (VeriPagos), usado desde Nueva Venta y desde el pago de cuotas.
+Route::post('veripagos/qr', [VeriPagosController::class, 'generar'])->name('veripagos.qr.generar');
+Route::post('veripagos/qr/{movimientoId}/estado', [VeriPagosController::class, 'estado'])->name('veripagos.qr.estado');
 
 
 
-//historias y notas medicas
+
+//historias y notas medicas (archivo: se deja intacto, ver admin.expedientes.* para lo nuevo)
 Route::resource('histories', HistoryController::class);
 Route::post('histories/{id}/add-note',[HistoryController::class, 'addNote'])->name('histories.addNote');
 Route::post('histories/{id}/photos', [HistoryController::class, 'storePhoto'])->name('histories.photos.store');
 Route::delete('histories/photos/{id}', [HistoryController::class, 'destroyPhoto'])->name('histories.photos.destroy');
+
+// Expedientes por especialidad: historial clínico actual (reemplaza a
+// "histories" en el uso diario). Un expediente agrupa las consultas de un
+// paciente en una especialidad; ver ExpedienteController.
+Route::get('expedientes', [ExpedienteController::class, 'index'])->name('expedientes.index');
+// 'create' debe ir antes de '{expediente}': si no, Laravel intentaría
+// interpretar "create" como un id de expediente y nunca llegaría al form.
+Route::get('expedientes/create', [ExpedienteController::class, 'create'])->name('expedientes.create');
+Route::post('expedientes', [ExpedienteController::class, 'store'])->name('expedientes.store');
+Route::get('expedientes/{expediente}', [ExpedienteController::class, 'show'])->name('expedientes.show');
+Route::post('expedientes/{expediente}/consultas', [ExpedienteController::class, 'storeConsulta'])->name('expedientes.consultas.store');
+Route::get('consultas/{consulta}/pdf', [ExpedienteController::class, 'pdfConsulta'])->name('consultas.pdf');
+Route::get('consultas/{consulta}/edit', [ExpedienteController::class, 'editConsulta'])->name('consultas.edit');
+Route::put('consultas/{consulta}', [ExpedienteController::class, 'updateConsulta'])->name('consultas.update');
+Route::post('consultas/{consulta}/add-note', [ExpedienteController::class, 'addNote'])->name('consultas.addNote');
+Route::post('consultas/{consulta}/photos', [ExpedienteController::class, 'storePhoto'])->name('consultas.photos.store');
+Route::delete('consulta-photos/{photo}', [ExpedienteController::class, 'destroyPhoto'])->name('consultas.photos.destroy');
+Route::get('expedientes/{expediente}/recetas', [ExpedienteController::class, 'recetasHistorial'])->name('expedientes.recetas.index');
+Route::post('consultas/{consulta}/recetas', [ExpedienteController::class, 'storeReceta'])->name('consultas.recetas.store');
+Route::put('recetas/{receta}', [ExpedienteController::class, 'updateReceta'])->name('recetas.update');
+Route::delete('recetas/{receta}', [ExpedienteController::class, 'destroyReceta'])->name('recetas.destroy');
+Route::get('recetas/{receta}/pdf', [ExpedienteController::class, 'pdfReceta'])->name('recetas.pdf');
+Route::get('expedientes/{expediente}/odontograma', [ExpedienteController::class, 'odontograma'])->name('expedientes.odontograma.index');
+Route::post('expedientes/{expediente}/tooth-treatments', [ExpedienteController::class, 'storeToothTreatment'])->name('expedientes.tooth-treatments.store');
+Route::put('tooth-treatments/{toothTreatment}', [ExpedienteController::class, 'updateToothTreatment'])->name('tooth-treatments.update');
+Route::delete('tooth-treatments/{toothTreatment}', [ExpedienteController::class, 'destroyToothTreatment'])->name('tooth-treatments.destroy');
+
+// Constructor de formularios sin código: qué secciones y campos se llenan
+// al registrar una consulta de cada especialidad. Ver FormTemplateController.
+Route::get('specialities/{speciality}/plantilla', [FormTemplateController::class, 'edit'])->name('specialities.plantilla.edit');
+Route::post('specialities/{speciality}/plantilla', [FormTemplateController::class, 'store'])->name('specialities.plantilla.store');
+
+Route::post('form-templates/{formTemplate}/sections', [FormTemplateController::class, 'storeSection'])->name('form_templates.sections.store');
+Route::put('form-sections/{formSection}', [FormTemplateController::class, 'updateSection'])->name('form_sections.update');
+Route::delete('form-sections/{formSection}', [FormTemplateController::class, 'destroySection'])->name('form_sections.destroy');
+Route::post('form-sections/{formSection}/move', [FormTemplateController::class, 'moveSection'])->name('form_sections.move');
+
+Route::post('form-sections/{formSection}/fields', [FormTemplateController::class, 'storeField'])->name('form_sections.fields.store');
+Route::put('form-fields/{formField}', [FormTemplateController::class, 'updateField'])->name('form_fields.update');
+Route::delete('form-fields/{formField}', [FormTemplateController::class, 'destroyField'])->name('form_fields.destroy');
+Route::post('form-fields/{formField}/move', [FormTemplateController::class, 'moveField'])->name('form_fields.move');
 
 
 //compras
@@ -101,6 +171,23 @@ Route::post('purchases/{purchase}/cancel', [PurchaseController::class, 'cancel']
 
 //auditoría
 Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit_logs.index');
+
+
+// Configuración del sistema: logo/color de marca y la sincronización con
+// Google Calendar. OJO: admin.settings.google.* ya se usaba desde la vista
+// admin/settings/google-calendar.blade.php, pero nunca había quedado
+// registrado acá (por eso daba "Route not defined" al entrar). Quedan
+// agrupados bajo /admin/settings/... para que el sidebar los muestre
+// juntos en "Configuración".
+Route::prefix('settings')->name('settings.')->group(function () {
+    Route::get('appearance', [AppearanceSettingController::class, 'index'])->name('appearance.index');
+    Route::post('appearance', [AppearanceSettingController::class, 'update'])->name('appearance.update');
+
+    Route::get('google', [GoogleCalendarController::class, 'index'])->name('google.index');
+    Route::get('google/connect', [GoogleCalendarController::class, 'connect'])->name('google.connect');
+    Route::get('google/callback', [GoogleCalendarController::class, 'callback'])->name('google.callback');
+    Route::post('google/disconnect', [GoogleCalendarController::class, 'disconnect'])->name('google.disconnect');
+});
 
 
 //citas (agenda)

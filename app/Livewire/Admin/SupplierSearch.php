@@ -28,15 +28,21 @@ class SupplierSearch extends Component
 
         $suppliers = Supplier::where('status', 1)
             ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('company', 'LIKE', '%' . $search . '%')
-                        ->orWhere('nit', 'LIKE', '%' . $search . '%')
-                        ->orWhereHas('person', function ($personQuery) use ($search) {
-                            $personQuery->where('name', 'LIKE', '%' . $search . '%')
-                                ->orWhere('last_name_father', 'LIKE', '%' . $search . '%')
-                                ->orWhere('last_name_mother', 'LIKE', '%' . $search . '%');
-                        });
-                });
+                // Palabra por palabra, para que "Ana Luján" encuentre a alguien
+                // aunque "Ana" y "Luján" estén en columnas distintas.
+                $words = preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY);
+
+                foreach ($words as $word) {
+                    $query->where(function ($q) use ($word) {
+                        $q->where('company', 'LIKE', '%' . $word . '%')
+                            ->orWhere('nit', 'LIKE', '%' . $word . '%')
+                            ->orWhereHas('person', function ($personQuery) use ($word) {
+                                $personQuery->where('name', 'LIKE', '%' . $word . '%')
+                                    ->orWhere('last_name_father', 'LIKE', '%' . $word . '%')
+                                    ->orWhere('last_name_mother', 'LIKE', '%' . $word . '%');
+                            });
+                    });
+                }
             })
             ->with('person')
             ->orderBy('id', 'desc')

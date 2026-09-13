@@ -1,0 +1,72 @@
+/* Tablas de listados en mobile: en vez de forzar scroll horizontal
+   (que se ve mal en celular), la tabla se convierte en tarjetas
+   apiladas por fila.
+
+   Uso: agregar la clase "table-stack" a la <table> y un atributo
+   data-label="Nombre de columna" a cada <td> (y a los <th scope="row">
+   que se usen como celda de datos, ej. la columna ID). Las columnas
+   que no necesitan etiqueta (ej. "Acciones", ya autoexplicativa por
+   los botones) simplemente no llevan data-label.
+
+   Ver resources/views/livewire/admin/doctor-search.blade.php como
+   ejemplo de uso. */
+@media (max-width: 640px) {
+    table.table-stack thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+        padding: 0;
+        margin: -1px;
+    }
+
+    table.table-stack,
+    table.table-stack tbody {
+        display: block;
+        width: 100%;
+    }
+
+    table.table-stack tr {
+        display: block;
+        margin-bottom: 0.75rem;
+        border-radius: 0.5rem;
+        border-width: 1px;
+        overflow: hidden;
+    }
+
+    table.table-stack tr:last-child {
+        margin-bottom: 0;
+    }
+
+    table.table-stack td,
+    table.table-stack th[scope="row"] {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        text-align: right;
+        white-space: normal;
+        width: 100%;
+    }
+
+    table.table-stack td[data-label]::before,
+    table.table-stack th[scope="row"][data-label]::before {
+        content: attr(data-label);
+        font-weight: 600;
+        text-align: left;
+        opacity: 0.65;
+    }
+
+    /* Filas de formulario (ej. servicios/productos de una venta o compra):
+       si la celda tiene un input/select/textarea, se ve mejor con la
+       etiqueta arriba y el campo abajo, ocupando todo el ancho, en vez
+       de lado a lado. */
+    table.table-stack td:has(input, select, textarea) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.25rem;
+    }
+}

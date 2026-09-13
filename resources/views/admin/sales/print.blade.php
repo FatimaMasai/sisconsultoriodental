@@ -64,11 +64,13 @@
 
     <!-- Encabezado -->
     <div class="header">
-        @if (function_exists('imagecreatefrompng') && file_exists(public_path('images/logo.png')))
-            <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/logo.png'))) }}" alt="Mi Consulta" style="height: 42px; margin-bottom: 10px;">
+        @php $logoDataUri = \App\Models\ClinicSetting::instance()->logoBase64(); @endphp
+        @if ($logoDataUri)
+            <img src="{{ $logoDataUri }}" alt="Mi Consulta" style="height: 42px; margin-bottom: 10px;">
         @endif
         <h1>COMPROBANTE DE VENTA</h1>
         <p>Venta: {{ $sale->numero }}</p>
+        @include('admin.settings.partials.pdf-contact-line')
     </div>
 
     <!-- Datos del paciente -->
@@ -121,6 +123,10 @@
 
     <!-- Total de la venta -->
     <div class="total">
+        @if ($sale->discount > 0)
+            <p style="margin: 0; padding: 0; font-weight: normal;">Subtotal: Bs. {{ number_format($sale->subtotal, 0, '', '.') }}</p>
+            <p style="margin: 0; padding: 0; font-weight: normal;">Descuento: - Bs. {{ number_format($sale->discount, 0, '', '.') }}</p>
+        @endif
         <p style="margin: 0; padding: 0;"><strong>Importe Total: Bs. {{ number_format($sale->total, 0, '', '.') }}</strong></p> <!-- Total en números -->
         {{-- <p><strong>Son:</strong> {{ $totalLiteral }} 00/100 BOLIVIANOS</p>    --}}
     </div>

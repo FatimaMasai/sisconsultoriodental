@@ -13,13 +13,25 @@ class SpecialitySearch extends Component
 
     public $search = '';
 
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
 
     public function render()
     {
+        $search = trim($this->search);
 
-        $specialities = Speciality::where('name', 'LIKE', '%' .$this->search . '%')
-        ->orderBy('id', 'desc')
-        ->paginate(10);
+        $specialities = Speciality::when($search !== '', function ($query) use ($search) {
+                // Palabra por palabra, para que encuentre el nombre sin importar el orden.
+                $words = preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY);
+
+                foreach ($words as $word) {
+                    $query->where('name', 'LIKE', '%' . $word . '%');
+                }
+            })
+            ->orderBy('id', 'desc')
+            ->paginate(10);
 
         return view('livewire.admin.speciality-search', compact('specialities'));
     }

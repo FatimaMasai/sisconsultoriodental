@@ -18,7 +18,9 @@ class UserController extends Controller
     {
         // $this->middleware('auth');
         $this->middleware('can:admin.users.index')->only('index');
-        $this->middleware('can:admin.users.edit')->only('edit', 'update');
+        $this->middleware('can:admin.users.create')->only('create', 'store');
+        $this->middleware('can:admin.users.edit')->only('edit', 'update', 'editPassword', 'updatePassword');
+        $this->middleware('can:admin.users.destroy')->only('destroy');
         $this->middleware('can:admin.users.pdf')->only('pdf');
     }
 

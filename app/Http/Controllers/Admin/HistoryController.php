@@ -23,8 +23,8 @@ class HistoryController extends Controller
         // $this->middleware('auth');
         $this->middleware('can:admin.histories.index')->only('index');
         $this->middleware('can:admin.histories.create')->only('create', 'store');
-        $this->middleware('can:admin.histories.show')->only('show'); 
-        
+        $this->middleware('can:admin.histories.show')->only('show');
+
         $this->middleware('can:admin.histories.edit')->only('edit', 'update');
         $this->middleware('can:admin.histories.destroy')->only('destroy');
 
@@ -42,20 +42,20 @@ class HistoryController extends Controller
     }
     /**
      * Show the form for creating a new resource.
-     * 
-     * 
+     *
+     *
      */
     public function create()
     {
- 
 
-        $patients = Patient::with('person')->where('status',1)->get(); 
+
+        $patients = Patient::with('person')->where('status',1)->get();
         $doctors = Doctor::with('person')->where('status',1)->get();
 
         $services = Service::where('status', 1)->get(); // Obtener servicios activos
 
         return view('admin.histories.create', compact('patients', 'services', 'doctors'));
-    } 
+    }
 
     /**
      * Store a newly created resource in storage.
@@ -92,17 +92,20 @@ class HistoryController extends Controller
 
     /**
      * Display the specified resource.
-     */ 
+     */
 
      public function show($id)
     {
         $history = History::with('patient.person', 'doctor.person', 'service', 'photos')->findOrFail($id);
+
+        $this->authorizeSpecialityAccess($history);
+
            // Asegurarse de que las notas estén ordenadas de forma descendente
         $history->notes = $history->notes()->orderBy('created_at', 'desc')->get();
 
         return view('admin.histories.show', compact('history'));
     }
-    
+
 
     /**
      * Show the form for editing the specified resource.
@@ -136,6 +139,8 @@ class HistoryController extends Controller
 
         $history = History::findOrFail($id);
 
+        $this->authorizeSpecialityAccess($history);
+
         $history->notes()->create([
             'note' => $request->note,
         ]);
@@ -155,6 +160,8 @@ class HistoryController extends Controller
     public function storePhoto(Request $request, $id)
     {
         $history = History::findOrFail($id);
+
+        $this->authorizeSpecialityAccess($history);
 
         $request->validate([
             'type' => 'required|in:antes,despues',
@@ -195,6 +202,8 @@ class HistoryController extends Controller
         $photo = HistoryPhoto::findOrFail($id);
         $historyId = $photo->history_id;
 
+        $this->authorizeSpecialityAccess($photo->history);
+
         Storage::disk('public')->delete($photo->path);
         $photo->delete();
 
@@ -211,6 +220,8 @@ class HistoryController extends Controller
     {
         $history = History::with('patient.person', 'doctor.person', 'service', 'notes')->findOrFail($id);
 
+        $this->authorizeSpecialityAccess($history);
+
         // Generar el PDF
         $pdf = PDF::loadView('admin.histories.pdf', compact('history'))
                 ->setPaper('a4', 'portrait'); // Establecer el tamaño de página (A4) y la orientación
@@ -219,7 +230,34 @@ class HistoryController extends Controller
         return $pdf->stream('historial_medico_' . $history->patient->person->name . '.pdf');
     }
 
+    /**
+     * Verifica que el médico autenticado (si lo es) tenga acceso a la
+     * especialidad del historial. Un médico solo ve por defecto el
+     * historial de pacientes de su propia especialidad, salvo que se le
+     * haya autorizado explícitamente otra desde la ficha del doctor.
+     *
+     * Los usuarios que no son un Doctor vinculado (Admin, Recepción, etc.)
+     * no tienen esta restricción. Además, el rol Admin siempre tiene acceso
+     * a todo el sistema por defecto, aunque su cuenta esté vinculada a un
+     * doctor (no debería pasar, pero así queda garantizado igual).
+     */
+    private function authorizeSpecialityAccess(History $history): void
+    {
+        if (auth()->user()?->hasRole('Admin')) {
+            return;
+        }
 
+        $doctor = auth()->user()?->doctor;
 
+        if (! $doctor) {
+            return;
+        }
+
+        abort_unless(
+            $doctor->canViewSpeciality($history->doctor?->speciality_id),
+            403,
+            'No tienes acceso al historial clínico de esa especialidad.'
+        );
+    }
 
 }

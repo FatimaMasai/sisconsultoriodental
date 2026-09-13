@@ -19,14 +19,30 @@
                 <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
             </div>
 
-            <div class="mt-4">
+            <div class="mt-4" x-data="{ showPassword: false }">
                 <x-label for="password" value="{{ __('Password') }}" />
-                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
+                <div class="relative">
+                    <x-input id="password" class="block mt-1 w-full pr-10" type="password" x-bind:type="showPassword ? 'text' : 'password'" name="password" required autocomplete="new-password" />
+                    <button type="button" tabindex="-1"
+                        class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600"
+                        x-on:click="showPassword = !showPassword">
+                        <i class="fa-solid" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                        <span class="sr-only">{{ __('Show password') }}</span>
+                    </button>
+                </div>
             </div>
 
-            <div class="mt-4">
+            <div class="mt-4" x-data="{ showPassword: false }">
                 <x-label for="password_confirmation" value="{{ __('Confirm Password') }}" />
-                <x-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required autocomplete="new-password" />
+                <div class="relative">
+                    <x-input id="password_confirmation" class="block mt-1 w-full pr-10" type="password" x-bind:type="showPassword ? 'text' : 'password'" name="password_confirmation" required autocomplete="new-password" />
+                    <button type="button" tabindex="-1"
+                        class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600"
+                        x-on:click="showPassword = !showPassword">
+                        <i class="fa-solid" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                        <span class="sr-only">{{ __('Show password') }}</span>
+                    </button>
+                </div>
             </div>
 
             @if (Laravel\Jetstream\Jetstream::hasTermsAndPrivacyPolicyFeature())

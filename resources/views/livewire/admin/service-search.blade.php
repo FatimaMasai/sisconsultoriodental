@@ -26,10 +26,10 @@
     @if ($services->count())
 
         <div class="relative overflow-x-auto">
-            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+            <table class="table-stack w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
-                        <th scope="col" class="px-3 py-2">ID</th>
+                        <th scope="col" class="px-3 py-2">N°</th>
                         <th scope="col" class="px-3 py-2">Categoria</th>
                         <th scope="col" class="px-3 py-2">Servicio</th>
                         <th scope="col" class="px-3 py-2">Precio</th>
@@ -39,16 +39,16 @@
                 <tbody>
                     @foreach ($services as $service)
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
-                            <th scope="row" class="px-3 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {{ $service->id }}
+                            <th scope="row" data-label="ID" class="px-3 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                {{ ($services->currentPage() - 1) * $services->perPage() + $loop->iteration }}
                             </th>
-                            <td class="px-3 py-2">
+                            <td data-label="Categoria" class="px-3 py-2">
                                 {{ $service->serviceCategory->name ?? '—' }}
                             </td>
-                            <td class="px-3 py-2">
+                            <td data-label="Servicio" class="px-3 py-2">
                                 {{ $service->name }}
                             </td>
-                            <td class="px-3 py-2">
+                            <td data-label="Precio" class="px-3 py-2">
                                 {{ $service->price }} Bs.
                             </td>
                             <td class="px-3 py-2">

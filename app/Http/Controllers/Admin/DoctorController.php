@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Doctor;
 use App\Models\Person;
 use App\Models\Speciality;
+use App\Models\SpecialityAccessGrant;
+use App\Models\User;
 use App\Http\Controllers\Concerns\ExportsExcel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +26,8 @@ class DoctorController extends Controller
         // $this->middleware('auth');
         $this->middleware('can:admin.doctors.index')->only('index');
         $this->middleware('can:admin.doctors.create')->only('create', 'store');
-        $this->middleware('can:admin.doctors.edit')->only('edit', 'update');
+        $this->middleware('can:admin.doctors.edit')->only('edit', 'update', 'grantSpecialityAccess', 'revokeSpecialityAccess');
+        $this->middleware('can:admin.doctors.destroy')->only('destroy');
         $this->middleware('can:admin.doctors.pdf')->only('pdf', 'excel');
     }
 
@@ -163,10 +166,30 @@ class DoctorController extends Controller
      */
     public function edit(Doctor $doctor)
     {
-        $doctor->load('person');
+        $doctor->load(['person', 'specialityAccessGrants.speciality']);
         $specialities = Speciality::all();
 
-        return view('admin.doctors.edit', compact('specialities', 'doctor'));
+        // Usuarios que se pueden vincular: sin doctor asignado todavía, o el
+        // que ya está vinculado a este mismo doctor (para no perderlo del
+        // select). Las cuentas con rol Admin quedan afuera a propósito: ya
+        // tienen acceso a todo el sistema por defecto (ver authorizeAccess
+        // en ExpedienteController/HistoryController), y vincularlas a un
+        // doctor puntual no suma nada, solo genera confusión.
+        $linkableUsers = User::whereDoesntHave('roles', fn ($query) => $query->where('name', 'Admin'))
+            ->where(function ($query) use ($doctor) {
+                $query->whereDoesntHave('doctor')
+                    ->orWhere('id', $doctor->user_id);
+            })
+            ->orderBy('name')
+            ->get();
+
+        // Especialidades a las que todavía no tiene acceso: ni la propia
+        // (esa ya la ve siempre) ni las que ya tiene autorizadas abajo.
+        $grantableSpecialities = Speciality::where('id', '!=', $doctor->speciality_id)
+            ->whereNotIn('id', $doctor->specialityAccessGrants->pluck('speciality_id'))
+            ->get();
+
+        return view('admin.doctors.edit', compact('specialities', 'doctor', 'linkableUsers', 'grantableSpecialities'));
 
     }
 
@@ -188,6 +211,7 @@ class DoctorController extends Controller
 
             'speciality_id' => 'required|exists:specialities,id',
             'status' => 'required|in:0,1',
+            'user_id' => 'nullable|exists:users,id|unique:doctors,user_id,' . $doctor->id,
         ], [
             'name.required' => 'El nombre es obligatorio.',
             'last_name_father.required' => 'El apellido paterno es obligatorio.',
@@ -206,6 +230,8 @@ class DoctorController extends Controller
             'speciality_id.required' => 'Debe seleccionar una especialidad.',
             'speciality_id.exists' => 'La especialidad seleccionada no es válida.',
             'status.required' => 'Debe seleccionar el estado.',
+            'user_id.exists' => 'El usuario seleccionado no es válido.',
+            'user_id.unique' => 'Ese usuario ya está vinculado a otro doctor.',
         ]);
 
         DB::beginTransaction();
@@ -225,6 +251,7 @@ class DoctorController extends Controller
             $doctor->update([
                 'status' => $request->status,
                 'speciality_id' => $request->speciality_id,
+                'user_id' => $request->user_id ?: null,
             ]);
 
             DB::commit();
@@ -267,6 +294,62 @@ class DoctorController extends Controller
         ]);
         return redirect()->route('admin.doctors.index');
 
+    }
+
+    /**
+     * Autoriza al doctor a ver también el historial clínico de otra
+     * especialidad, además de la suya.
+     */
+    public function grantSpecialityAccess(Request $request, Doctor $doctor)
+    {
+        $request->validate([
+            'speciality_id' => 'required|exists:specialities,id',
+            'note' => 'nullable|string|max:255',
+        ], [
+            'speciality_id.required' => 'Debe seleccionar una especialidad.',
+            'speciality_id.exists' => 'La especialidad seleccionada no es válida.',
+        ]);
+
+        if ((int) $request->speciality_id === (int) $doctor->speciality_id) {
+            session()->flash('swal', [
+                'title' => 'Error',
+                'text' => 'Esa ya es la especialidad propia del doctor.',
+                'icon' => 'error',
+            ]);
+
+            return back();
+        }
+
+        SpecialityAccessGrant::updateOrCreate(
+            ['doctor_id' => $doctor->id, 'speciality_id' => $request->speciality_id],
+            ['granted_by' => auth()->id(), 'note' => $request->note]
+        );
+
+        session()->flash('swal', [
+            'title' => 'Acceso autorizado',
+            'text' => '¡Bien Hecho!.',
+            'icon' => 'success',
+        ]);
+
+        return redirect()->route('admin.doctors.edit', $doctor);
+    }
+
+    /**
+     * Revoca una autorización de acceso a otra especialidad.
+     */
+    public function revokeSpecialityAccess(Doctor $doctor, SpecialityAccessGrant $grant)
+    {
+        abort_unless($grant->doctor_id === $doctor->id, 404);
+
+        $grant->delete();
+
+        session()->flash('swal', [
+            'title' => 'Acceso revocado',
+            'text' => '¡Bien Hecho!.',
+            'icon' => 'success',
+        ]);
+
+        return redirect()->route('admin.doctors.edit', $doctor);
     }
 
     public function pdf()

@@ -10,11 +10,11 @@
      @if ($specialities->count())
 
         <div class="relative overflow-x-auto">
-            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+            <table class="table-stack w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
                         <th scope="col" class="px-3 py-2">
-                            ID
+                            N°
                         </th>
                         <th scope="col" class="px-3 py-2">
                             Nombre
@@ -28,12 +28,12 @@
                     @foreach ($specialities as $speciality) 
 
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
-                            <th scope="row" class="px-3 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {{$speciality->id}}
+                            <th scope="row" data-label="ID" class="px-3 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                {{ ($specialities->currentPage() - 1) * $specialities->perPage() + $loop->iteration }}
                             </th>
-                            <td class="px-3 py-2">
+                            <td data-label="Nombre" class="px-3 py-2">
                                 {{$speciality->name}}
-                            </td>  
+                            </td>
 
                             <td class="px-3 py-2" >
                                 <div class="flex space-x-2">
@@ -41,6 +41,10 @@
                                 
                                     @can('admin.specialities.edit')
                                     <a href="{{route('admin.specialities.edit', $speciality)}}" class="btn btn-blue text-xs">Editar</a>
+                                    @endcan
+
+                                    @can('admin.form_templates.edit')
+                                    <a href="{{route('admin.specialities.plantilla.edit', $speciality)}}" class="btn btn-orange text-xs">Plantilla</a>
                                     @endcan
 
                                     

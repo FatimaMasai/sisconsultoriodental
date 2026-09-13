@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Mi Consulta') }} — Sistema de gestión para consultorios médicos</title>
+        <title>{{ \App\Models\ClinicSetting::instance()->systemName() }} — Sistema de gestión para consultorios médicos</title>
         <meta name="description" content="Ventas al contado y a crédito, historial de tus pacientes y control de pagos, todo en el mismo lugar — sin importar tu especialidad.">
 
         <!-- Ícono de la pestaña -->

@@ -5,10 +5,50 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        @php $clinicSetting = \App\Models\ClinicSetting::instance(); @endphp
+
+        <title>{{ $clinicSetting->systemName() }}</title>
 
         <!-- Ícono de la pestaña -->
         <link rel="icon" type="image/png" href="{{ asset('images/logo-icon.png') }}">
+
+        {{-- Evita el "flash" de tema equivocado: lee la preferencia de
+             modo oscuro guardada en este navegador (Configuración lo
+             guarda con el botón del menú superior) ANTES de que se pinte
+             la página, así nunca se ve un parpadeo claro→oscuro. --}}
+        <script>
+            (function () {
+                var theme = localStorage.getItem('theme');
+                if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                }
+            })();
+        </script>
+
+        {{-- Color de marca y tamaño de letra configurables desde
+             Configuración > Apariencia (sin esto, cambiarlos implicaría
+             tocar código y volver a compilar). Los botones/menú que los
+             usan leen estas variables, con los valores de siempre como
+             respaldo si todavía no se configuró nada. --}}
+        <style>
+            html {
+                font-size: {{ $clinicSetting->fontSizePercent() }};
+                /* Le avisa al navegador que la página ya controla su
+                   propio modo claro/oscuro (con la clase .dark), para que
+                   Chrome/Edge no intenten "oscurecer" por su cuenta los
+                   elementos a los que no les pusimos un color explícito
+                   (eso es lo que causaba fondos y contrastes raros). */
+                color-scheme: light;
+            }
+
+            html.dark {
+                color-scheme: dark;
+            }
+
+            :root {
+                --brand-primary: {{ $clinicSetting->brandColor() }};
+            }
+        </style>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -33,7 +73,7 @@
         <!-- Styles -->
         @livewireStyles
     </head>
-    <body class="font-sans antialiased" 
+    <body class="font-sans antialiased bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100"
 
         x-data="{sidebarOpen: false}"
         :class="{
@@ -52,7 +92,7 @@
         @include('layouts.partials.admin.sidebar')
         
         <div class="p-4 sm:ml-64">
-            <div class="p-4 border-2 border-gray-200 border-dashed rounded-lg dark:border-gray-700 mt-14">
+            <div class="p-4 border-2 border-gray-200 border-dashed rounded-lg dark:border-gray-700 mt-20">
                 
                 {{$slot}}
 

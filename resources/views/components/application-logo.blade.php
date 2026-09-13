@@ -1,1 +1,1 @@
-<img src="{{ asset('images/logo.png') }}" alt="Mi Consulta" {{ $attributes }}>
+<img src="{{ \App\Models\ClinicSetting::instance()->logoUrl() }}" alt="Wellness Centro Integral" {{ $attributes }}>

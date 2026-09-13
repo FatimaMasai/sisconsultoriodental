@@ -26,10 +26,10 @@
     @if ($patients->count())
 
         <div class="relative overflow-x-auto">
-            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+            <table class="table-stack w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
-                        <th scope="col" class="px-3 py-2">ID</th>
+                        <th scope="col" class="px-3 py-2">N°</th>
                         <th scope="col" class="px-3 py-2">Paciente</th>
                         <th scope="col" class="px-3 py-2">Edad</th>
                         <th scope="col" class="px-3 py-2">Sexo</th>
@@ -42,25 +42,25 @@
                 <tbody>
                     @foreach ($patients as $patient)
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
-                            <th scope="row" class="px-3 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {{ $patient->id }}
+                            <th scope="row" data-label="ID" class="px-3 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                {{ ($patients->currentPage() - 1) * $patients->perPage() + $loop->iteration }}
                             </th>
-                            <td class="px-3 py-2">
+                            <td data-label="Paciente" class="px-3 py-2">
                                 {{ $patient->person->name }} {{ $patient->person->last_name_father }} {{ $patient->person->last_name_mother }}
                             </td>
-                            <td class="px-3 py-2">
+                            <td data-label="Edad" class="px-3 py-2">
                                 {{ $patient->person->age }} Años
                             </td>
-                            <td class="px-3 py-2">
+                            <td data-label="Sexo" class="px-3 py-2">
                                 {{ $patient->person->gender }}
                             </td>
-                            <td class="px-3 py-2">
+                            <td data-label="Alergia" class="px-3 py-2">
                                 {{ $patient->allergy }}
                             </td>
-                            <td class="px-3 py-2">
+                            <td data-label="Observación" class="px-3 py-2">
                                 {{ $patient->observation }}
                             </td>
-                            <td class="px-3 py-2">
+                            <td data-label="Antecedentes" class="px-3 py-2">
                                 {{ $patient->medical_history }}
                             </td>
                             <td class="px-3 py-2">

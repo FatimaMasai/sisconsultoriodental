@@ -12,8 +12,52 @@
 
     <x-validation-errors class="mb-4" />
 
+    @include('admin.sales.partials.qr-payment-modal')
+
+    @php
+        // Muestra el monto sin ceros de más (Bs 900, no Bs 900.00), pero
+        // conserva los centavos si el precio realmente los tiene (Bs 150.5).
+        $formatMoney = fn ($n) => rtrim(rtrim(number_format((float) $n, 2, '.', ''), '0'), '.');
+    @endphp
+
+    {{-- Viene de "Cobrar pendientes" en el Odontograma: se muestran los
+         tratamientos que se están por cobrar y el total sugerido, para que
+         quien carga la venta sepa qué Servicios elegir sin tener que
+         mirar otra pantalla o un papel aparte. --}}
+    @if ($pendingToothTreatments->isNotEmpty())
+        <div class="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+            <x-label class="text-black dark:text-white text-base font-semibold mb-2 block">
+                <i class="fa-solid fa-tooth text-blue-400 mr-1"></i>
+                Tratamientos pendientes de cobro (del Odontograma)
+            </x-label>
+
+            <ul class="text-sm text-gray-700 dark:text-gray-300 space-y-1 mb-2">
+                @foreach ($pendingToothTreatments as $pending)
+                    <li>
+                        Pieza {{ $pending->tooth_number }} — {{ $pending->treatment }}
+                        @if ($pending->price !== null)
+                            <span class="text-gray-500 dark:text-gray-400">(Bs {{ $formatMoney($pending->price) }})</span>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+
+            <p class="text-sm font-semibold text-gray-900 dark:text-white">
+                Total sugerido: Bs {{ $formatMoney($pendingToothTreatments->sum('price')) }}
+            </p>
+
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                Elegí abajo el o los Servicios que correspondan a estos tratamientos. Al guardar la venta, quedan marcados como cobrados en el Odontograma.
+            </p>
+        </div>
+    @endif
+
     <form action="{{ route('admin.sales.store') }}" method="POST" id="sale-form">
         @csrf
+
+        @foreach ($pendingToothTreatments as $pending)
+            <input type="hidden" name="tooth_treatment_ids[]" value="{{ $pending->id }}">
+        @endforeach
 
         {{-- 1. Paciente y Doctor --}}
         <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6">
@@ -22,28 +66,65 @@
             </x-label>
 
             <div class="grid gap-4 md:grid-cols-2">
+                @php
+                    // "old" (formulario que falló) tiene prioridad; si no, se
+                    // usa el paciente que llegó por la URL (ej: desde
+                    // "Cobrar pendientes" en el Odontograma).
+                    $prefilledPatientId = old('patient_id', request('patient_id'));
+                    $selectedPatient = $prefilledPatientId ? $patients->firstWhere('id', (int) $prefilledPatientId) : null;
+                    $selectedDoctor = old('doctor_id') ? $doctors->firstWhere('id', (int) old('doctor_id')) : null;
+                @endphp
+
                 <div>
                     <x-label class="form-label">Paciente</x-label>
-                    <x-select name="patient_id" class="rounded-lg w-full" required>
-                        <option value="">Seleccione un paciente</option>
-                        @foreach ($patients as $patient)
-                            <option value="{{ $patient->id }}" @selected(old('patient_id') == $patient->id)>
-                                {{ $patient->person->name }} {{ $patient->person->last_name_father }} {{ $patient->person->last_name_mother }}
-                            </option>
-                        @endforeach
-                    </x-select>
+                    <div class="relative" data-person-combobox data-role="patient">
+                        <input type="hidden" name="patient_id" class="person-search-hidden" value="{{ $selectedPatient?->id }}">
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 text-sm">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </span>
+                            <input type="text" autocomplete="off" class="person-search-input input-label rounded-lg pl-9 w-full"
+                                placeholder="Buscar paciente por nombre o apellido..."
+                                value="{{ $selectedPatient ? $selectedPatient->person->name . ' ' . $selectedPatient->person->last_name_father . ' ' . $selectedPatient->person->last_name_mother : '' }}">
+                        </div>
+                        <div class="person-search-results hidden absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                            @foreach ($patients as $patient)
+                                <button type="button" class="person-option w-full text-left px-3 py-2 text-sm hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-700 dark:text-gray-200"
+                                    data-id="{{ $patient->id }}"
+                                    data-name="{{ $patient->person->name }} {{ $patient->person->last_name_father }} {{ $patient->person->last_name_mother }}">
+                                    {{ $patient->person->name }} {{ $patient->person->last_name_father }} {{ $patient->person->last_name_mother }}
+                                </button>
+                            @endforeach
+                            <p class="person-empty hidden px-3 py-2 text-sm text-gray-400">Sin resultados</p>
+                            <p class="person-more hidden px-3 py-2 text-xs text-gray-400 border-t border-gray-100 dark:border-gray-700"></p>
+                        </div>
+                    </div>
                 </div>
 
                 <div>
                     <x-label class="form-label">Doctor</x-label>
-                    <x-select name="doctor_id" class="rounded-lg w-full" required>
-                        <option value="">Seleccione un doctor</option>
-                        @foreach ($doctors as $doctor)
-                            <option value="{{ $doctor->id }}" @selected(old('doctor_id') == $doctor->id)>
-                                {{ $doctor->person->name }} {{ $doctor->person->last_name_father }} {{ $doctor->person->last_name_mother }}
-                            </option>
-                        @endforeach
-                    </x-select>
+                    <div class="relative" data-person-combobox data-role="doctor">
+                        <input type="hidden" name="doctor_id" class="person-search-hidden" value="{{ old('doctor_id') }}">
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 text-sm">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </span>
+                            <input type="text" autocomplete="off" class="person-search-input input-label rounded-lg pl-9 w-full"
+                                placeholder="Buscar doctor por nombre o apellido..."
+                                value="{{ $selectedDoctor ? $selectedDoctor->person->name . ' ' . $selectedDoctor->person->last_name_father . ' ' . $selectedDoctor->person->last_name_mother : '' }}">
+                        </div>
+                        <div class="person-search-results hidden absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                            @foreach ($doctors as $doctor)
+                                <button type="button" class="person-option w-full text-left px-3 py-2 text-sm hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-700 dark:text-gray-200"
+                                    data-id="{{ $doctor->id }}"
+                                    data-name="{{ $doctor->person->name }} {{ $doctor->person->last_name_father }} {{ $doctor->person->last_name_mother }}">
+                                    {{ $doctor->person->name }} {{ $doctor->person->last_name_father }} {{ $doctor->person->last_name_mother }}
+                                </button>
+                            @endforeach
+                            <p class="person-empty hidden px-3 py-2 text-sm text-gray-400">Sin resultados</p>
+                            <p class="person-more hidden px-3 py-2 text-xs text-gray-400 border-t border-gray-100 dark:border-gray-700"></p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -61,7 +142,7 @@
             </div>
 
             <div class="relative overflow-x-auto">
-                <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                <table class="table-stack w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
                         <tr>
                             <th scope="col" class="px-4 py-2">Servicio</th>
@@ -80,8 +161,12 @@
                         @endphp
 
                         @foreach ($oldServices as $i => $oldService)
+                            @php
+                                $matchedService = $services->firstWhere('id', (int) ($oldService['service_id'] ?? 0));
+                                $oldPrice = $oldService['price'] ?? optional($matchedService)->price;
+                            @endphp
                             <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700 service-row">
-                                <td class="px-4 py-2">
+                                <td data-label="Servicio" class="px-4 py-2">
                                     <x-select name="services[{{ $i }}][service_id]" class="rounded-lg w-full service-select" required>
                                         <option value="">Seleccione un servicio</option>
                                         @foreach ($services as $service)
@@ -92,13 +177,17 @@
                                         @endforeach
                                     </x-select>
                                 </td>
-                                <td class="px-4 py-2">
+                                <td data-label="Cant." class="px-4 py-2">
                                     <input type="number" name="services[{{ $i }}][quantity]"
                                         class="service-quantity rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm w-full"
                                         min="1" value="{{ $oldService['quantity'] ?? 1 }}" required>
                                 </td>
-                                <td class="px-4 py-2 service-price text-gray-700 dark:text-gray-300">Bs. 0</td>
-                                <td class="px-4 py-2 service-subtotal font-medium text-gray-900 dark:text-white">Bs. 0</td>
+                                <td data-label="Precio" class="px-4 py-2">
+                                    <input type="number" name="services[{{ $i }}][price]" step="0.01" min="0"
+                                        class="service-price-input rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm w-full"
+                                        value="{{ $oldPrice !== null ? (float) $oldPrice : '' }}" placeholder="Bs. 0">
+                                </td>
+                                <td data-label="Subtotal" class="px-4 py-2 service-subtotal font-medium text-gray-900 dark:text-white">Bs. 0</td>
                                 <td class="px-4 py-2 text-center">
                                     <button type="button" class="remove-service text-red-500 hover:text-red-700" title="Quitar servicio">
                                         <i class="fa-solid fa-trash-can"></i>
@@ -109,6 +198,22 @@
                     </tbody>
 
                     <tfoot>
+                        <tr class="text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/40">
+                            <td class="px-4 py-2" colspan="3">Subtotal</td>
+                            <td class="px-4 py-2" id="subtotal">Bs. 0</td>
+                            <td></td>
+                        </tr>
+                        <tr class="text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/40">
+                            <td class="px-4 py-2" colspan="3">
+                                <label for="discount-input" class="cursor-pointer">Descuento (Bs.)</label>
+                            </td>
+                            <td class="px-4 py-2">
+                                <input type="number" name="discount" id="discount-input" min="0" step="0.01"
+                                    value="{{ old('discount', 0) }}" placeholder="Bs. 0"
+                                    class="rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm w-full">
+                            </td>
+                            <td></td>
+                        </tr>
                         <tr class="font-semibold text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700/40">
                             <td class="px-4 py-3" colspan="3">Total</td>
                             <td class="px-4 py-3 text-lg" id="total">Bs. 0</td>
@@ -142,7 +247,7 @@
                     <div class="border-2 border-gray-200 dark:border-gray-600 rounded-lg p-3 text-center transition peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/10">
                         <i class="fa-solid fa-calendar-days text-gray-400 mb-1"></i>
                         <p class="font-medium text-gray-900 dark:text-white text-sm">Crédito</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Cuota inicial + cuotas mensuales</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Abono libre, se paga cuando pueda</p>
                     </div>
                 </label>
             </div>
@@ -159,32 +264,23 @@
                 </p>
             </div>
 
+            <input type="hidden" name="amount" id="amount" value="{{ old('amount', 0) }}">
+
             {{-- Solo Contado --}}
             <div id="contado-fields">
                 <x-label class="form-label">Monto a pagar</x-label>
                 <input type="text" id="amount-display" class="rounded-lg border-gray-300 shadow-sm w-full md:w-1/2 bg-gray-50 text-gray-700 dark:bg-gray-700 dark:text-white" value="Bs. 0" readonly>
-                <input type="hidden" name="amount" id="amount" value="{{ old('amount', 0) }}">
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Se calcula automáticamente según los servicios agregados.</p>
             </div>
 
             {{-- Solo Credito --}}
             <div id="credito-fields" class="hidden">
-                <div class="grid gap-4 md:grid-cols-2 mb-4">
-                    <div>
-                        <x-label class="form-label">Cuota inicial (Bs.)</x-label>
-                        <input type="number" name="initial_amount" id="initial_amount" min="0" step="0.01"
-                            value="{{ old('initial_amount', 0) }}"
-                            class="rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm w-full">
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Puede ser 0 si el paciente no adelanta nada.</p>
-                    </div>
-
-                    <div>
-                        <x-label class="form-label">Número de cuotas</x-label>
-                        <input type="number" name="installments_count" id="installments_count" min="1" max="36"
-                            value="{{ old('installments_count', 1) }}"
-                            class="rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm w-full">
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cuotas mensuales sobre el saldo restante.</p>
-                    </div>
+                <div class="max-w-sm mb-4">
+                    <x-label class="form-label">Abono de hoy (Bs.)</x-label>
+                    <input type="number" id="credito-amount-input" min="0" step="0.01"
+                        value="{{ old('amount', 0) }}"
+                        class="rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm w-full">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Opcional. Déjelo en 0 si el paciente no adelanta nada hoy; los siguientes abonos se registran después desde el detalle de la venta.</p>
                 </div>
 
                 <div class="bg-gray-50 dark:bg-gray-700/40 rounded-lg p-3 text-sm text-gray-700 dark:text-gray-300 md:w-1/2">
@@ -192,21 +288,9 @@
                         <span>Total de la venta</span>
                         <strong id="credito-total">Bs. 0</strong>
                     </div>
-                    <div class="flex justify-between py-0.5 hidden text-amber-700 dark:text-amber-400" id="credito-consulta-row">
-                        <span>Consulta (se cobra de inmediato)</span>
-                        <strong id="credito-consulta">Bs. 0</strong>
-                    </div>
-                    <div class="flex justify-between py-0.5">
-                        <span>Cuota inicial</span>
-                        <strong id="credito-inicial">Bs. 0</strong>
-                    </div>
-                    <div class="flex justify-between py-0.5">
-                        <span>Saldo a financiar</span>
-                        <strong id="credito-saldo">Bs. 0</strong>
-                    </div>
                     <div class="flex justify-between border-t border-gray-200 dark:border-gray-600 mt-1 pt-1.5">
-                        <span>Cuota mensual estimada</span>
-                        <strong id="credito-cuota" class="text-blue-600">Bs. 0</strong>
+                        <span>Saldo pendiente después de este abono</span>
+                        <strong id="credito-saldo" class="text-blue-600">Bs. 0</strong>
                     </div>
                 </div>
             </div>
@@ -224,37 +308,46 @@
     <script>
         let serviceIndex = {{ count($oldServices) }};
         let currentTotal = 0;
-        let consultaTotal = 0; // suma de las filas cuyo servicio es "Consulta": se cobra siempre de inmediato
 
-        // Recalcula el precio/subtotal de cada fila de servicios y el total general.
+        // Muestra el monto sin ceros de más (1100 en vez de 1100.00), pero
+        // conserva los centavos si realmente existen (150.5).
+        function formatMoney(n) {
+            return Number(n.toFixed(2)).toString();
+        }
+
+        // Recalcula el subtotal de cada fila de servicios, le resta el
+        // descuento (si hay uno cargado) y actualiza el total general. El
+        // precio de cada fila es editable: por default es el precio de
+        // lista del Servicio, pero se puede cambiar a mano si ese caso
+        // puntual cuesta distinto.
         function updateTotal() {
-            currentTotal = 0;
-            consultaTotal = 0;
+            let subtotal = 0;
 
             document.querySelectorAll('.service-row').forEach(row => {
-                const select = row.querySelector('.service-select');
                 const quantity = parseFloat(row.querySelector('.service-quantity').value) || 0;
-                const option = select.selectedOptions[0];
-                const price = option ? (parseFloat(option.getAttribute('data-price')) || 0) : 0;
-                const name = option ? (option.getAttribute('data-name') || '').trim().toLowerCase() : '';
-                const subtotal = price * quantity;
+                const price = parseFloat(row.querySelector('.service-price-input').value) || 0;
+                const rowSubtotal = price * quantity;
 
-                row.querySelector('.service-price').textContent = 'Bs. ' + price.toFixed();
-                row.querySelector('.service-subtotal').textContent = 'Bs. ' + subtotal.toFixed();
+                row.querySelector('.service-subtotal').textContent = 'Bs. ' + formatMoney(rowSubtotal);
 
-                currentTotal += subtotal;
-                if (name === 'consulta') {
-                    consultaTotal += subtotal;
-                }
+                subtotal += rowSubtotal;
             });
 
-            document.getElementById('total').textContent = 'Bs. ' + currentTotal.toFixed();
+            document.getElementById('subtotal').textContent = 'Bs. ' + formatMoney(subtotal);
+
+            // El descuento no puede dejar el total en negativo (si el
+            // usuario escribe uno mayor al subtotal, acá solo se recorta
+            // para mostrar; el servidor igual valida y rechaza ese caso).
+            const discount = Math.min(parseFloat(document.getElementById('discount-input').value) || 0, subtotal);
+            currentTotal = Math.max(subtotal - discount, 0);
+
+            document.getElementById('total').textContent = 'Bs. ' + formatMoney(currentTotal);
 
             // Venta al Contado: el monto a pagar siempre es el total, no se pide escribirlo.
-            document.getElementById('amount-display').value = 'Bs. ' + currentTotal.toFixed();
-            document.getElementById('amount').value = currentTotal.toFixed(2);
+            document.getElementById('amount-display').value = 'Bs. ' + formatMoney(currentTotal);
 
             updateCreditoSummary();
+            syncAmountField();
         }
 
         // Agregar una nueva fila de servicio a la tabla.
@@ -262,7 +355,7 @@
             const row = document.createElement('tr');
             row.classList.add('service-row', 'bg-white', 'dark:bg-gray-800', 'border-b', 'dark:border-gray-700');
             row.innerHTML = `
-                <td class="px-4 py-2">
+                <td data-label="Servicio" class="px-4 py-2">
                     <select name="services[${serviceIndex}][service_id]" class="rounded-lg w-full service-select border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm" required>
                         <option value="">Seleccione un servicio</option>
                         @foreach ($services as $service)
@@ -270,11 +363,13 @@
                         @endforeach
                     </select>
                 </td>
-                <td class="px-4 py-2">
+                <td data-label="Cant." class="px-4 py-2">
                     <input type="number" name="services[${serviceIndex}][quantity]" class="service-quantity rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm w-full" min="1" value="1" required>
                 </td>
-                <td class="px-4 py-2 service-price text-gray-700 dark:text-gray-300">Bs. 0</td>
-                <td class="px-4 py-2 service-subtotal font-medium text-gray-900 dark:text-white">Bs. 0</td>
+                <td data-label="Precio" class="px-4 py-2">
+                    <input type="number" name="services[${serviceIndex}][price]" step="0.01" min="0" class="service-price-input rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm w-full" placeholder="Bs. 0">
+                </td>
+                <td data-label="Subtotal" class="px-4 py-2 service-subtotal font-medium text-gray-900 dark:text-white">Bs. 0</td>
                 <td class="px-4 py-2 text-center">
                     <button type="button" class="remove-service text-red-500 hover:text-red-700" title="Quitar servicio">
                         <i class="fa-solid fa-trash-can"></i>
@@ -286,16 +381,30 @@
             updateTotal();
         });
 
-        // Recalcular cuando cambia el servicio o la cantidad de cualquier fila.
+        // Recalcular cuando cambia la cantidad o el precio de cualquier fila
+        // (el precio es editable, así que también dispara el recálculo).
         document.getElementById('services').addEventListener('input', function (event) {
-            if (event.target.classList.contains('service-quantity') || event.target.classList.contains('service-select')) {
+            if (event.target.classList.contains('service-quantity') || event.target.classList.contains('service-price-input')) {
                 updateTotal();
             }
         });
+
+        // Recalcular cuando se carga o cambia el descuento.
+        document.getElementById('discount-input').addEventListener('input', updateTotal);
+
+        // Al elegir (o cambiar) el Servicio de una fila, se completa el
+        // precio con el de lista; sigue editable después.
         document.getElementById('services').addEventListener('change', function (event) {
-            if (event.target.classList.contains('service-select')) {
-                updateTotal();
-            }
+            if (!event.target.classList.contains('service-select')) return;
+
+            const row = event.target.closest('.service-row');
+            const option = event.target.selectedOptions[0];
+            const price = option ? (parseFloat(option.getAttribute('data-price')) || 0) : 0;
+
+            // Sin ".00" fijo: parseFloat ya deja el número limpio (900 en
+            // vez de 900.00), así entra completo en la columna angosta.
+            row.querySelector('.service-price-input').value = price;
+            updateTotal();
         });
 
         // Quitar una fila de servicio (se deja siempre al menos una fila).
@@ -322,55 +431,137 @@
             creditoFields.classList.toggle('hidden', !isCredito);
 
             updateCreditoSummary();
+            updatePaymentMethodHint();
+            syncAmountField();
         }
 
         function updatePaymentMethodHint() {
             const isCredito = document.querySelector('input[name="payment_type"]:checked')?.value === 'Credito';
             const hint = document.getElementById('payment-method-hint');
 
-            if (!isCredito) {
-                hint.textContent = 'Con qué paga el paciente hoy.';
-            } else if (consultaTotal > 0) {
-                hint.textContent = 'Con qué paga la Consulta hoy (y la cuota inicial, si corresponde).';
-            } else {
-                hint.textContent = 'Con qué paga la cuota inicial (si es mayor a 0).';
-            }
+            hint.textContent = isCredito
+                ? 'Con qué paga el paciente el abono de hoy (si escribe un monto mayor a 0).'
+                : 'Con qué paga el paciente hoy.';
         }
 
         function updateCreditoSummary() {
-            const initial = parseFloat(document.getElementById('initial_amount').value) || 0;
-            const count = parseInt(document.getElementById('installments_count').value) || 0;
+            const abono = parseFloat(document.getElementById('credito-amount-input').value) || 0;
+            const saldo = Math.max(currentTotal - abono, 0);
 
-            // La Consulta se cobra siempre de inmediato, no entra al monto a financiar.
-            const financiable = Math.max(currentTotal - consultaTotal, 0);
-            const saldo = Math.max(financiable - initial, 0);
-            const cuota = count > 0 ? saldo / count : 0;
+            document.getElementById('credito-total').textContent = 'Bs. ' + formatMoney(currentTotal);
+            document.getElementById('credito-saldo').textContent = 'Bs. ' + formatMoney(saldo);
+        }
 
-            document.getElementById('credito-total').textContent = 'Bs. ' + currentTotal.toFixed();
-            document.getElementById('credito-inicial').textContent = 'Bs. ' + initial.toFixed();
-            document.getElementById('credito-saldo').textContent = 'Bs. ' + saldo.toFixed();
-            document.getElementById('credito-cuota').textContent = 'Bs. ' + cuota.toFixed();
+        // El monto que realmente se envía al servidor (campo oculto compartido
+        // "amount") depende de la forma de pago elegida: en Contado siempre es
+        // el total de la venta; en Credito es el abono libre que el usuario
+        // escribió hoy (puede ser 0 si no adelanta nada).
+        function syncAmountField() {
+            const isCredito = document.querySelector('input[name="payment_type"]:checked')?.value === 'Credito';
+            const amountField = document.getElementById('amount');
 
-            const consultaRow = document.getElementById('credito-consulta-row');
-            if (consultaTotal > 0) {
-                consultaRow.classList.remove('hidden');
-                document.getElementById('credito-consulta').textContent = 'Bs. ' + consultaTotal.toFixed();
+            if (isCredito) {
+                const abono = parseFloat(document.getElementById('credito-amount-input').value) || 0;
+                amountField.value = abono.toFixed(2);
             } else {
-                consultaRow.classList.add('hidden');
+                amountField.value = currentTotal.toFixed(2);
             }
-
-            updatePaymentMethodHint();
         }
 
         document.querySelectorAll('input[name="payment_type"]').forEach(radio => {
             radio.addEventListener('change', togglePaymentType);
         });
-        document.getElementById('initial_amount').addEventListener('input', updateCreditoSummary);
-        document.getElementById('installments_count').addEventListener('input', updateCreditoSummary);
+        document.getElementById('credito-amount-input').addEventListener('input', function () {
+            updateCreditoSummary();
+            syncAmountField();
+        });
 
         // Estado inicial al cargar la página.
         updateTotal();
         togglePaymentType();
+
+        // --- Buscador de Paciente / Doctor: filtra la lista mientras se escribe ---
+        // (mismo patrón que "Seleccionar persona" en Pacientes > Nuevo paciente).
+        document.querySelectorAll('[data-person-combobox]').forEach(function (wrapper) {
+            const input = wrapper.querySelector('.person-search-input');
+            const hidden = wrapper.querySelector('.person-search-hidden');
+            const results = wrapper.querySelector('.person-search-results');
+            const options = Array.from(wrapper.querySelectorAll('.person-option'));
+            const empty = wrapper.querySelector('.person-empty');
+            const more = wrapper.querySelector('.person-more');
+            const MAX_VISIBLE = 8;
+
+            function showResults() {
+                const term = input.value.trim().toLowerCase();
+                let matches = 0;
+                let shown = 0;
+                options.forEach(function (opt) {
+                    const match = opt.dataset.name.toLowerCase().includes(term);
+                    if (match) matches++;
+                    const visible = match && shown < MAX_VISIBLE;
+                    if (visible) shown++;
+                    opt.classList.toggle('hidden', !visible);
+                });
+
+                empty.classList.toggle('hidden', matches > 0);
+
+                const remaining = matches - shown;
+                if (remaining > 0) {
+                    more.textContent = `+${remaining} más, sigue escribiendo para ver otras`;
+                    more.classList.remove('hidden');
+                } else {
+                    more.classList.add('hidden');
+                }
+
+                results.classList.remove('hidden');
+            }
+
+            input.addEventListener('focus', showResults);
+            input.addEventListener('input', function () {
+                hidden.value = '';
+                showResults();
+            });
+
+            options.forEach(function (opt) {
+                opt.addEventListener('click', function () {
+                    hidden.value = opt.dataset.id;
+                    input.value = opt.dataset.name;
+                    results.classList.add('hidden');
+                });
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!wrapper.contains(e.target)) {
+                    results.classList.add('hidden');
+                }
+            });
+        });
+
+        // Nota: "QR" es una opción más de método de pago, igual que Efectivo o
+        // Transferencia. No dispara ninguna llamada a la API de VeriPagos ni
+        // abre el modal de QR: el formulario se envía normalmente y el pago
+        // queda registrado con payment_method = 'QR' sin verificación alguna.
+        const saleForm = document.getElementById('sale-form');
+
+        saleForm.addEventListener('submit', function (event) {
+            // El paciente y el doctor ahora se eligen con el buscador (no un <select>
+            // nativo), así que el "required" del HTML ya no valida esto por sí solo.
+            const patientId = saleForm.querySelector('[name="patient_id"]').value;
+            const doctorId = saleForm.querySelector('[name="doctor_id"]').value;
+
+            if (!patientId) {
+                event.preventDefault();
+                alert('Debe seleccionar un paciente.');
+                document.querySelector('[data-role="patient"] .person-search-input')?.focus();
+                return;
+            }
+            if (!doctorId) {
+                event.preventDefault();
+                alert('Debe seleccionar un doctor.');
+                document.querySelector('[data-role="doctor"] .person-search-input')?.focus();
+                return;
+            }
+        });
     </script>
     @endpush
 </x-admin-layout>

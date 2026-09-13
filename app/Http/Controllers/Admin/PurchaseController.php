@@ -29,6 +29,7 @@ class PurchaseController extends Controller
         $this->middleware('can:admin.purchases.destroy')->only('destroy');
         $this->middleware('can:admin.purchases.pdf')->only('pdf', 'excel');
         $this->middleware('can:admin.purchases.cancel')->only('cancel');
+        $this->middleware('can:admin.purchases.print')->only('print');
     }
 
 

@@ -1,1 +1,1 @@
-<img src="{{ asset('images/logo-icon.png') }}" alt="Mi Consulta" {{ $attributes }}>
+<img src="{{ asset('images/logo-icon.png') }}" alt="Wellness Centro Integral" {{ $attributes }}>

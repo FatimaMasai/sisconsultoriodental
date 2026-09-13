@@ -46,8 +46,10 @@ class ServiceController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required',
+            'name' => 'required|unique:services,name',
             'price' => 'required|numeric'
+        ], [
+            'name.unique' => 'Ya existe un servicio con ese nombre.',
         ]);
 
          
@@ -97,10 +99,12 @@ class ServiceController extends Controller
     {
         $request->validate([
             'service_category_id' => 'required|exists:service_categories,id',
-            'name' => 'required',
+            'name' => 'required|unique:services,name,' . $service->id,
             'price' => 'required|numeric'
+        ], [
+            'name.unique' => 'Ya existe otro servicio con ese nombre.',
         ]);
- 
+
 
         $service->update([
             'name' => ucwords(strtolower($request->name)),

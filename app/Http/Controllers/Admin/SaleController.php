@@ -4,16 +4,18 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\Consulta;
 use App\Models\Doctor;
-use App\Models\History;
+use App\Models\Expediente;
 use App\Models\Installment;
 use App\Models\Patient;
 use App\Models\Payment;
 use App\Models\Sale;
 use App\Models\SaleDetail;
 use App\Models\Service;
+use App\Models\ToothTreatment;
 use App\Http\Controllers\Concerns\ExportsExcel;
-use Carbon\Carbon;
+use App\Services\VeriPagosService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -28,12 +30,14 @@ class SaleController extends Controller
     public function __construct()
     {
         $this->middleware('can:admin.sales.index')->only('index', 'show');
-        $this->middleware('can:admin.sales.create')->only('create', 'store');
+        $this->middleware('can:admin.sales.create')->only('create', 'store', 'pendingCharges');
         $this->middleware('can:admin.sales.edit')->only('edit', 'update');
         $this->middleware('can:admin.sales.pdf')->only('pdf', 'excel');
         $this->middleware('can:admin.sales.cancel')->only('cancel');
-        $this->middleware('can:admin.sales.payInstallment')->only('payInstallment');
-        $this->middleware('can:admin.sales.index')->only('paidInstallments', 'paidInstallmentsExcel', 'paidInstallmentsPdf', 'salePaidInstallmentsPdf');
+        $this->middleware('can:admin.sales.payInstallment')->only('payInstallment', 'addAbono');
+        $this->middleware('can:admin.sales.index')->only('paidInstallments', 'paidInstallmentsExcel', 'paidInstallmentsPdf', 'salePaidInstallmentsPdf', 'printAbono');
+        $this->middleware('can:admin.sales.print')->only('print');
+        $this->middleware('can:admin.sales.destroy')->only('destroy');
 
     }
 
@@ -130,15 +134,24 @@ class SaleController extends Controller
     }
 
     /**
-     * Consulta base del reporte de cuotas pagadas, con los mismos filtros
-     * (paciente/comprobante, rango de fechas) reutilizados por la pantalla
-     * y por la exportación a Excel, igual que filteredSales()/excel().
+     * Consulta base del reporte de "Historial de Abonos": todos los pagos de
+     * ventas a Crédito (abonos libres del sistema nuevo + cuota inicial/cuotas
+     * del sistema viejo, para no perder el histórico), con los mismos filtros
+     * (paciente/comprobante, rango de fechas) reutilizados por la pantalla y
+     * por las exportaciones, igual que filteredSales()/excel().
+     *
+     * Antes esto leía de la tabla Installment (plan de cuotas fijas). Desde
+     * que el Crédito pasó a ser abono libre, las ventas nuevas ya no generan
+     * cuotas, así que esa consulta se quedaba siempre en 0 para todo lo
+     * nuevo. Ahora se lee directo de Payment, que es donde de verdad quedan
+     * registrados tanto los abonos nuevos como las cuotas viejas.
      */
-    private function filteredPaidInstallments(Request $request)
+    private function filteredAbonos(Request $request)
     {
-        $query = Installment::query()
-            ->where('status', 'Pagada')
-            ->with(['sale.patient.person', 'sale.doctor.person', 'payments']);
+        $query = Payment::query()
+            ->whereIn('payment_status', ['Cuota Inicial', 'Cuota', 'Abono'])
+            ->whereHas('sale', fn ($s) => $s->where('payment_type', 'Credito'))
+            ->with(['sale.patient.person', 'sale.doctor.person', 'installment']);
 
         if ($request->filled('search')) {
             $search = trim($request->search);
@@ -158,85 +171,86 @@ class SaleController extends Controller
         }
 
         if ($request->filled('date_from')) {
-            $query->whereDate('paid_at', '>=', $request->date_from);
+            $query->whereDate('created_at', '>=', $request->date_from);
         }
 
         if ($request->filled('date_to')) {
-            $query->whereDate('paid_at', '<=', $request->date_to);
+            $query->whereDate('created_at', '<=', $request->date_to);
         }
 
         if ($request->filled('payment_method')) {
-            $query->whereHas('payments', function ($q) use ($request) {
-                $q->where('payment_method', $request->payment_method);
-            });
+            $query->where('payment_method', $request->payment_method);
         }
 
         return $query;
     }
 
     /**
-     * Reporte de todas las cuotas pagadas, de cualquier venta a Crédito.
+     * Reporte de todos los abonos registrados en ventas a Crédito (abonos
+     * libres nuevos + cuota inicial/cuotas del sistema viejo).
      */
     public function paidInstallments(Request $request)
     {
-        $baseQuery = $this->filteredPaidInstallments($request);
+        $baseQuery = $this->filteredAbonos($request);
 
         $hasFilters = $request->filled('search') || $request->filled('date_from') || $request->filled('date_to') || $request->filled('payment_method');
 
         // Totales sobre TODO lo filtrado, no solo la página actual (se calculan
         // antes de paginar, con un clone, para no consumir el query builder).
         $totalCobrado = (clone $baseQuery)->sum('amount');
-        $totalCuotas = (clone $baseQuery)->count();
+        $totalAbonos = (clone $baseQuery)->count();
 
-        $installments = $baseQuery->orderBy('paid_at', 'desc')
+        $abonos = $baseQuery->orderBy('created_at', 'desc')
             ->paginate(50)
             ->withQueryString();
 
-        return view('admin.sales.paid_installments', compact('installments', 'hasFilters', 'totalCobrado', 'totalCuotas'));
+        return view('admin.sales.paid_installments', compact('abonos', 'hasFilters', 'totalCobrado', 'totalAbonos'));
     }
 
     /**
-     * Exporta a Excel el reporte de cuotas pagadas, respetando los mismos
-     * filtros que estén aplicados en la pantalla.
+     * Exporta a Excel el historial de abonos, respetando los mismos filtros
+     * que estén aplicados en la pantalla.
      */
     public function paidInstallmentsExcel(Request $request)
     {
-        $installments = $this->filteredPaidInstallments($request)->orderBy('paid_at', 'desc')->get();
+        $abonos = $this->filteredAbonos($request)->orderBy('created_at', 'desc')->get();
 
-        $rows = $installments->map(function (Installment $installment) {
-            $sale = $installment->sale;
+        $rows = $abonos->map(function (Payment $payment) {
+            $sale = $payment->sale;
             $paciente = trim($sale->patient->person->name . ' ' . $sale->patient->person->last_name_father . ' ' . $sale->patient->person->last_name_mother);
-            $metodo = optional($installment->payments->first())->payment_method ?? '—';
+            $concepto = $payment->payment_status === 'Cuota Inicial'
+                ? 'Cuota inicial'
+                : ($payment->installment ? 'Cuota #' . $payment->installment->number : $payment->payment_status);
 
             return [
                 $sale->numero,
                 $paciente,
-                $installment->number,
-                (float) $installment->amount,
-                $metodo,
-                $this->formatDate($installment->paid_at, 'd/m/Y H:i'),
+                $concepto,
+                (float) $payment->amount,
+                $payment->payment_method,
+                $this->formatDate($payment->created_at, 'd/m/Y H:i'),
             ];
         });
 
-        return $this->streamExcel('cuotas_pagadas_' . now()->format('Y-m-d') . '.xlsx', [
-            'Comprobante', 'Paciente', 'N° Cuota', 'Monto', 'Método de pago', 'Fecha de pago',
+        return $this->streamExcel('historial_abonos_' . now()->format('Y-m-d') . '.xlsx', [
+            'Comprobante', 'Paciente', 'Concepto', 'Monto', 'Método de pago', 'Fecha de pago',
         ], $rows);
     }
 
     /**
-     * Exporta a PDF el reporte de cuotas pagadas, respetando los mismos
-     * filtros que estén aplicados en la pantalla.
+     * Exporta a PDF el historial de abonos, respetando los mismos filtros
+     * que estén aplicados en la pantalla.
      */
     public function paidInstallmentsPdf(Request $request)
     {
-        $installments = $this->filteredPaidInstallments($request)->orderBy('paid_at', 'desc')->get();
+        $abonos = $this->filteredAbonos($request)->orderBy('created_at', 'desc')->get();
 
-        $totalCobrado = $installments->sum('amount');
+        $totalCobrado = $abonos->sum('amount');
 
-        $pdf = PDF::loadView('admin.sales.paid_installments_pdf', compact('installments', 'totalCobrado', 'request'))
+        $pdf = PDF::loadView('admin.sales.paid_installments_pdf', compact('abonos', 'totalCobrado', 'request'))
             ->setPaper('a4', 'portrait');
 
-        return $pdf->stream('cuotas_pagadas_' . now()->format('Y-m-d') . '.pdf');
+        return $pdf->stream('historial_abonos_' . now()->format('Y-m-d') . '.pdf');
     }
 
     /**
@@ -259,7 +273,7 @@ class SaleController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
 
         $patients = Patient::with('person')->where('status',1)->orderBy('id', 'desc')->get();
@@ -267,11 +281,50 @@ class SaleController extends Controller
 
         $services = Service::where('status', 1)->orderBy('id', 'desc')->get(); // Obtener servicios activos
 
-        return view('admin.sales.create', compact('patients', 'services', 'doctors'));
+        // Si se llega desde el Odontograma con "Cobrar pendientes", acá se
+        // recuperan esos tratamientos (siempre del mismo paciente que llega
+        // en la URL, por las dudas) solo para mostrarlos como referencia y
+        // sugerir el total a cobrar; el que carga los Servicios y confirma
+        // la venta sigue siendo quien está en caja, como siempre.
+        $pendingToothTreatmentIds = array_filter(explode(',', (string) $request->query('tooth_treatments', '')));
+
+        $pendingToothTreatments = empty($pendingToothTreatmentIds)
+            ? collect()
+            : ToothTreatment::whereIn('id', $pendingToothTreatmentIds)
+                ->whereNull('sale_id')
+                ->whereHas('expediente', fn ($q) => $q->where('patient_id', $request->query('patient_id')))
+                ->get();
+
+        return view('admin.sales.create', compact('patients', 'services', 'doctors', 'pendingToothTreatments'));
 
     }
 
-    public function store(Request $request)
+    /**
+     * Lista, para quien esté en caja (Recepción o el propio doctor), todos
+     * los pacientes que tienen tratamientos del Odontograma sin cobrar
+     * todavía, sin depender de que el doctor le mande el link desde el
+     * Odontograma de un paciente puntual. Cada grupo lleva directo a
+     * "Nueva venta" con ese paciente y esos tratamientos ya armados, igual
+     * que el botón "Cobrar pendientes" del Odontograma.
+     */
+    public function pendingCharges()
+    {
+        $pendientesPorPaciente = ToothTreatment::whereNull('sale_id')
+            ->with('expediente.patient.person')
+            ->get()
+            ->filter(fn ($treatment) => $treatment->expediente?->patient !== null)
+            ->groupBy(fn ($treatment) => $treatment->expediente->patient_id)
+            ->map(fn ($treatments) => [
+                'patient' => $treatments->first()->expediente->patient,
+                'treatments' => $treatments,
+                'total' => $treatments->sum('price'),
+            ])
+            ->sortByDesc(fn ($grupo) => $grupo['treatments']->max('date'));
+
+        return view('admin.sales.pending_charges', compact('pendientesPorPaciente'));
+    }
+
+    public function store(Request $request, VeriPagosService $veripagos)
     {
         $request->validate([
             'patient_id' => 'required|exists:patients,id',
@@ -279,15 +332,31 @@ class SaleController extends Controller
             'services' => 'required|array',
             'services.*.service_id' => 'required|exists:services,id',
             'services.*.quantity' => 'required|integer|min:1',
+            // Precio editable por línea: si se deja vacío, se usa el precio
+            // de lista del Servicio (ver el foreach más abajo). Sirve para
+            // casos puntuales que cuestan distinto al precio de catálogo.
+            'services.*.price' => 'nullable|numeric|min:0',
+
+            // Descuento fijo en Bs. sobre el total de la venta (opcional).
+            'discount' => 'nullable|numeric|min:0',
 
             'payment_type' => 'required|in:Contado,Credito',
 
-            // Venta al Contado
+            // Venta al Contado: se paga el total completo.
+            // Venta a Credito: "amount" es opcional y es el abono que el paciente deja
+            // hoy mismo (puede ser 0 si todavía no paga nada) - el resto se va abonando
+            // libremente más adelante desde el detalle de la venta, sin plan de cuotas fijo.
             'amount' => 'required_if:payment_type,Contado|nullable|numeric|min:0',
 
-            // Venta a Credito (cuotas)
-            'initial_amount' => 'required_if:payment_type,Credito|nullable|numeric|min:0',
-            'installments_count' => 'required_if:payment_type,Credito|nullable|integer|min:1|max:36',
+            // Cobro por QR (VeriPagos): lo llena el modal cuando confirma el pago.
+            'qr_movimiento_id' => 'nullable|string',
+
+            // Si esta venta viene de "Cobrar pendientes" en el Odontograma,
+            // acá llegan los ids de los tratamientos que se están cobrando
+            // (ver create() y el bloque más abajo que los marca como
+            // cobrados una vez creada la venta).
+            'tooth_treatment_ids' => 'nullable|array',
+            'tooth_treatment_ids.*' => 'exists:tooth_treatments,id',
         ], [
             'patient_id.required' => 'El campo paciente es obligatorio.',
             'doctor_id.required' => 'El campo doctor es obligatorio.',
@@ -296,26 +365,26 @@ class SaleController extends Controller
             'services.*.quantity.required' => 'Debe ingresar la cantidad del servicio.',
             'payment_type.required' => 'Debe seleccionar el tipo de venta (Contado o Crédito).',
             'amount.required_if' => 'Debe ingresar el monto pagado.',
-            'initial_amount.required_if' => 'Debe ingresar el monto de la cuota inicial (puede ser 0).',
-            'installments_count.required_if' => 'Debe indicar en cuántas cuotas se financiará el saldo.',
         ]);
 
         $paymentType = $request->payment_type;
 
-        // La Consulta se cobra siempre de inmediato (aunque el resto de la venta sea a
-        // crédito), así que si está entre los servicios vendidos también exige método de pago.
-        $serviceIds = collect($request->services)->pluck('service_id');
-        $hasConsulta = Service::whereIn('id', $serviceIds)->get()
-            ->contains(fn ($s) => trim(strtolower($s->name)) === 'consulta');
-
         $needsPaymentMethod = $paymentType === 'Contado'
-            || ($paymentType === 'Credito' && ((float) $request->initial_amount > 0 || $hasConsulta));
+            || ($paymentType === 'Credito' && (float) ($request->amount ?? 0) > 0);
 
         if ($needsPaymentMethod && ! $request->filled('payment_method')) {
             return redirect()->back()->withErrors([
                 'payment_method' => 'Debe seleccionar el método de pago.',
             ])->withInput();
         }
+
+        // "QR" es por ahora una opción más de método de pago, como Efectivo o
+        // Transferencia: no dispara ninguna verificación contra la API de
+        // VeriPagos. $qrVerificado se deja siempre en null a propósito, para
+        // que el resto del método (que ya sabe ignorar el cobro por QR cuando
+        // esto es null) siga funcionando sin cambios y sea fácil reactivar la
+        // verificación real más adelante si se resuelve la integración.
+        $qrVerificado = null;
 
         DB::beginTransaction();
         try {
@@ -325,42 +394,87 @@ class SaleController extends Controller
                 'total' => 0,
                 'status' => 1,
                 'payment_type' => $paymentType,
-                'initial_amount' => $paymentType === 'Credito' ? (float) $request->initial_amount : 0,
+                'initial_amount' => 0,
                 'patient_id' => $request->patient_id,
                 'doctor_id' => $request->doctor_id,
             ]);
 
-            $total = 0;
-            $consultaTotal = 0; // suma de los subtotales del servicio "Consulta" en esta venta
+            $subtotalVenta = 0;
+            $serviceNames = [];
 
             foreach ($request->services as $service) {
                 $serviceDetails = Service::findOrFail($service['service_id']);
-                $subtotal = $serviceDetails->price * $service['quantity'];
-                $esConsulta = trim(strtolower($serviceDetails->name)) === 'consulta';
+
+                // Si vino un precio editado desde el formulario, se usa ese
+                // (para casos puntuales que cuestan distinto); si no, el
+                // precio de lista del Servicio, como siempre.
+                $price = isset($service['price']) && $service['price'] !== ''
+                    ? (float) $service['price']
+                    : (float) $serviceDetails->price;
+
+                $subtotal = $price * $service['quantity'];
 
                 // detalle venta
                 SaleDetail::create([
-                    'price' => $serviceDetails->price,
+                    'price' => $price,
                     'quantity' => $service['quantity'],
                     'subtotal' => $subtotal,
                     'sale_id' => $sale->id,
                     'service_id' => $service['service_id'],
                 ]);
 
-                // historial: no aplica para "Consulta" (no implica tratamiento ni seguimiento)
-                if (! $esConsulta) {
-                    History::create([
-                        'description' => 'Venta de servicio',
-                        'date' => now(),
-                        'patient_id' => $request->patient_id,
-                        'doctor_id' => $request->doctor_id,
-                        'service_id' => $service['service_id'],
-                    ]);
-                } else {
-                    $consultaTotal += $subtotal;
-                }
+                $serviceNames[] = $serviceDetails->name;
+                $subtotalVenta += $subtotal;
+            }
 
-                $total += $subtotal;
+            // Descuento fijo en Bs. sobre el subtotal de los servicios. No
+            // puede superar el subtotal (una venta no puede terminar en
+            // negativo).
+            $discount = round((float) ($request->discount ?? 0), 2);
+
+            if ($discount > $subtotalVenta) {
+                DB::rollBack();
+
+                return redirect()->back()->withErrors([
+                    'discount' => 'El descuento (Bs. ' . number_format($discount, 2) . ') no puede ser mayor al subtotal de la venta (Bs. ' . number_format($subtotalVenta, 2) . ').',
+                ])->withInput();
+            }
+
+            $total = round($subtotalVenta - $discount, 2);
+
+            // Historial clínico: toda venta representa una visita del paciente,
+            // así que se registra como UNA sola Consulta dentro de su expediente
+            // de la especialidad del doctor. Antes se creaba un historial por
+            // cada servicio vendido (se repetía si vendías varios juntos), y
+            // las visitas de solo "Consulta" ni siquiera quedaban registradas;
+            // ahora toda venta deja rastro en el expediente, incluida esa.
+            $doctor = Doctor::findOrFail($request->doctor_id);
+
+            if ($doctor->speciality_id) {
+                $expediente = Expediente::firstOrCreate(
+                    ['patient_id' => $request->patient_id, 'speciality_id' => $doctor->speciality_id],
+                    ['status' => true]
+                );
+
+                Consulta::create([
+                    'expediente_id' => $expediente->id,
+                    'doctor_id' => $doctor->id,
+                    'sale_id' => $sale->id,
+                    'description' => implode(', ', $serviceNames),
+                    'date' => now(),
+                ]);
+            }
+
+            // Si esta venta viene de "Cobrar pendientes" en el Odontograma,
+            // se marcan esos tratamientos como cobrados con esta venta. Se
+            // filtra de nuevo por paciente (whereHas) para que nadie pueda
+            // colar, a mano en el formulario, el id de un tratamiento de
+            // otro paciente.
+            if ($request->filled('tooth_treatment_ids')) {
+                ToothTreatment::whereIn('id', $request->tooth_treatment_ids)
+                    ->whereNull('sale_id')
+                    ->whereHas('expediente', fn ($q) => $q->where('patient_id', $request->patient_id))
+                    ->update(['sale_id' => $sale->id]);
             }
 
             if ($paymentType === 'Contado') {
@@ -372,73 +486,62 @@ class SaleController extends Controller
                     ])->withInput();
                 }
 
+                // Si fue pago por QR, el monto realmente pagado (según VeriPagos) también
+                // debe coincidir con el total, no solo lo que envió el formulario.
+                if ($qrVerificado && round((float) ($qrVerificado['monto'] ?? 0), 2) != round((float) $total, 2)) {
+                    DB::rollBack();
+                    return redirect()->back()->withErrors([
+                        'amount' => 'El monto pagado por QR no coincide con el total de la venta.'
+                    ])->withInput();
+                }
+
                 // pago
                 Payment::create([
                     'amount' => $request->amount,
                     'payment_method' => $request->payment_method,
                     'payment_status' => 'Contado',
                     'sale_id' => $sale->id,
+                    'qr_movimiento_id' => $qrVerificado ? $request->qr_movimiento_id : null,
+                    'qr_remitente' => $qrVerificado['remitente'] ?? null,
                 ]);
             } else {
-                // Venta a Credito: cuota inicial + cuotas mensuales sobre el saldo
-                $initialAmount = (float) $request->initial_amount;
-                $installmentsCount = (int) $request->installments_count;
+                // Venta a Credito: queda el total como saldo pendiente y de ahí en más se
+                // va abonando libremente (cualquier monto, cualquier fecha, sin plan de
+                // cuotas fijo) desde el detalle de la venta - ver SaleController::addAbono().
+                // Opcionalmente, si el paciente deja algo de una vez al momento de la venta,
+                // ese primer abono se registra ahora mismo con lo que vino en "amount".
+                $abonoInicial = round((float) ($request->amount ?? 0), 2);
 
-                // La Consulta se paga siempre de inmediato, sin importar que el resto de
-                // la venta sea a crédito, así que no entra en el monto a financiar.
-                $totalFinanciable = round($total - $consultaTotal, 2);
-
-                if ($totalFinanciable > 0 && $initialAmount >= $totalFinanciable) {
+                if ($abonoInicial > $total) {
                     DB::rollBack();
                     return redirect()->back()->withErrors([
-                        'initial_amount' => 'La cuota inicial debe ser menor al monto financiable (sin contar la Consulta).'
+                        'amount' => 'El abono no puede ser mayor al total de la venta.'
                     ])->withInput();
                 }
 
-                // cobro automático de la Consulta (se cobra sí o sí, de una vez)
-                if ($consultaTotal > 0) {
-                    Payment::create([
-                        'amount' => $consultaTotal,
-                        'payment_method' => $request->payment_method,
-                        'payment_status' => 'Consulta',
-                        'sale_id' => $sale->id,
-                    ]);
+                // Si el abono de hoy se hizo por QR, el monto realmente pagado debe coincidir.
+                if ($qrVerificado && round((float) ($qrVerificado['monto'] ?? 0), 2) != $abonoInicial) {
+                    DB::rollBack();
+                    return redirect()->back()->withErrors([
+                        'payment_method' => 'El monto pagado por QR no coincide con el abono ingresado.'
+                    ])->withInput();
                 }
 
-                // pago de la cuota inicial (si el paciente aportó algo por adelantado sobre lo financiable)
-                if ($initialAmount > 0) {
+                if ($abonoInicial > 0) {
                     Payment::create([
-                        'amount' => $initialAmount,
+                        'amount' => $abonoInicial,
                         'payment_method' => $request->payment_method,
-                        'payment_status' => 'Cuota Inicial',
+                        'payment_status' => 'Abono',
                         'sale_id' => $sale->id,
+                        'qr_movimiento_id' => $qrVerificado ? $request->qr_movimiento_id : null,
+                        'qr_remitente' => $qrVerificado['remitente'] ?? null,
                     ]);
-                }
-
-                // generar el plan de cuotas mensuales sobre el saldo restante (sin contar la Consulta)
-                // (el cálculo de montos vive en Installment::planAmounts() y
-                // tiene sus propios tests unitarios, ver tests/Unit)
-                $saldoFinanciado = round($totalFinanciable - $initialAmount, 2);
-
-                if ($saldoFinanciado > 0 && $installmentsCount > 0) {
-                    $montos = Installment::planAmounts($saldoFinanciado, $installmentsCount);
-
-                    foreach ($montos as $index => $monto) {
-                        $i = $index + 1;
-
-                        Installment::create([
-                            'number' => $i,
-                            'due_date' => Carbon::parse($sale->sale_date)->addMonthsNoOverflow($i),
-                            'amount' => $monto,
-                            'status' => 'Pendiente',
-                            'sale_id' => $sale->id,
-                        ]);
-                    }
                 }
             }
 
-            // actualizar total
-            $sale->update(['total' => $total]);
+            // actualizar total (ya con el descuento restado) y guardar el
+            // descuento aplicado para poder mostrarlo en el comprobante
+            $sale->update(['total' => $total, 'discount' => $discount]);
 
             DB::commit();
 
@@ -493,7 +596,7 @@ class SaleController extends Controller
     /**
      * Registrar el pago de una cuota de una venta a Credito.
      */
-    public function payInstallment(Request $request, Sale $sale, Installment $installment)
+    public function payInstallment(Request $request, Sale $sale, Installment $installment, VeriPagosService $veripagos)
     {
         abort_unless($installment->sale_id === $sale->id, 404);
 
@@ -507,9 +610,18 @@ class SaleController extends Controller
 
         $request->validate([
             'payment_method' => 'required|string',
+            'qr_movimiento_id' => 'nullable|string',
         ], [
             'payment_method.required' => 'Debe seleccionar el método de pago.',
         ]);
+
+        // "QR" es por ahora una opción más de método de pago, como Efectivo o
+        // Transferencia: no dispara ninguna verificación contra la API de
+        // VeriPagos. $qrVerificado se deja siempre en null a propósito, para
+        // que el resto del método siga funcionando sin cambios y sea fácil
+        // reactivar la verificación real más adelante si se resuelve la
+        // integración.
+        $qrVerificado = null;
 
         DB::beginTransaction();
         try {
@@ -519,6 +631,8 @@ class SaleController extends Controller
                 'payment_status' => 'Cuota',
                 'sale_id' => $sale->id,
                 'installment_id' => $installment->id,
+                'qr_movimiento_id' => $qrVerificado ? $request->qr_movimiento_id : null,
+                'qr_remitente' => $qrVerificado['remitente'] ?? null,
             ]);
 
             $installment->update([
@@ -542,6 +656,93 @@ class SaleController extends Controller
                 'error' => 'Ocurrió un error al registrar el pago: ' . $e->getMessage()
             ]);
         }
+    }
+
+    /**
+     * Registrar un abono libre (cualquier monto, cualquier fecha) de una
+     * venta a Credito. Reemplaza al viejo plan de cuotas fijas: no hay
+     * número de cuota ni fecha de vencimiento, solo se va descontando del
+     * saldo pendiente cada vez que el paciente deja algo a cuenta.
+     */
+    public function addAbono(Request $request, Sale $sale)
+    {
+        if (! $sale->isCredito()) {
+            return redirect()->back()->with('info', 'Esta venta no es a crédito, no se pueden registrar abonos.');
+        }
+
+        if ($sale->status == 0) {
+            return redirect()->back()->with('info', 'Esta venta está anulada, no se pueden registrar pagos.');
+        }
+
+        $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'payment_method' => 'required|string',
+            'qr_movimiento_id' => 'nullable|string',
+        ], [
+            'amount.required' => 'Debe ingresar el monto del abono.',
+            'amount.min' => 'El abono debe ser mayor a 0.',
+            'payment_method.required' => 'Debe seleccionar el método de pago.',
+        ]);
+
+        $monto = round((float) $request->amount, 2);
+        $saldoPendiente = (float) $sale->saldo_pendiente;
+
+        // Pequeño margen (1 centavo) para tolerar errores de redondeo, no para
+        // permitir de verdad un sobrepago.
+        if ($monto > $saldoPendiente + 0.01) {
+            return redirect()->back()->withErrors([
+                'amount' => 'El abono (Bs. ' . number_format($monto, 2) . ') no puede ser mayor al saldo pendiente (Bs. ' . number_format($saldoPendiente, 2) . ').',
+            ])->withInput();
+        }
+
+        // "QR" es por ahora una opción más de método de pago, como Efectivo o
+        // Transferencia: no dispara ninguna verificación contra la API de
+        // VeriPagos (ver la misma nota en store()).
+        $qrVerificado = null;
+
+        Payment::create([
+            'amount' => $monto,
+            'payment_method' => $request->payment_method,
+            'payment_status' => 'Abono',
+            'sale_id' => $sale->id,
+            'qr_movimiento_id' => $qrVerificado ? $request->qr_movimiento_id : null,
+            'qr_remitente' => $qrVerificado['remitente'] ?? null,
+        ]);
+
+        session()->flash('swal', [
+            'title' => 'Abono registrado',
+            'text' => 'Se registró el abono correctamente.',
+            'icon' => 'success',
+        ]);
+
+        return redirect()->route('admin.sales.show', $sale);
+    }
+
+    /**
+     * Comprobante imprimible de UN abono puntual, con espacio para que el
+     * doctor y el paciente firmen a mano al momento de imprimirlo (se saca
+     * por duplicado: una copia para cada uno).
+     */
+    public function printAbono(Sale $sale, Payment $payment)
+    {
+        abort_unless($payment->sale_id === $sale->id, 404);
+
+        $sale->load('patient.person', 'doctor.person');
+
+        // Saldo pendiente justo después de este abono (no el saldo actual de
+        // la venta, que puede tener abonos posteriores): total menos todo lo
+        // pagado hasta este pago inclusive.
+        $pagadoHastaEsteAbono = $sale->payments()
+            ->where('payment_status', '!=', 'Anulado')
+            ->where('created_at', '<=', $payment->created_at)
+            ->sum('amount');
+
+        $saldoEnEseMomento = round((float) $sale->total - (float) $pagadoHastaEsteAbono, 2);
+
+        $pdf = PDF::loadView('admin.sales.abono_print', compact('sale', 'payment', 'saldoEnEseMomento'))
+            ->setPaper([0, 0, 300, 600], 'portrait');
+
+        return $pdf->stream('abono_' . $sale->numero . '_' . $payment->id . '.pdf');
     }
 
     // Función para convertir números en palabras

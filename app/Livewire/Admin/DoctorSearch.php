@@ -30,10 +30,18 @@ class DoctorSearch extends Component
 
         $doctors = Doctor::where('status', 1)
             ->when($search !== '', function ($query) use ($search) {
-                $query->whereHas('person', function ($personQuery) use ($search) {
-                    $personQuery->where('name', 'LIKE', '%' . $search . '%')
-                        ->orWhere('last_name_father', 'LIKE', '%' . $search . '%')
-                        ->orWhere('last_name_mother', 'LIKE', '%' . $search . '%');
+                // Palabra por palabra, para que "Ana Luján" encuentre a alguien
+                // aunque "Ana" y "Luján" estén en columnas distintas.
+                $words = preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY);
+
+                $query->whereHas('person', function ($personQuery) use ($words) {
+                    foreach ($words as $word) {
+                        $personQuery->where(function ($q) use ($word) {
+                            $q->where('name', 'LIKE', '%' . $word . '%')
+                                ->orWhere('last_name_father', 'LIKE', '%' . $word . '%')
+                                ->orWhere('last_name_mother', 'LIKE', '%' . $word . '%');
+                        });
+                    }
                 });
             })
             ->with(['person', 'speciality'])

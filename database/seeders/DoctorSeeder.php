@@ -22,11 +22,15 @@ class DoctorSeeder extends Seeder
         $personIds = Person::pluck('id')->toArray();
         $specialityIds = Speciality::pluck('id')->toArray();
 
-        foreach (range(1, 5) as $i) {
+        // Un doctor = una persona (un solo id), y cada doctor debe ser una
+        // persona distinta (por eso se sortean 5 ids sin repetir, no un
+        // randomElement() que podría repetir la misma persona dos veces).
+        $doctorPersonIds = (array) $faker->randomElements($personIds, 5, false);
+
+        foreach ($doctorPersonIds as $personId) {
             Doctor::create([
                 'status' => true,
-                //'person_id' => $faker->randomElement($personIds), // un solo ID
-                'person_id' => $personIds, //cada paciente debe tener una persona asociada
+                'person_id' => $personId,
                 'speciality_id' => $faker->randomElement($specialityIds),
             ]);
         }

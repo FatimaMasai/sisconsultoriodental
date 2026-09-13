@@ -9,7 +9,7 @@
     </div>
 
     {{-- Resumen principal: un solo bloque, repartido a lo ancho (igual que el filtro de ventas) --}}
-    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6">
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-4 mb-6">
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center shrink-0">
@@ -75,7 +75,7 @@
         ];
     @endphp
 
-    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6">
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-4 mb-6">
         <div class="flex flex-wrap items-center justify-between gap-4">
             @foreach ($resumen as $item)
                 <div class="flex items-center gap-2">
@@ -92,7 +92,7 @@
     </div>
 
     {{-- Tendencia mensual --}}
-    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5 mb-6">
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-5 mb-6">
         <x-label class="text-black dark:text-white text-base font-semibold mb-4 block">
             Ventas (Contado / Crédito) y Compras &mdash; Últimos 12 Meses
         </x-label>
@@ -102,7 +102,7 @@
     </div>
 
     {{-- Distribución de la clínica --}}
-    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5 mb-6">
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-5 mb-6">
         <x-label class="text-black dark:text-white text-base font-semibold mb-4 block">
             Distribución de la Clínica
         </x-label>
@@ -113,9 +113,28 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        // Los gráficos de Chart.js no saben nada del modo oscuro del
+        // sistema: por defecto dibujan textos y líneas de grilla en negro,
+        // que sobre un fondo oscuro casi no se ven (esto era lo que se
+        // leía tan mal). Estas funciones eligen colores legibles según el
+        // tema actual, tanto al cargar la página como al tocar el botón
+        // de claro/oscuro del menú.
+        function isDarkMode() {
+            return document.documentElement.classList.contains('dark');
+        }
+        function chartTextColor() {
+            return isDarkMode() ? '#cbd5e1' : '#4b5563';
+        }
+        function chartGridColor() {
+            return isDarkMode() ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)';
+        }
+
+        Chart.defaults.color = chartTextColor();
+        Chart.defaults.borderColor = chartGridColor();
+
         // Tendencia mensual: ventas (Contado / Crédito) y compras.
         const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
-        new Chart(monthlyCtx, {
+        const monthlyChart = new Chart(monthlyCtx, {
             type: 'line',
             data: {
                 labels: {!! json_encode($months) !!},
@@ -150,17 +169,18 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'top' },
+                    legend: { position: 'top', labels: { color: chartTextColor() } },
                 },
                 scales: {
-                    y: { beginAtZero: true },
+                    x: { ticks: { color: chartTextColor() }, grid: { color: chartGridColor() } },
+                    y: { beginAtZero: true, ticks: { color: chartTextColor() }, grid: { color: chartGridColor() } },
                 },
             },
         });
 
         // Distribución de la clínica: solo cantidades (unidades comparables entre sí).
         const totalsCtx = document.getElementById('totalsChart').getContext('2d');
-        new Chart(totalsCtx, {
+        const totalsChart = new Chart(totalsCtx, {
             type: 'bar',
             data: {
                 labels: ['Pacientes', 'Doctores', 'Proveedores', 'Especialidades', 'Servicios', 'Productos'],
@@ -186,9 +206,29 @@
                     legend: { display: false },
                 },
                 scales: {
-                    y: { beginAtZero: true, ticks: { precision: 0 } },
+                    x: { ticks: { color: chartTextColor() }, grid: { color: chartGridColor() } },
+                    y: { beginAtZero: true, ticks: { color: chartTextColor(), precision: 0 }, grid: { color: chartGridColor() } },
                 },
             },
+        });
+
+        // Al tocar el botón de claro/oscuro (navigation.blade.php dispara
+        // este evento), repinta los gráficos con los colores del tema
+        // nuevo en vez de dejarlos con los del tema anterior.
+        window.addEventListener('theme-changed', function () {
+            const textColor = chartTextColor();
+            const gridColor = chartGridColor();
+
+            [monthlyChart, totalsChart].forEach(function (chart) {
+                if (chart.options.plugins.legend.labels) {
+                    chart.options.plugins.legend.labels.color = textColor;
+                }
+                chart.options.scales.x.ticks.color = textColor;
+                chart.options.scales.x.grid.color = gridColor;
+                chart.options.scales.y.ticks.color = textColor;
+                chart.options.scales.y.grid.color = gridColor;
+                chart.update();
+            });
         });
     </script>
 </x-admin-layout>

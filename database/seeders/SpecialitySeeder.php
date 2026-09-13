@@ -13,13 +13,14 @@ class SpecialitySeeder extends Seeder
      */
     public function run(): void
     {
+        // Las únicas especialidades que realmente se usan en la clínica.
+        // (Ortodoncia, Endodoncia, Odontopediatría, Estética Dental y
+        // Medicina Estética venían del seeder original/genérico y no se
+        // usan: se sacaron a pedido para no volver a crearlas de más.)
         $specialities = [
             'Odontología General',
-            'Ortodoncia',
-            'Endodoncia',
-            'Odontopediatría',
-            'Estética Dental', 
-
+            'Medicina Ortomolecular',
+            'Nutrición',
         ];
         foreach ($specialities as $speciality) 
         {

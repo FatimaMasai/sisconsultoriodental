@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
-use Faker\Factory as Faker;
 class UserSeeder extends Seeder
 {
     /**
@@ -26,22 +25,14 @@ class UserSeeder extends Seeder
 
     public function run(): void
     {
-        // Usuario admin fijo
+        // Único usuario que deja este seeder: el admin. No se crean
+        // usuarios de relleno (antes se generaban 3 usuarios aleatorios
+        // con Faker) para que una base recién instalada quede lista para
+        // cargar datos reales, no de prueba.
         User::create([
-            'name' => 'Fátima Chamo Masai',
-            'email' => 'fatima@gmail.com',
+            'name' => 'admin',
+            'email' => 'admin@gmail.com',
             'password' => bcrypt('password'),
         ])->assignRole('Admin');
-
-        // Crear 99 usuarios aleatorios en español
-        $faker = Faker::create('es_ES');
-
-        foreach (range(1, 3) as $i) {
-            User::create([
-                'name' => $faker->name,
-                'email' => $faker->unique()->safeEmail,
-                'password' => bcrypt('password'),
-            ]);
-        }
     }
 }

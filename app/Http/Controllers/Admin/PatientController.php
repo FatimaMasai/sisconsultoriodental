@@ -55,20 +55,15 @@ class PatientController extends Controller
         $rules = [
             'person_mode' => 'required|in:new,existing',
 
-            'allergy' => 'required',
-            'observation' => 'required',
-            'recommended_by' => 'required',
-            'responsible_person' => 'required',
-            'medical_history' => 'required', //antecedentes
+            'allergy' => 'nullable',
+            'observation' => 'nullable',
+            'recommended_by' => 'nullable',
+            'responsible_person' => 'nullable',
+            'medical_history' => 'nullable', //antecedentes
         ];
 
         $messages = [
             'person_mode.required' => 'Debe indicar si la persona es nueva o ya existe.',
-            'allergy.required' => 'El campo alergia es obligatorio.',
-            'observation.required' => 'El campo observación es obligatorio.',
-            'recommended_by.required' => 'El campo recomendado por es obligatorio.',
-            'responsible_person.required' => 'El campo persona responsable es obligatorio.',
-            'medical_history.required' => 'El campo antecedentes es obligatorio.',
         ];
 
         if ($personMode === 'existing') {
@@ -82,6 +77,7 @@ class PatientController extends Controller
                 'identity_card' => 'required|numeric|unique:people,identity_card',
                 'birth_date' => 'required|date_format:Y-m-d',
                 'gender' => 'required',
+                'civil_status' => 'nullable|in:' . implode(',', Person::CIVIL_STATUSES),
                 'phone' => 'required|numeric',
                 'email' => 'required|email',
                 'address' => 'required',
@@ -118,6 +114,7 @@ class PatientController extends Controller
                     'identity_card' => $request->identity_card,
                     'birth_date' => $request->birth_date,
                     'gender' => $request->gender,
+                    'civil_status' => $request->civil_status ?: null,
                     'phone' => $request->phone,
                     'email' => $request->email,
                     'address' => $request->address,
@@ -127,11 +124,11 @@ class PatientController extends Controller
             }
 
             Patient::create([
-                'allergy' => ucfirst(strtolower($request->allergy)),
-                'observation' => ucfirst(strtolower($request->observation)),
-                'recommended_by' => ucfirst(strtolower($request->recommended_by)),
-                'responsible_person' => ucfirst(strtolower($request->responsible_person)),
-                'medical_history' => ucfirst(strtolower($request->medical_history)), //antecedentes
+                'allergy' => $request->filled('allergy') ? ucfirst(strtolower($request->allergy)) : null,
+                'observation' => $request->filled('observation') ? ucfirst(strtolower($request->observation)) : null,
+                'recommended_by' => $request->filled('recommended_by') ? ucfirst(strtolower($request->recommended_by)) : null,
+                'responsible_person' => $request->filled('responsible_person') ? ucfirst(strtolower($request->responsible_person)) : null,
+                'medical_history' => $request->filled('medical_history') ? ucfirst(strtolower($request->medical_history)) : null, //antecedentes
                 'status' => 1, // "Alta"
                 'person_id' => $personId,
             ]);
@@ -187,15 +184,16 @@ class PatientController extends Controller
             'identity_card' => 'required|numeric|unique:people,identity_card,' . $patient->person_id,
             'birth_date' => 'required|date_format:Y-m-d',
             'gender' => 'required',
+            'civil_status' => 'nullable|in:' . implode(',', Person::CIVIL_STATUSES),
             'phone' => 'required|numeric',
             'email' => 'required|email',
             'address' => 'required',
 
-            'allergy' => 'required',
-            'observation' => 'required',
-            'recommended_by' => 'required',
-            'responsible_person' => 'required',
-            'medical_history' => 'required', //antecedentes
+            'allergy' => 'nullable',
+            'observation' => 'nullable',
+            'recommended_by' => 'nullable',
+            'responsible_person' => 'nullable',
+            'medical_history' => 'nullable', //antecedentes
             'status' => 'required|in:0,1',
         ], [
             'name.required' => 'El nombre es obligatorio.',
@@ -212,11 +210,6 @@ class PatientController extends Controller
             'email.email' => 'Ingrese un email válido.',
             'address.required' => 'La dirección es obligatoria.',
 
-            'allergy.required' => 'El campo alergia es obligatorio.',
-            'observation.required' => 'El campo observación es obligatorio.',
-            'recommended_by.required' => 'El campo recomendado por es obligatorio.',
-            'responsible_person.required' => 'El campo persona responsable es obligatorio.',
-            'medical_history.required' => 'El campo antecedentes es obligatorio.',
             'status.required' => 'Debe seleccionar el estado.',
         ]);
 
@@ -229,17 +222,18 @@ class PatientController extends Controller
                 'identity_card' => $request->identity_card,
                 'birth_date' => $request->birth_date,
                 'gender' => $request->gender,
+                'civil_status' => $request->civil_status ?: null,
                 'phone' => $request->phone,
                 'email' => $request->email,
                 'address' => $request->address,
             ]);
 
             $patient->update([
-                'allergy' => ucfirst(strtolower($request->allergy)),
-                'observation' => ucfirst(strtolower($request->observation)),
-                'recommended_by' => ucfirst(strtolower($request->recommended_by)),
-                'responsible_person' => ucfirst(strtolower($request->responsible_person)),
-                'medical_history' => ucfirst(strtolower($request->medical_history)),
+                'allergy' => $request->filled('allergy') ? ucfirst(strtolower($request->allergy)) : null,
+                'observation' => $request->filled('observation') ? ucfirst(strtolower($request->observation)) : null,
+                'recommended_by' => $request->filled('recommended_by') ? ucfirst(strtolower($request->recommended_by)) : null,
+                'responsible_person' => $request->filled('responsible_person') ? ucfirst(strtolower($request->responsible_person)) : null,
+                'medical_history' => $request->filled('medical_history') ? ucfirst(strtolower($request->medical_history)) : null,
                 'status' => $request->status, // El valor de status se actualiza con el select
             ]);
 

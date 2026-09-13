@@ -2,7 +2,7 @@
     <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between mb-6">
         <x-label class="text-black text-lg sm:text-xl font-semibold">
             <i class="fa-solid fa-money-check-dollar text-gray-400 mr-1"></i>
-            Cuotas Pagadas
+            Historial de Abonos
         </x-label>
         <div class="flex flex-wrap items-center gap-2">
             @can('admin.sales.index')
@@ -19,13 +19,13 @@
     {{-- Tarjetas resumen del reporte --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
-            <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Total cobrado en cuotas</p>
+            <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Total cobrado en abonos</p>
             <p class="text-xl font-bold text-green-600">Bs. {{ number_format($totalCobrado, 0, '', '.') }}</p>
         </div>
 
         <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
-            <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Cuotas pagadas</p>
-            <p class="text-xl font-bold text-gray-900 dark:text-white">{{ $totalCuotas }}</p>
+            <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Abonos registrados</p>
+            <p class="text-xl font-bold text-gray-900 dark:text-white">{{ $totalAbonos }}</p>
         </div>
     </div>
 
@@ -33,7 +33,7 @@
     <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6">
         <div class="flex items-center gap-2 mb-4">
             <i class="fa-solid fa-filter text-gray-400"></i>
-            <x-label class="text-black dark:text-white text-base font-semibold">Filtrar Cuotas Pagadas</x-label>
+            <x-label class="text-black dark:text-white text-base font-semibold">Filtrar Historial de Abonos</x-label>
         </div>
 
         <form method="GET" action="{{ route('admin.installments.paid') }}">
@@ -78,24 +78,24 @@
 
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-3">
                 @if ($hasFilters)
-                    {{ $installments->total() }} resultado(s) con estos filtros
+                    {{ $abonos->total() }} resultado(s) con estos filtros
                 @else
-                    {{ $installments->total() }} cuota(s) pagada(s) en total
+                    {{ $abonos->total() }} abono(s) registrado(s) en total
                 @endif
             </p>
         </form>
     </div>
 
-    @if ($installments->count())
+    @if ($abonos->count())
 
         <div class="relative overflow-x-auto">
-            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+            <table class="table-stack w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
                         <th scope="col" class="px-3 py-2">Comprobante</th>
                         <th scope="col" class="px-3 py-2">Paciente</th>
                         <th scope="col" class="px-3 py-2">Doctor</th>
-                        <th scope="col" class="px-3 py-2">Cuota</th>
+                        <th scope="col" class="px-3 py-2">Concepto</th>
                         <th scope="col" class="px-3 py-2">Monto</th>
                         <th scope="col" class="px-3 py-2">Método</th>
                         <th scope="col" class="px-3 py-2">Fecha de pago</th>
@@ -103,39 +103,41 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($installments as $installment)
+                    @foreach ($abonos as $payment)
                         @php
-                            $sale = $installment->sale;
+                            $sale = $payment->sale;
                             $pacientePersona = $sale->patient->person;
                             $nombrePaciente = trim($pacientePersona->name . ' ' . $pacientePersona->last_name_father . ' ' . $pacientePersona->last_name_mother);
-                            $metodoPago = optional($installment->payments->first())->payment_method ?? '—';
+                            $concepto = $payment->payment_status === 'Cuota Inicial'
+                                ? 'Cuota inicial'
+                                : ($payment->installment ? 'Cuota #' . $payment->installment->number : $payment->payment_status);
 
                             $waReceiptPayload = [
                                 'telefono' => $pacientePersona->whatsapp_phone,
-                                'monto' => 'Bs. ' . number_format($installment->amount, 0, '', '.'),
-                                'concepto' => 'Cuota #' . $installment->number,
+                                'monto' => 'Bs. ' . number_format($payment->amount, 0, '', '.'),
+                                'concepto' => $concepto,
                                 'paciente' => $nombrePaciente,
                                 'comprobante' => $sale->numero,
-                                'metodo' => $metodoPago,
-                                'fecha' => $installment->paid_at->format('d/m/Y H:i'),
+                                'metodo' => $payment->payment_method,
+                                'fecha' => $payment->created_at->format('d/m/Y H:i'),
                                 'saldo' => 'Bs. ' . number_format($sale->saldo_pendiente, 0, '', '.'),
                                 'mensaje' => "Hola {$nombrePaciente}, aquí está el comprobante de tu pago en Mi Consulta.",
                             ];
                         @endphp
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/40">
-                            <td class="px-3 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            <td data-label="Comprobante" class="px-3 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                 <a href="{{ route('admin.sales.show', $sale) }}" class="text-blue-600 hover:underline">
                                     {{ $sale->numero }}
                                 </a>
                             </td>
-                            <td class="px-3 py-2">{{ $nombrePaciente }}</td>
-                            <td class="px-3 py-2">
+                            <td data-label="Paciente" class="px-3 py-2">{{ $nombrePaciente }}</td>
+                            <td data-label="Doctor" class="px-3 py-2">
                                 {{ $sale->doctor->person->name }} {{ $sale->doctor->person->last_name_father }}
                             </td>
-                            <td class="px-3 py-2">#{{ $installment->number }}</td>
-                            <td class="px-3 py-2">Bs. {{ number_format($installment->amount, 0, '', '.') }}</td>
-                            <td class="px-3 py-2">{{ $metodoPago }}</td>
-                            <td class="px-3 py-2">{{ $installment->paid_at->format('d/m/Y H:i') }}</td>
+                            <td data-label="Concepto" class="px-3 py-2">{{ $concepto }}</td>
+                            <td data-label="Monto" class="px-3 py-2">Bs. {{ number_format($payment->amount, 0, '', '.') }}</td>
+                            <td data-label="Método" class="px-3 py-2">{{ $payment->payment_method }}</td>
+                            <td data-label="Fecha de pago" class="px-3 py-2">{{ $payment->created_at->format('d/m/Y H:i') }}</td>
                             <td class="px-3 py-2">
                                 <div class="flex items-center gap-2">
                                     @if ($pacientePersona->whatsapp_phone)
@@ -160,7 +162,7 @@
             </table>
 
             <div class="mt-4">
-                {{ $installments->links() }}
+                {{ $abonos->links() }}
             </div>
         </div>
 
@@ -174,9 +176,9 @@
             <div>
                 <span class="font-medium">Info alert!</span>
                 @if ($hasFilters)
-                    No se encontraron cuotas pagadas con esos filtros.
+                    No se encontraron abonos con esos filtros.
                 @else
-                    Todavía no se registró ninguna cuota pagada.
+                    Todavía no se registró ningún abono.
                 @endif
             </div>
         </div>

@@ -27,22 +27,40 @@ class HistorySearch extends Component
     {
         $search = trim($this->search);
 
+        // Si quien busca es un doctor con cuenta vinculada, por defecto solo
+        // ve historiales de su propia especialidad (más las que se le hayan
+        // autorizado explícitamente). Admin, Recepción, etc. ven todo.
+        $doctor = auth()->user()?->doctor;
+
         $histories = History::with('patient.person', 'doctor.person', 'service')
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->whereHas('patient.person', function ($personQuery) use ($search) {
-                        $personQuery->where('name', 'LIKE', '%' . $search . '%')
-                            ->orWhere('last_name_father', 'LIKE', '%' . $search . '%')
-                            ->orWhere('last_name_mother', 'LIKE', '%' . $search . '%');
-                    })
-                    ->orWhereHas('doctor.person', function ($personQuery) use ($search) {
-                        $personQuery->where('name', 'LIKE', '%' . $search . '%')
-                            ->orWhere('last_name_father', 'LIKE', '%' . $search . '%');
-                    })
-                    ->orWhereHas('service', function ($serviceQuery) use ($search) {
-                        $serviceQuery->where('name', 'LIKE', '%' . $search . '%');
-                    });
+            ->when($doctor, function ($query) use ($doctor) {
+                $specialityIds = array_merge([$doctor->speciality_id], $doctor->grantedSpecialityIds());
+
+                $query->whereHas('doctor', function ($doctorQuery) use ($specialityIds) {
+                    $doctorQuery->whereIn('speciality_id', $specialityIds);
                 });
+            })
+            ->when($search !== '', function ($query) use ($search) {
+                // Palabra por palabra, para que "Ana Luján" encuentre al paciente
+                // aunque "Ana" y "Luján" estén en columnas distintas.
+                $words = preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY);
+
+                foreach ($words as $word) {
+                    $query->where(function ($q) use ($word) {
+                        $q->whereHas('patient.person', function ($personQuery) use ($word) {
+                            $personQuery->where('name', 'LIKE', '%' . $word . '%')
+                                ->orWhere('last_name_father', 'LIKE', '%' . $word . '%')
+                                ->orWhere('last_name_mother', 'LIKE', '%' . $word . '%');
+                        })
+                        ->orWhereHas('doctor.person', function ($personQuery) use ($word) {
+                            $personQuery->where('name', 'LIKE', '%' . $word . '%')
+                                ->orWhere('last_name_father', 'LIKE', '%' . $word . '%');
+                        })
+                        ->orWhereHas('service', function ($serviceQuery) use ($word) {
+                            $serviceQuery->where('name', 'LIKE', '%' . $word . '%');
+                        });
+                    });
+                }
             })
             ->orderBy('id', 'desc')
             ->paginate(50);

@@ -74,11 +74,11 @@
     <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-6">
         <div class="bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-lg shadow-md text-white">
             <p class="text-sm opacity-90">Ventas Totales</p>
-            <p class="text-2xl font-bold">{{ number_format($totalSales, 0, '', '.') }} Bs.</p>
+            <p class="text-2xl font-bold">{{ number_format($totalSales, 2) }} Bs.</p>
         </div>
         <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 p-6 rounded-lg shadow-md text-white">
             <p class="text-sm opacity-90">Compras Totales</p>
-            <p class="text-2xl font-bold">{{ number_format($totalPurchases, 0, '', '.') }} Bs.</p>
+            <p class="text-2xl font-bold">{{ number_format($totalPurchases, 2) }} Bs.</p>
         </div>
         <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-lg shadow-md text-white">
             <p class="text-sm opacity-90">Pacientes</p>
@@ -132,7 +132,7 @@
                 <p class="text-sm text-blue-100">Principales proveedores de la clínica</p>
             </div>
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
+                <table class="table-stack min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proveedor</th>
@@ -143,9 +143,9 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         @forelse($topSuppliers as $supplier)
                         <tr class="hover:bg-gray-50">
-                            <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{{ $supplier['name'] }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $supplier['total_orders'] }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-green-600">{{ number_format($supplier['total_purchases'], 0, '', '.') }} Bs.</td>
+                            <td data-label="Proveedor" class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{{ $supplier['name'] }}</td>
+                            <td data-label="Órdenes" class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $supplier['total_orders'] }}</td>
+                            <td data-label="Total" class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-green-600">{{ number_format($supplier['total_purchases'], 2) }} Bs.</td>
                         </tr>
                         @empty
                         <tr>
@@ -164,7 +164,7 @@
                 <p class="text-sm text-purple-100">Pacientes que más asisten a la clínica</p>
             </div>
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
+                <table class="table-stack min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paciente</th>
@@ -174,8 +174,8 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         @forelse($topPatients as $patient)
                         <tr class="hover:bg-gray-50">
-                            <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{{ $patient['name'] }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap">
+                            <td data-label="Paciente" class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{{ $patient['name'] }}</td>
+                            <td data-label="Visitas" class="px-4 py-3 whitespace-nowrap">
                                 <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-purple-100 text-purple-800">
                                     {{ $patient['visits'] }} {{ $patient['visits'] === 1 ? 'visita' : 'visitas' }}
                                 </span>

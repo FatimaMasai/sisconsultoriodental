@@ -5,7 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 class Person extends Model
-{ 
+{
+    // Opciones fijas para el campo Estado Civil (select en el formulario de
+    // paciente). Se centralizan acá para no repetirlas entre la validación
+    // del controlador y las vistas de crear/editar paciente.
+    public const CIVIL_STATUSES = ['Soltero(a)', 'Casado(a)', 'Divorciado(a)', 'Viudo(a)', 'Unión libre'];
+
     protected $fillable = [
         'name',
         'last_name_father',
@@ -13,6 +18,7 @@ class Person extends Model
         'identity_card',
         'birth_date',
         'gender',
+        'civil_status',
         'phone',
         'email',
         'address',

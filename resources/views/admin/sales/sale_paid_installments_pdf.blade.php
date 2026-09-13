@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cuotas Pagadas - {{ $sale->numero }}</title>
+    <title>Historial de Abonos - {{ $sale->numero }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -51,13 +51,15 @@
 </head>
 <body>
 
-    @if (function_exists('imagecreatefrompng') && file_exists(public_path('images/logo.png')))
+    @php $logoDataUri = \App\Models\ClinicSetting::instance()->logoBase64(); @endphp
+    @if ($logoDataUri)
         <div style="text-align: center; margin-bottom: 10px;">
-            <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/logo.png'))) }}" alt="Mi Consulta" style="height: 42px;">
+            <img src="{{ $logoDataUri }}" alt="Mi Consulta" style="height: 42px;">
         </div>
     @endif
 
-    <h1>Comprobante de Cuotas Pagadas</h1>
+    <h1>Comprobante de Historial de Abonos</h1>
+    @include('admin.settings.partials.pdf-contact-line')
     <p class="subtitulo">Venta {{ $sale->numero }} &middot; Generado el {{ now()->format('d/m/Y H:i') }}</p>
 
     <div class="info-box">
