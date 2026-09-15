@@ -7,45 +7,91 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            font-size: 12px;
+            font-size: 13px;
             margin: 0;
             padding: 0;
+            color: #333;
+        }
+
+        .logo-band {
+            background-color: #000;
+            padding: 10px 0;
+            margin: 0 0 18px 0;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .logo-band .logo-badge {
+            display: inline-block;
+            background-color: #000;
+            border: 2px solid #2dd4bf;
+            border-radius: 6px;
+            padding: 6px 14px;
+        }
+
+        .logo-band img {
+            height: 42px;
+            display: block;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .header img {
-            height: 46px;
-            margin-bottom: 8px;
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 2px solid #14b8a6;
         }
 
         .header h1 {
-            font-size: 18px;
+            font-size: 19px;
             margin: 0;
+            color: #222;
+            letter-spacing: 0.5px;
         }
 
         .header p {
-            font-size: 13px;
-            margin: 5px 0;
-            color: #555;
+            font-size: 12px;
+            margin: 4px 0 0 0;
+            color: #14b8a6;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .details p {
-            margin: 0;
-            padding: 0;
-            line-height: 1.6;
+        .details {
+            background-color: #f8fafa;
+            border: 1px solid #e2e8e8;
+            border-radius: 6px;
+            padding: 10px 14px;
+            margin-bottom: 18px;
+        }
+
+        .details table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .details td {
+            padding: 3px 0;
+            font-size: 12.5px;
+            line-height: 1.5;
+        }
+
+        .details td.label {
+            width: 110px;
+            color: #667;
+            font-weight: bold;
         }
 
         .section-title {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: bold;
-            background-color: #f0f0f0;
-            padding: 5px 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            background-color: #f0f4f3;
+            color: #333;
+            padding: 6px 8px;
             margin-top: 18px;
             margin-bottom: 8px;
+            border-radius: 4px;
         }
 
         table.campos {
@@ -54,7 +100,7 @@
         }
 
         table.campos td {
-            padding: 4px 6px;
+            padding: 5px 6px;
             vertical-align: top;
             font-size: 12px;
             border-bottom: 1px solid #eee;
@@ -72,20 +118,22 @@
         }
 
         table.repetible th, table.repetible td {
-            border: 1px solid #ddd;
-            padding: 3px 6px;
+            border: 1px solid #dcdfe0;
+            padding: 4px 6px;
             font-size: 11px;
             text-align: left;
         }
 
         table.repetible th {
-            background-color: #fafafa;
+            background-color: #f0f4f3;
+            text-transform: uppercase;
+            font-size: 10px;
         }
 
         .note {
-            background-color: #f9f9f9;
-            border-left: 5px solid #4A90E2;
-            padding: 8px;
+            background-color: #f8fafa;
+            border-left: 4px solid #14b8a6;
+            padding: 8px 10px;
             margin-bottom: 10px;
             border-radius: 5px;
         }
@@ -93,42 +141,66 @@
         .note .note-date {
             font-size: 11px;
             color: #888;
-            margin-bottom: 3px;
+            margin: 0 0 3px 0;
+            font-weight: bold;
+        }
+
+        .note p {
+            margin: 0;
         }
 
         .footer {
             margin-top: 30px;
             text-align: center;
-            font-size: 11px;
-            color: #888;
+            font-size: 10.5px;
+            color: #999;
+            border-top: 1px solid #eee;
+            padding-top: 8px;
         }
     </style>
 </head>
 <body>
 
+    @php $logoDataUri = \App\Models\ClinicSetting::instance()->logoBase64(); @endphp
+    @if ($logoDataUri)
+        <div class="logo-band">
+            <span class="logo-badge">
+                <img src="{{ $logoDataUri }}" alt="Logo">
+            </span>
+        </div>
+    @endif
+
     <div class="header">
-        @php $logoDataUri = \App\Models\ClinicSetting::instance()->logoBase64(); @endphp
-        @if ($logoDataUri)
-            <img src="{{ $logoDataUri }}" alt="Logo">
-        @endif
         <h1>Consulta — {{ $consulta->expediente->speciality->name ?? 'Especialidad' }}</h1>
         <p>{{ $consulta->formTemplate->name ?? 'Historial clínico' }}</p>
         @include('admin.settings.partials.pdf-contact-line')
     </div>
 
     <div class="details">
-        <p><strong>Paciente:</strong>
-            {{ $consulta->expediente->patient->person->name }}
-            {{ $consulta->expediente->patient->person->last_name_father }}
-            {{ $consulta->expediente->patient->person->last_name_mother }}
-        </p>
-        <p><strong>Atendido por:</strong>
-            {{ $consulta->doctor->person->name ?? '—' }} {{ $consulta->doctor->person->last_name_father ?? '' }}
-        </p>
-        <p><strong>Fecha:</strong> {{ \Carbon\Carbon::parse($consulta->date)->format('d/m/Y') }}</p>
-        @if ($consulta->description)
-            <p><strong>Descripción:</strong> {{ $consulta->description }}</p>
-        @endif
+        <table>
+            <tr>
+                <td class="label">Paciente:</td>
+                <td>
+                    {{ $consulta->expediente->patient->person->name }}
+                    {{ $consulta->expediente->patient->person->last_name_father }}
+                    {{ $consulta->expediente->patient->person->last_name_mother }}
+                </td>
+            </tr>
+            <tr>
+                <td class="label">Atendido por:</td>
+                <td>{{ $consulta->doctor->person->name ?? '—' }} {{ $consulta->doctor->person->last_name_father ?? '' }}</td>
+            </tr>
+            <tr>
+                <td class="label">Fecha:</td>
+                <td>{{ \Carbon\Carbon::parse($consulta->date)->format('d/m/Y') }}</td>
+            </tr>
+            @if ($consulta->description)
+                <tr>
+                    <td class="label">Descripción:</td>
+                    <td>{{ $consulta->description }}</td>
+                </tr>
+            @endif
+        </table>
     </div>
 
     @if ($consulta->formTemplate && ! empty($consulta->data))
@@ -150,10 +222,20 @@
                             <td class="etiqueta">{{ $field->label }}</td>
                             <td>
                                 @if ($field->type === 'tabla_repetible')
+                                    @php
+                                        // Cada columna puede ser un texto simple (tablas viejas) o
+                                        // un array ['label' => ..., 'type' => ...] (formato nuevo).
+                                        // Acá solo interesa la etiqueta para el encabezado, pero hay
+                                        // que normalizar igual o revienta con "Array to string
+                                        // conversion" en las tablas nuevas.
+                                        $columnasTabla = collect($field->options ?? [])->map(function ($col) {
+                                            return is_array($col) ? ($col['label'] ?? '') : $col;
+                                        });
+                                    @endphp
                                     <table class="repetible">
                                         <thead>
                                             <tr>
-                                                @foreach ($field->options ?? [] as $columna)
+                                                @foreach ($columnasTabla as $columna)
                                                     <th>{{ $columna }}</th>
                                                 @endforeach
                                             </tr>
@@ -161,7 +243,7 @@
                                         <tbody>
                                             @foreach ($valor as $fila)
                                                 <tr>
-                                                    @foreach ($field->options ?? [] as $colIndex => $columna)
+                                                    @foreach ($columnasTabla as $colIndex => $columna)
                                                         <td>{{ $fila[$colIndex] ?? '' }}</td>
                                                     @endforeach
                                                 </tr>

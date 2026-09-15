@@ -278,11 +278,22 @@
                                                     <dt class="text-xs text-gray-500 dark:text-gray-400">{{ $field->label }}</dt>
                                                     <dd class="text-sm text-gray-800 dark:text-white">
                                                         @if ($field->type === 'tabla_repetible')
+                                                            @php
+                                                                // Cada columna puede ser un texto simple (tablas viejas)
+                                                                // o un array ['label' => ..., 'type' => ...] (formato
+                                                                // nuevo, con tipo de input por columna). Acá solo
+                                                                // interesa la etiqueta para el encabezado, pero hay que
+                                                                // normalizar igual o revienta con "Array to string
+                                                                // conversion" en las tablas nuevas.
+                                                                $columnasTabla = collect($field->options ?? [])->map(function ($col) {
+                                                                    return is_array($col) ? ($col['label'] ?? '') : $col;
+                                                                });
+                                                            @endphp
                                                             <div class="overflow-x-auto">
                                                                 <table class="text-xs w-full">
                                                                     <thead>
                                                                         <tr>
-                                                                            @foreach ($field->options ?? [] as $columna)
+                                                                            @foreach ($columnasTabla as $columna)
                                                                                 <th class="text-left pr-2">{{ $columna }}</th>
                                                                             @endforeach
                                                                         </tr>
@@ -290,7 +301,7 @@
                                                                     <tbody>
                                                                         @foreach ($valor as $fila)
                                                                             <tr>
-                                                                                @foreach ($field->options ?? [] as $colIndex => $columna)
+                                                                                @foreach ($columnasTabla as $colIndex => $columna)
                                                                                     <td class="pr-2">{{ $fila[$colIndex] ?? '' }}</td>
                                                                                 @endforeach
                                                                             </tr>

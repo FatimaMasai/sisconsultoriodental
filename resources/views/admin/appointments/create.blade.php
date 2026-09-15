@@ -23,7 +23,7 @@
             <div class="grid gap-4 md:grid-cols-2">
                 <div>
                     <x-label class="form-label">Paciente</x-label>
-                    <x-select name="patient_id" class="rounded-lg w-full" required>
+                    <x-select name="patient_id" class="input-label rounded-lg w-full" required>
                         <option value="">Seleccione un paciente</option>
                         @foreach ($patients as $patient)
                             <option value="{{ $patient->id }}" @selected(old('patient_id') == $patient->id)>
@@ -35,7 +35,7 @@
 
                 <div>
                     <x-label class="form-label">Doctor</x-label>
-                    <x-select name="doctor_id" class="rounded-lg w-full" required>
+                    <x-select name="doctor_id" class="input-label rounded-lg w-full" required>
                         <option value="">Seleccione un doctor</option>
                         @foreach ($doctors as $doctor)
                             <option value="{{ $doctor->id }}" @selected(old('doctor_id') == $doctor->id)>
@@ -47,7 +47,7 @@
 
                 <div>
                     <x-label class="form-label">Servicio (opcional)</x-label>
-                    <x-select name="service_id" class="rounded-lg w-full">
+                    <x-select name="service_id" class="input-label rounded-lg w-full">
                         <option value="">Sin especificar</option>
                         @foreach ($services as $service)
                             <option value="{{ $service->id }}" @selected(old('service_id') == $service->id)>
@@ -73,7 +73,7 @@
 
                 <div>
                     <x-label class="form-label">Duración</x-label>
-                    <x-select name="duration_minutes" class="rounded-lg w-full">
+                    <x-select name="duration_minutes" class="input-label rounded-lg w-full">
                         <option value="15" @selected(old('duration_minutes') == 15)>15 minutos</option>
                         <option value="30" @selected(old('duration_minutes', 30) == 30)>30 minutos</option>
                         <option value="45" @selected(old('duration_minutes') == 45)>45 minutos</option>

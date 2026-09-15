@@ -12,18 +12,18 @@
             <x-label class="mb-2">
                 Nombre
             </x-label>
-            <x-input name="name" value="{{ old('name') }}" class="w-full mb-4" placeholder="Ingrese nombre del"></x-input>
+            <x-input name="name" value="{{ old('name') }}" class="input-label rounded-lg w-full mb-4" placeholder="Ingrese nombre del"></x-input>
 
             <x-label class="mb-2">
                 Correo
             </x-label>
-            <x-input name="email" value="{{ old('email') }}" class="w-full mb-4" placeholder="Ingrese correo"></x-input>
+            <x-input name="email" value="{{ old('email') }}" class="input-label rounded-lg w-full mb-4" placeholder="Ingrese correo"></x-input>
 
             <x-label class="mb-2">
                 Contraseña
             </x-label>
             <div class="relative mb-4">
-                <x-input name="password" type="password" class="w-full" placeholder="Ingrese contraseña" id="password-field">
+                <x-input name="password" type="password" class="input-label rounded-lg w-full" placeholder="Ingrese contraseña" id="password-field">
                 </x-input>
                 <!-- Botón para alternar visibilidad de la contraseña -->
                 <button type="button" id="toggle-password-1" class="absolute top-1/2 right-3 transform -translate-y-1/2">
@@ -35,7 +35,7 @@
                 Confirmar Contraseña
             </x-label>
             <div class="relative mb-4">
-                <x-input name="password_confirmation" type="password" class="w-full" placeholder="Confirmar contraseña" id="password-confirmation-field">
+                <x-input name="password_confirmation" type="password" class="input-label rounded-lg w-full" placeholder="Confirmar contraseña" id="password-confirmation-field">
                 </x-input>
                 <!-- Botón para alternar visibilidad de la confirmación de la contraseña -->
                 <button type="button" id="toggle-password-2" class="absolute top-1/2 right-3 transform -translate-y-1/2">

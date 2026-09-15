@@ -12,7 +12,7 @@
             <x-label class="mb-2">
                 Categoria de Producto
             </x-label>
-            <x-select name="product_category_id" class="w-full mb-5">
+            <x-select name="product_category_id" class="input-label rounded-lg w-full mb-5">
                 @foreach ($productCategories as $productCategorie)
                     <option value="{{$productCategorie->id}}"
                         @selected(old('product_category_id') == $productCategorie->id)>
@@ -27,7 +27,7 @@
                 Producto
             </x-label>
 
-            <x-input name="name" value="{{old('name')}}" class="w-full mb-5" placeholder="Ingrese nombre de la categoria">
+            <x-input name="name" value="{{old('name')}}" class="input-label rounded-lg w-full mb-5" placeholder="Ingrese nombre de la categoria">
 
             </x-input>
 
@@ -35,7 +35,7 @@
                 Precio
             </x-label>
 
-            <x-input name="price" value="{{old('price')}}" class="w-full mb-5" placeholder="Ingrese un precio">
+            <x-input name="price" value="{{old('price')}}" class="input-label rounded-lg w-full mb-5" placeholder="Ingrese un precio">
 
             </x-input>
 

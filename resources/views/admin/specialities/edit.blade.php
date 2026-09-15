@@ -14,7 +14,7 @@
                 Nombre
             </x-label>
 
-            <x-input name="name" value="{{old('name', $speciality->name)}}" class="w-full" placeholder="Ingrese nombre de la especialidad">
+            <x-input name="name" value="{{old('name', $speciality->name)}}" class="input-label rounded-lg w-full" placeholder="Ingrese nombre de la especialidad">
 
             </x-input>
         </div>

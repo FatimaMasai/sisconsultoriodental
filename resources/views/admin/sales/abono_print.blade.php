@@ -7,45 +7,104 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            font-size: 12px;
+            font-size: 13px;
             margin: 0;
             padding: 0;
+            color: #333;
+        }
+
+        .logo-band {
+            background-color: #000;
+            padding: 10px 0;
+            margin: 0 0 18px 0;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .logo-band .logo-badge {
+            display: inline-block;
+            background-color: #000;
+            border: 2px solid #2dd4bf;
+            border-radius: 6px;
+            padding: 6px 14px;
+        }
+
+        .logo-band img {
+            height: 36px;
+            display: block;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 2px solid #14b8a6;
         }
 
         .header h1 {
-            font-size: 16px;
+            font-size: 17px;
             margin: 0;
+            color: #222;
+            letter-spacing: 0.5px;
         }
 
         .header p {
             font-size: 12px;
-            margin: 4px 0;
+            margin: 4px 0 0 0;
+            color: #14b8a6;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .details p {
-            font-size: 12px;
-            margin: 0;
-            padding: 2px 0;
+        .details {
+            background-color: #f8fafa;
+            border: 1px solid #e2e8e8;
+            border-radius: 6px;
+            padding: 10px 14px;
+            margin-bottom: 18px;
+        }
+
+        .details table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .details td {
+            padding: 3px 0;
+            font-size: 12.5px;
+            line-height: 1.5;
+        }
+
+        .details td.label {
+            width: 130px;
+            color: #667;
+            font-weight: bold;
         }
 
         .monto {
             text-align: center;
             margin: 18px 0;
-            padding: 10px;
-            border: 1px dashed #333;
+            padding: 14px;
+            background-color: #000;
+            border: 2px solid #2dd4bf;
+            border-radius: 8px;
         }
 
         .monto p {
             margin: 0;
+            color: #fff;
+        }
+
+        .monto .etiqueta {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #2dd4bf;
+            margin-bottom: 4px;
         }
 
         .monto .valor {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: bold;
         }
 
@@ -54,7 +113,7 @@
         }
 
         .firma-linea {
-            border-top: 1px solid #000;
+            border-top: 1px solid #333;
             width: 90%;
             margin: 40px auto 4px auto;
         }
@@ -62,49 +121,75 @@
         .firma-label {
             text-align: center;
             font-size: 11px;
+            color: #555;
         }
 
         .footer {
-            margin-top: 20px;
+            margin-top: 30px;
             text-align: center;
-            font-size: 10px;
-            color: #555;
+            font-size: 10.5px;
+            color: #999;
+            border-top: 1px solid #eee;
+            padding-top: 8px;
         }
     </style>
 </head>
 <body>
 
-    <!-- Encabezado -->
+    @php $logoDataUri = \App\Models\ClinicSetting::instance()->logoBase64(); @endphp
+    @if ($logoDataUri)
+        <div class="logo-band">
+            <span class="logo-badge">
+                <img src="{{ $logoDataUri }}" alt="Logo">
+            </span>
+        </div>
+    @endif
+
     <div class="header">
-        @php $logoDataUri = \App\Models\ClinicSetting::instance()->logoBase64(); @endphp
-        @if ($logoDataUri)
-            <img src="{{ $logoDataUri }}" alt="Logo" style="height: 36px; margin-bottom: 8px;">
-        @endif
-        <h1>COMPROBANTE DE ABONO</h1>
+        <h1>Comprobante de abono</h1>
         <p>Venta: {{ $sale->numero }}</p>
         @include('admin.settings.partials.pdf-contact-line')
     </div>
 
-    <!-- Datos -->
     <div class="details">
-        <p><strong>Paciente:</strong> {{ $sale->patient->person->name }} {{ $sale->patient->person->last_name_father }} {{ $sale->patient->person->last_name_mother }}</p>
-        <p><strong>Doctor:</strong> {{ $sale->doctor->person->name }} {{ $sale->doctor->person->last_name_father }}</p>
-        <p><strong>Fecha de pago:</strong> {{ $payment->created_at->format('d/m/Y H:i') }}</p>
-        <p><strong>Método de pago:</strong> {{ $payment->payment_method }}</p>
+        <table>
+            <tr>
+                <td class="label">Paciente:</td>
+                <td>{{ $sale->patient->person->name }} {{ $sale->patient->person->last_name_father }} {{ $sale->patient->person->last_name_mother }}</td>
+            </tr>
+            <tr>
+                <td class="label">Doctor:</td>
+                <td>{{ $sale->doctor->person->name }} {{ $sale->doctor->person->last_name_father }}</td>
+            </tr>
+            <tr>
+                <td class="label">Fecha de pago:</td>
+                <td>{{ $payment->created_at->format('d/m/Y H:i') }}</td>
+            </tr>
+            <tr>
+                <td class="label">Método de pago:</td>
+                <td>{{ $payment->payment_method }}</td>
+            </tr>
+        </table>
     </div>
 
-    <!-- Monto del abono -->
     <div class="monto">
-        <p>Monto abonado</p>
+        <p class="etiqueta">Monto abonado</p>
         <p class="valor">Bs. {{ number_format($payment->amount, 2, '.', ',') }}</p>
     </div>
 
     <div class="details">
-        <p><strong>Total de la venta:</strong> Bs. {{ number_format($sale->total, 2, '.', ',') }}</p>
-        <p><strong>Saldo pendiente:</strong> Bs. {{ number_format($saldoEnEseMomento, 2, '.', ',') }}</p>
+        <table>
+            <tr>
+                <td class="label">Total de la venta:</td>
+                <td>Bs. {{ number_format($sale->total, 2, '.', ',') }}</td>
+            </tr>
+            <tr>
+                <td class="label">Saldo pendiente:</td>
+                <td>Bs. {{ number_format($saldoEnEseMomento, 2, '.', ',') }}</td>
+            </tr>
+        </table>
     </div>
 
-    <!-- Firmas -->
     <div class="firmas">
         <div class="firma-linea"></div>
         <p class="firma-label">Firma del Doctor</p>
@@ -114,7 +199,7 @@
     </div>
 
     <div class="footer">
-        <p>Impreso el {{ now()->format('d/m/Y H:i:s') }}</p>
+        <p>Fecha de impresión: {{ now()->format('d/m/Y H:i:s') }}</p>
     </div>
 
 </body>

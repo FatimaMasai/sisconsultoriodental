@@ -13,7 +13,7 @@
                 Nombre
             </x-label>
 
-            <x-input name="name" value="{{ old('name') }}" class="w-full mb-4" placeholder="Ingrese nombre del Rol" />
+            <x-input name="name" value="{{ old('name') }}" class="input-label rounded-lg w-full mb-4" placeholder="Ingrese nombre del Rol" />
 
             <x-label class="mb-2">
                 Listado de Permisos

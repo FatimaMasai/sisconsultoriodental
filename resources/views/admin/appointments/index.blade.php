@@ -25,7 +25,7 @@
         <div class="flex flex-wrap items-center gap-4">
             <div class="w-full md:w-64">
                 <label class="form-label">Filtrar por doctor</label>
-                <x-select id="doctor-filter" class="rounded-lg w-full">
+                <x-select id="doctor-filter" class="input-label rounded-lg w-full">
                     <option value="">Todos los doctores</option>
                     @foreach ($doctors as $doctor)
                         <option value="{{ $doctor->id }}">

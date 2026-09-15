@@ -13,7 +13,7 @@
                 Nombre
             </x-label>
 
-            <x-input name="name" value="{{ old('name', $user->name) }}" class="w-full mb-4"
+            <x-input name="name" value="{{ old('name', $user->name) }}" class="input-label rounded-lg w-full mb-4"
                 placeholder="Ingrese nombre de la categoria">
 
             </x-input>

@@ -22,7 +22,8 @@ class SpecialitySearch extends Component
     {
         $search = trim($this->search);
 
-        $specialities = Speciality::when($search !== '', function ($query) use ($search) {
+        $specialities = Speciality::where('status', 1)
+            ->when($search !== '', function ($query) use ($search) {
                 // Palabra por palabra, para que encuentre el nombre sin importar el orden.
                 $words = preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY);
 

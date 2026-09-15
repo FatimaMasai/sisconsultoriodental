@@ -5,6 +5,18 @@
     </svg> --}}
    
     {{-- <img src="{{ asset('images/dental.png') }}" alt="Logo" class="w-32 h-32 mx-auto mb-4 rounded-full"> --}}
-    <img src="{{ \App\Models\ClinicSetting::instance()->logoUrl() }}" alt="Wellness Centro Integral" class="h-16 sm:h-20 w-auto mx-auto mb-4">
+    {{-- El logo es un rectángulo negro sólido (así viene el archivo subido
+         desde Configuración > Apariencia), por eso se ve "cuadrado": acá se
+         le redondean las puntas y se le agrega el mismo marco turquesa que
+         ya usan la chapita del menú y los PDF, para que quede prolijo y
+         consistente con el resto del sistema en vez de un rectángulo pelado. --}}
+    <img src="{{ \App\Models\ClinicSetting::instance()->logoUrl() }}" alt="{{ \App\Models\ClinicSetting::instance()->systemName() }}" class="auth-logo-img h-20 sm:h-24 w-auto mx-auto">
 
+    <style>
+        .auth-logo-img {
+            border-radius: 14px;
+            border: 2px solid #2dd4bf;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+        }
+    </style>
 </a>

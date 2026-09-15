@@ -11,12 +11,14 @@
                 </svg>
             </button>
             @php $logoUrl = \App\Models\ClinicSetting::instance()->logoUrl(); @endphp
-            {{-- El logo va en una "chapita" blanca fija (no cambia con el
-                 tema): así, si el archivo del logo tiene fondo blanco en
-                 vez de transparente, se ve como una insignia prolija en
-                 vez de un rectángulo blanco suelto sobre el menú oscuro. --}}
+            {{-- El logo tiene fondo transparente, el texto "wellness" en
+                 turquesa y el subtítulo "CENTRO INTEGRAL" en blanco. Por
+                 eso va en una "chapita" negra fija (no cambia con el tema):
+                 así el subtítulo blanco se lee bien, con un borde turquesa
+                 (el mismo color de marca) para que la insignia se distinga
+                 del menú de alrededor. --}}
             <a href="{{ route('admin.dashboard')}}"
-                class="brand-badge flex items-center ms-2 md:me-6 bg-white rounded-lg px-3 py-1.5 shadow-sm ring-1 ring-black/5">
+                class="brand-badge flex items-center ms-2 md:me-6 px-3 py-1.5">
                 <img src="{{ $logoUrl }}" alt="Wellness Centro Integral" class="brand-logo-full" style="height: 40px; width: auto;">
                 <img src="{{ $logoUrl }}" alt="Wellness Centro Integral" class="brand-logo-icon" style="height: 28px; width: auto; display: none;">
             </a>
@@ -29,6 +31,17 @@
                  lateral) se muestra una versión más chica y con menos
                  relleno, para que todo entre cómodo en una sola fila. --}}
             <style>
+                {{-- Estilos del "chip" del logo escritos acá como CSS
+                     normal (no clases de Tailwind) para que se vean
+                     siempre, sin depender de si el bundle de Tailwind ya
+                     se recompiló con esta combinación en particular. --}}
+                .brand-badge {
+                    background-color: #000;
+                    border: 2px solid #2dd4bf;
+                    border-radius: 12px;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+                }
+
                 @media (max-width: 639px) {
                     .brand-logo-full { display: none !important; }
                     .brand-logo-icon { display: inline-block !important; }

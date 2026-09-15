@@ -20,9 +20,29 @@
             border-bottom: 2px solid #14b8a6;
         }
 
-        .header img {
-            height: 46px;
-            margin-bottom: 8px;
+        {{-- Banda de color arriba de todo, con el logo adentro (en una
+             chapita negra con borde turquesa, el mismo look que la barra
+             de navegación del sistema) — el mismo estilo que la recetario
+             física del consultorio. --}}
+        .logo-band {
+            background-color: #000;
+            padding: 10px 0;
+            margin: 0 0 18px 0;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .logo-band .logo-badge {
+            display: inline-block;
+            background-color: #000;
+            border: 2px solid #2dd4bf;
+            border-radius: 6px;
+            padding: 6px 14px;
+        }
+
+        .logo-band img {
+            height: 42px;
+            display: block;
         }
 
         .header h1 {
@@ -108,11 +128,16 @@
 </head>
 <body>
 
+    @php $logoDataUri = \App\Models\ClinicSetting::instance()->logoBase64(); @endphp
+    @if ($logoDataUri)
+        <div class="logo-band">
+            <span class="logo-badge">
+                <img src="{{ $logoDataUri }}" alt="Logo">
+            </span>
+        </div>
+    @endif
+
     <div class="header">
-        @php $logoDataUri = \App\Models\ClinicSetting::instance()->logoBase64(); @endphp
-        @if ($logoDataUri)
-            <img src="{{ $logoDataUri }}" alt="Logo">
-        @endif
         <h1>Receta médica</h1>
         <p>{{ $receta->consulta->expediente->speciality->name ?? 'Especialidad' }}</p>
         @include('admin.settings.partials.pdf-contact-line')

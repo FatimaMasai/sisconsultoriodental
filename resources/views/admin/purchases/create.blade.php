@@ -24,7 +24,7 @@
             <div class="grid gap-4 md:grid-cols-2">
                 <div>
                     <x-label class="form-label">Proveedor</x-label>
-                    <x-select name="supplier_id" class="rounded-lg w-full" required>
+                    <x-select name="supplier_id" class="input-label rounded-lg w-full" required>
                         <option value="">Seleccione un proveedor</option>
                         @foreach ($suppliers as $supplier)
                             <option value="{{ $supplier->id }}" @selected(old('supplier_id') == $supplier->id)>
@@ -70,7 +70,7 @@
                         @foreach ($oldProducts as $i => $oldProduct)
                             <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700 product-row">
                                 <td data-label="Producto" class="px-4 py-2">
-                                    <x-select name="products[{{ $i }}][product_id]" class="rounded-lg w-full product-select" required>
+                                    <x-select name="products[{{ $i }}][product_id]" class="input-label rounded-lg w-full product-select" required>
                                         <option value="">Seleccione un producto</option>
                                         @foreach ($products as $product)
                                             <option value="{{ $product->id }}" data-price="{{ $product->price }}"
@@ -82,7 +82,7 @@
                                 </td>
                                 <td data-label="Cant." class="px-4 py-2">
                                     <input type="number" name="products[{{ $i }}][quantity]"
-                                        class="product-quantity rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm w-full"
+                                        class="product-quantity input-label rounded-lg w-full"
                                         min="1" value="{{ $oldProduct['quantity'] ?? 1 }}" required>
                                 </td>
                                 <td data-label="Precio" class="px-4 py-2 product-price text-gray-700 dark:text-gray-300">Bs. 0</td>
@@ -115,7 +115,7 @@
 
             <div class="mb-4 md:w-1/2">
                 <x-label class="form-label">Método de pago</x-label>
-                <x-select name="payment_method" class="rounded-lg w-full">
+                <x-select name="payment_method" class="input-label rounded-lg w-full">
                     <option value="Efectivo" @selected(old('payment_method') == 'Efectivo')>Efectivo</option>
                     <option value="Transferencia" @selected(old('payment_method') == 'Transferencia')>Transferencia</option>
                     <option value="QR" @selected(old('payment_method') == 'QR')>QR</option>
@@ -175,7 +175,7 @@
             row.classList.add('product-row', 'bg-white', 'dark:bg-gray-800', 'border-b', 'dark:border-gray-700');
             row.innerHTML = `
                 <td data-label="Producto" class="px-4 py-2">
-                    <select name="products[${productIndex}][product_id]" class="rounded-lg w-full product-select border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm" required>
+                    <select name="products[${productIndex}][product_id]" class="rounded-lg w-full product-select input-label" required>
                         <option value="">Seleccione un producto</option>
                         @foreach ($products as $product)
                             <option value="{{ $product->id }}" data-price="{{ $product->price }}">{{ $product->name }}</option>
@@ -183,7 +183,7 @@
                     </select>
                 </td>
                 <td data-label="Cant." class="px-4 py-2">
-                    <input type="number" name="products[${productIndex}][quantity]" class="product-quantity rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm w-full" min="1" value="1" required>
+                    <input type="number" name="products[${productIndex}][quantity]" class="product-quantity input-label rounded-lg w-full" min="1" value="1" required>
                 </td>
                 <td data-label="Precio" class="px-4 py-2 product-price text-gray-700 dark:text-gray-300">Bs. 0</td>
                 <td data-label="Subtotal" class="px-4 py-2 product-subtotal font-medium text-gray-900 dark:text-white">Bs. 0</td>

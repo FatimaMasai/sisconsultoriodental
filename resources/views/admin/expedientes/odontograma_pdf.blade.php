@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comprobante de Compra {{ $purchase->numero }}</title>
+    <title>Plan de tratamiento</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,6 +13,15 @@
             color: #333;
         }
 
+        .header {
+            text-align: center;
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 2px solid #14b8a6;
+        }
+
+        {{-- Misma banda con el logo que se usa en la receta médica, para
+             que todas las PDF del sistema compartan el mismo look. --}}
         .logo-band {
             background-color: #000;
             padding: 10px 0;
@@ -32,13 +41,6 @@
         .logo-band img {
             height: 42px;
             display: block;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 18px;
-            padding-bottom: 14px;
-            border-bottom: 2px solid #14b8a6;
         }
 
         .header h1 {
@@ -76,31 +78,25 @@
         }
 
         .details td.label {
-            width: 110px;
+            width: 90px;
             color: #667;
             font-weight: bold;
         }
 
-        .details hr {
-            border: none;
-            border-top: 1px solid #e2e8e8;
-            margin: 6px 0;
-        }
-
-        table.items {
+        table.tratamientos {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 8px;
+            margin-bottom: 18px;
         }
 
-        table.items th, table.items td {
+        table.tratamientos th, table.tratamientos td {
             border: 1px solid #dcdfe0;
             padding: 7px 8px;
             font-size: 12px;
             text-align: left;
         }
 
-        table.items th {
+        table.tratamientos th {
             background-color: #f0f4f3;
             color: #333;
             text-transform: uppercase;
@@ -108,7 +104,7 @@
             letter-spacing: 0.3px;
         }
 
-        table.items td.precio {
+        table.tratamientos td.precio {
             text-align: right;
             white-space: nowrap;
         }
@@ -120,19 +116,17 @@
         }
 
         .totales td {
-            padding: 4px 8px;
-            font-size: 12.5px;
+            padding: 6px 8px;
+            font-size: 13px;
         }
 
         .totales td.label {
             color: #555;
-            text-align: right;
         }
 
         .totales td.valor {
             text-align: right;
             font-weight: bold;
-            width: 140px;
             white-space: nowrap;
         }
 
@@ -164,90 +158,67 @@
     @endif
 
     <div class="header">
-        <h1>Comprobante de compra</h1>
-        <p>Compra: {{ $purchase->numero }}</p>
+        <h1>Plan de tratamiento</h1>
+        <p>{{ $expediente->speciality->name ?? 'Especialidad' }}</p>
         @include('admin.settings.partials.pdf-contact-line')
     </div>
 
     <div class="details">
         <table>
             <tr>
-                <td class="label">Proveedor:</td>
-                <td>{{ $purchase->supplier->person->name }} {{ $purchase->supplier->person->last_name_father }} {{ $purchase->supplier->person->last_name_mother }}</td>
+                <td class="label">Paciente:</td>
+                <td>
+                    {{ $expediente->patient->person->name }}
+                    {{ $expediente->patient->person->last_name_father }}
+                    {{ $expediente->patient->person->last_name_mother }}
+                </td>
             </tr>
+            @if ($doctor)
+                <tr>
+                    <td class="label">Doctor:</td>
+                    <td>{{ $doctor->person->name ?? '—' }} {{ $doctor->person->last_name_father ?? '' }}</td>
+                </tr>
+            @endif
             <tr>
-                <td class="label">Edad:</td>
-                <td>{{ \Carbon\Carbon::parse($purchase->supplier->person->birth_date)->age }} años</td>
-            </tr>
-            <tr>
-                <td class="label">Teléfono:</td>
-                <td>{{ $purchase->supplier->person->phone }}</td>
-            </tr>
-            <tr>
-                <td class="label">Carnet:</td>
-                <td>{{ $purchase->supplier->person->identity_card }}</td>
-            </tr>
-        </table>
-        <hr>
-        <table>
-            <tr>
-                <td class="label">Empresa:</td>
-                <td>{{ $purchase->supplier->company }}</td>
-            </tr>
-            <tr>
-                <td class="label">Nit:</td>
-                <td>{{ $purchase->supplier->nit }}</td>
-            </tr>
-        </table>
-        <hr>
-        <table>
-            <tr>
-                <td class="label">Fecha de compra:</td>
-                <td>{{ $purchase->date }}</td>
-            </tr>
-            <tr>
-                <td class="label">Método de pago:</td>
-                <td>{{ $payment->payment_method }}</td>
-            </tr>
-            <tr>
-                <td class="label">Forma de pago:</td>
-                <td>{{ $payment->payment_status }}</td>
+                <td class="label">Fecha:</td>
+                <td>{{ now()->format('d/m/Y') }}</td>
             </tr>
         </table>
     </div>
 
-    <table class="items">
-        <thead>
-            <tr>
-                <th>Nro</th>
-                <th>Detalle</th>
-                <th>Cant.</th>
-                <th style="text-align: right;">P. unit.</th>
-                <th style="text-align: right;">Subtotal</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($purchase->purchaseDetails as $index => $detail)
+    @if ($treatments->isEmpty())
+        <p style="text-align: center; color: #777; margin: 30px 0;">Todavía no hay tratamientos registrados en el odontograma.</p>
+    @else
+        <table class="tratamientos">
+            <thead>
                 <tr>
-                    <td>{{ $index + 1 }}</td>
-                    <td>{{ $detail->product->name }}</td>
-                    <td>{{ $detail->quantity }}</td>
-                    <td class="precio">{{ $detail->price }}</td>
-                    <td class="precio">{{ $detail->subtotal }}</td>
+                    <th>Pieza</th>
+                    <th>Diagnóstico / Tratamiento</th>
+                    <th>Fecha</th>
+                    <th style="text-align: right;">Precio</th>
                 </tr>
-            @endforeach
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach ($treatments->sortBy('tooth_number') as $treatment)
+                    <tr>
+                        <td>{{ $treatment->tooth_number }}</td>
+                        <td>{{ $treatment->treatment }}</td>
+                        <td>{{ $treatment->date ? \Carbon\Carbon::parse($treatment->date)->format('d/m/Y') : '—' }}</td>
+                        <td class="precio">{{ $treatment->price !== null ? 'Bs. ' . number_format((float) $treatment->price, 2) : '—' }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
 
-    <table class="totales">
-        <tr class="total-final">
-            <td class="label">Importe total</td>
-            <td class="valor">Bs. {{ number_format($purchase->total, 0, '', '.') }}</td>
-        </tr>
-    </table>
+        <table class="totales">
+            <tr class="total-final">
+                <td class="label">Total</td>
+                <td class="valor">Bs. {{ number_format($totalRegistrado, 2) }}</td>
+            </tr>
+        </table>
+    @endif
 
     <div class="footer">
-        <p>Procesado por: {{ $user->name }}</p>
         <p>Fecha de impresión: {{ now()->format('d/m/Y H:i:s') }}</p>
     </div>
 

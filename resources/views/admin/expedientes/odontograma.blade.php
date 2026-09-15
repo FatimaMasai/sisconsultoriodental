@@ -16,6 +16,14 @@
                 @endif
             @endcan
 
+            {{-- Para entregarle al paciente: qué se le diagnosticó/recomendó
+                 por pieza, qué ya se hizo y el total (con lo ya cobrado y lo
+                 pendiente), en el mismo estilo que el resto de las PDF del
+                 sistema. --}}
+            <a href="{{ route('admin.expedientes.odontograma.pdf', $expediente) }}" target="_blank" class="btn btn-blue rounded-lg text-sm">
+                <i class="fa-solid fa-file-pdf mr-1"></i> Exportar PDF
+            </a>
+
             <a href="{{ route('admin.expedientes.show', $expediente) }}" class="btn btn-gray rounded-lg text-sm">
                 <i class="fa-solid fa-arrow-left mr-1"></i> Volver al expediente
             </a>

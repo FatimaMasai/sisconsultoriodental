@@ -144,7 +144,24 @@ class ClinicSetting extends Model
             return null;
         }
 
-        $mime = match (strtolower(pathinfo($absolutePath, PATHINFO_EXTENSION))) {
+        $extension = strtolower(pathinfo($absolutePath, PATHINFO_EXTENSION));
+
+        // dompdf no compone bien la transparencia de los PNG: el fondo
+        // transparente del logo (que en el navegador se ve normal) le sale
+        // negro "sucio", con un borde irregular alrededor. Para evitarlo,
+        // acá se aplana el logo sobre un fondo negro sólido (a propósito:
+        // el logo tiene el subtítulo "CENTRO INTEGRAL" en blanco, así que
+        // negro es el único fondo plano donde se sigue leyendo) antes de
+        // incrustarlo, dejando un resultado prolijo y siempre igual.
+        if ($extension === 'png' && function_exists('imagecreatefrompng')) {
+            $flattened = $this->flattenPngOnBlack($absolutePath);
+
+            if ($flattened !== null) {
+                return 'data:image/png;base64,' . base64_encode($flattened);
+            }
+        }
+
+        $mime = match ($extension) {
             'jpg', 'jpeg' => 'image/jpeg',
             'webp' => 'image/webp',
             'svg' => 'image/svg+xml',
@@ -152,5 +169,39 @@ class ClinicSetting extends Model
         };
 
         return 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($absolutePath));
+    }
+
+    /**
+     * Aplana un PNG (con transparencia) sobre un fondo negro sólido y
+     * devuelve los bytes del PNG resultante, o null si GD no pudo leerlo
+     * (en cuyo caso logoBase64() cae de nuevo al archivo original tal cual).
+     */
+    private function flattenPngOnBlack(string $absolutePath): ?string
+    {
+        $source = @imagecreatefrompng($absolutePath);
+
+        if ($source === false) {
+            return null;
+        }
+
+        $width = imagesx($source);
+        $height = imagesy($source);
+
+        $flattened = imagecreatetruecolor($width, $height);
+        $black = imagecolorallocate($flattened, 0, 0, 0);
+        imagefill($flattened, 0, 0, $black);
+
+        imagealphablending($flattened, true);
+        imagesavealpha($flattened, false);
+        imagecopy($flattened, $source, 0, 0, 0, 0, $width, $height);
+
+        ob_start();
+        imagepng($flattened);
+        $data = ob_get_clean();
+
+        imagedestroy($source);
+        imagedestroy($flattened);
+
+        return $data !== false && $data !== '' ? $data : null;
     }
 }

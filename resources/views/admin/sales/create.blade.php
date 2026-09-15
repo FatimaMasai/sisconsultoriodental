@@ -141,7 +141,10 @@
                 </button>
             </div>
 
-            <div class="relative overflow-x-auto">
+            {{-- Sin "overflow-x-auto": la tabla ya se apila sola en mobile
+                 (ver table-stack.css) y este wrapper cortaba el listado del
+                 buscador de Servicio cuando se abría cerca del borde. --}}
+            <div class="relative">
                 <table class="table-stack w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
                         <tr>
@@ -167,24 +170,38 @@
                             @endphp
                             <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700 service-row">
                                 <td data-label="Servicio" class="px-4 py-2">
-                                    <x-select name="services[{{ $i }}][service_id]" class="rounded-lg w-full service-select" required>
-                                        <option value="">Seleccione un servicio</option>
-                                        @foreach ($services as $service)
-                                            <option value="{{ $service->id }}" data-price="{{ $service->price }}" data-name="{{ $service->name }}"
-                                                @selected($oldService['service_id'] == $service->id)>
-                                                {{ $service->name }}
-                                            </option>
-                                        @endforeach
-                                    </x-select>
+                                    <div class="relative" data-service-combobox>
+                                        <input type="hidden" name="services[{{ $i }}][service_id]" class="service-search-hidden" value="{{ $oldService['service_id'] ?? '' }}">
+                                        <div class="relative">
+                                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 text-sm">
+                                                <i class="fa-solid fa-magnifying-glass"></i>
+                                            </span>
+                                            <input type="text" autocomplete="off" class="service-search-input input-label rounded-lg pl-9 w-full"
+                                                placeholder="Buscar servicio..."
+                                                value="{{ $matchedService?->name }}">
+                                        </div>
+                                        <div class="service-search-results hidden absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                                            @foreach ($services as $service)
+                                                <button type="button" class="service-option w-full text-left px-3 py-2 text-sm hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-700 dark:text-gray-200"
+                                                    data-id="{{ $service->id }}"
+                                                    data-name="{{ $service->name }}"
+                                                    data-price="{{ $service->price }}">
+                                                    {{ $service->name }}
+                                                </button>
+                                            @endforeach
+                                            <p class="service-empty hidden px-3 py-2 text-sm text-gray-400">Sin resultados</p>
+                                            <p class="service-more hidden px-3 py-2 text-xs text-gray-400 border-t border-gray-100 dark:border-gray-700"></p>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td data-label="Cant." class="px-4 py-2">
                                     <input type="number" name="services[{{ $i }}][quantity]"
-                                        class="service-quantity rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm w-full"
+                                        class="service-quantity input-label rounded-lg w-full"
                                         min="1" value="{{ $oldService['quantity'] ?? 1 }}" required>
                                 </td>
                                 <td data-label="Precio" class="px-4 py-2">
                                     <input type="number" name="services[{{ $i }}][price]" step="0.01" min="0"
-                                        class="service-price-input rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm w-full"
+                                        class="service-price-input input-label rounded-lg w-full"
                                         value="{{ $oldPrice !== null ? (float) $oldPrice : '' }}" placeholder="Bs. 0">
                                 </td>
                                 <td data-label="Subtotal" class="px-4 py-2 service-subtotal font-medium text-gray-900 dark:text-white">Bs. 0</td>
@@ -210,7 +227,7 @@
                             <td class="px-4 py-2">
                                 <input type="number" name="discount" id="discount-input" min="0" step="0.01"
                                     value="{{ old('discount', 0) }}" placeholder="Bs. 0"
-                                    class="rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm w-full">
+                                    class="input-label rounded-lg w-full">
                             </td>
                             <td></td>
                         </tr>
@@ -254,7 +271,7 @@
 
             <div class="mb-4 md:w-1/2">
                 <x-label class="form-label">Método de pago</x-label>
-                <x-select name="payment_method" class="rounded-lg w-full">
+                <x-select name="payment_method" class="input-label rounded-lg w-full">
                     <option value="Efectivo" @selected(old('payment_method') == 'Efectivo')>Efectivo</option>
                     <option value="Transferencia" @selected(old('payment_method') == 'Transferencia')>Transferencia</option>
                     <option value="QR" @selected(old('payment_method') == 'QR')>QR</option>
@@ -279,7 +296,7 @@
                     <x-label class="form-label">Abono de hoy (Bs.)</x-label>
                     <input type="number" id="credito-amount-input" min="0" step="0.01"
                         value="{{ old('amount', 0) }}"
-                        class="rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm w-full">
+                        class="input-label rounded-lg w-full">
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Opcional. Déjelo en 0 si el paciente no adelanta nada hoy; los siguientes abonos se registran después desde el detalle de la venta.</p>
                 </div>
 
@@ -350,24 +367,113 @@
             syncAmountField();
         }
 
+        // Combobox de Servicio: mismo patrón que el buscador de Paciente/Doctor
+        // de arriba (con "+N más" y límite de resultados visibles), pero uno
+        // por fila. Sirve para elegir rápido aunque la lista crezca a futuro
+        // (ya van +40 servicios). Se llama una vez por cada fila que exista
+        // al cargar la página y de nuevo por cada fila que se agregue con
+        // "Añadir servicio".
+        function initServiceCombobox(wrapper) {
+            const hidden = wrapper.querySelector('.service-search-hidden');
+            const input = wrapper.querySelector('.service-search-input');
+            const results = wrapper.querySelector('.service-search-results');
+            const options = Array.from(wrapper.querySelectorAll('.service-option'));
+            const empty = wrapper.querySelector('.service-empty');
+            const more = wrapper.querySelector('.service-more');
+            const MAX_VISIBLE = 8;
+
+            function showResults() {
+                const term = input.value.trim().toLowerCase();
+                let matches = 0;
+                let shown = 0;
+                options.forEach(function (opt) {
+                    const match = opt.dataset.name.toLowerCase().includes(term);
+                    if (match) matches++;
+                    const visible = match && shown < MAX_VISIBLE;
+                    if (visible) shown++;
+                    opt.classList.toggle('hidden', !visible);
+                });
+
+                empty.classList.toggle('hidden', matches > 0);
+
+                const remaining = matches - shown;
+                if (remaining > 0) {
+                    more.textContent = `+${remaining} más, sigue escribiendo para ver otros`;
+                    more.classList.remove('hidden');
+                } else {
+                    more.classList.add('hidden');
+                }
+
+                results.classList.remove('hidden');
+            }
+
+            input.addEventListener('focus', showResults);
+            input.addEventListener('input', function () {
+                hidden.value = '';
+                showResults();
+            });
+
+            options.forEach(function (opt) {
+                opt.addEventListener('click', function () {
+                    hidden.value = opt.dataset.id;
+                    input.value = opt.dataset.name;
+                    results.classList.add('hidden');
+
+                    // Se completa el precio con el de lista; sigue editable después.
+                    const row = wrapper.closest('.service-row');
+                    const price = parseFloat(opt.dataset.price) || 0;
+                    row.querySelector('.service-price-input').value = price;
+                    updateTotal();
+                });
+            });
+        }
+
+        document.querySelectorAll('[data-service-combobox]').forEach(initServiceCombobox);
+
+        // Un solo listener (no uno por fila) para cerrar el listado abierto
+        // al hacer clic afuera; evita ir acumulando listeners si se agregan
+        // muchas filas de servicio.
+        document.addEventListener('click', function (e) {
+            document.querySelectorAll('[data-service-combobox]').forEach(function (wrapper) {
+                if (!wrapper.contains(e.target)) {
+                    wrapper.querySelector('.service-search-results')?.classList.add('hidden');
+                }
+            });
+        });
+
         // Agregar una nueva fila de servicio a la tabla.
         document.getElementById('add-service').addEventListener('click', function () {
             const row = document.createElement('tr');
             row.classList.add('service-row', 'bg-white', 'dark:bg-gray-800', 'border-b', 'dark:border-gray-700');
             row.innerHTML = `
                 <td data-label="Servicio" class="px-4 py-2">
-                    <select name="services[${serviceIndex}][service_id]" class="rounded-lg w-full service-select border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm" required>
-                        <option value="">Seleccione un servicio</option>
-                        @foreach ($services as $service)
-                            <option value="{{ $service->id }}" data-price="{{ $service->price }}" data-name="{{ $service->name }}">{{ $service->name }}</option>
-                        @endforeach
-                    </select>
+                    <div class="relative" data-service-combobox>
+                        <input type="hidden" name="services[${serviceIndex}][service_id]" class="service-search-hidden" value="">
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 text-sm">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </span>
+                            <input type="text" autocomplete="off" class="service-search-input input-label rounded-lg pl-9 w-full" placeholder="Buscar servicio...">
+                        </div>
+                        <div class="service-search-results hidden absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                            @foreach ($services as $service)
+                                <button type="button" class="service-option w-full text-left px-3 py-2 text-sm hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-700 dark:text-gray-200"
+                                    data-id="{{ $service->id }}"
+                                    data-name="{{ $service->name }}"
+                                    data-price="{{ $service->price }}">
+                                    {{ $service->name }}
+                                </button>
+                            @endforeach
+                            <p class="service-empty hidden px-3 py-2 text-sm text-gray-400">Sin resultados</p>
+                            <p class="service-more hidden px-3 py-2 text-xs text-gray-400 border-t border-gray-100 dark:border-gray-700"></p>
+                        </div>
+                    </div>
                 </td>
                 <td data-label="Cant." class="px-4 py-2">
-                    <input type="number" name="services[${serviceIndex}][quantity]" class="service-quantity rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm w-full" min="1" value="1" required>
+                    <input type="number" name="services[${serviceIndex}][quantity]" class="service-quantity input-label rounded-lg w-full" min="1" value="1" required>
                 </td>
                 <td data-label="Precio" class="px-4 py-2">
-                    <input type="number" name="services[${serviceIndex}][price]" step="0.01" min="0" class="service-price-input rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm w-full" placeholder="Bs. 0">
+                    <input type="number" name="services[${serviceIndex}][price]" step="0.01" min="0" class="service-price-input input-label rounded-lg w-full" placeholder="Bs. 0">
                 </td>
                 <td data-label="Subtotal" class="px-4 py-2 service-subtotal font-medium text-gray-900 dark:text-white">Bs. 0</td>
                 <td class="px-4 py-2 text-center">
@@ -377,6 +483,7 @@
                 </td>
             `;
             document.getElementById('services').appendChild(row);
+            initServiceCombobox(row.querySelector('[data-service-combobox]'));
             serviceIndex++;
             updateTotal();
         });
@@ -391,21 +498,6 @@
 
         // Recalcular cuando se carga o cambia el descuento.
         document.getElementById('discount-input').addEventListener('input', updateTotal);
-
-        // Al elegir (o cambiar) el Servicio de una fila, se completa el
-        // precio con el de lista; sigue editable después.
-        document.getElementById('services').addEventListener('change', function (event) {
-            if (!event.target.classList.contains('service-select')) return;
-
-            const row = event.target.closest('.service-row');
-            const option = event.target.selectedOptions[0];
-            const price = option ? (parseFloat(option.getAttribute('data-price')) || 0) : 0;
-
-            // Sin ".00" fijo: parseFloat ya deja el número limpio (900 en
-            // vez de 900.00), así entra completo en la columna angosta.
-            row.querySelector('.service-price-input').value = price;
-            updateTotal();
-        });
 
         // Quitar una fila de servicio (se deja siempre al menos una fila).
         document.getElementById('services').addEventListener('click', function (event) {
@@ -560,6 +652,19 @@
                 alert('Debe seleccionar un doctor.');
                 document.querySelector('[data-role="doctor"] .person-search-input')?.focus();
                 return;
+            }
+
+            // Igual que Paciente/Doctor: el Servicio ahora se elige con el
+            // buscador (no un <select> nativo), así que se valida acá que
+            // cada fila tenga uno elegido.
+            for (const wrapper of document.querySelectorAll('[data-service-combobox]')) {
+                const serviceHidden = wrapper.querySelector('.service-search-hidden');
+                if (!serviceHidden.value) {
+                    event.preventDefault();
+                    alert('Debe seleccionar un servicio en cada fila.');
+                    wrapper.querySelector('.service-search-input')?.focus();
+                    return;
+                }
             }
         });
     </script>

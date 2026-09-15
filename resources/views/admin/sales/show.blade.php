@@ -179,11 +179,11 @@
                         <div>
                             <x-label class="form-label">Monto (Bs.)</x-label>
                             <input type="number" name="amount" min="0.01" max="{{ $sale->saldo_pendiente }}" step="0.01"
-                                class="rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm" required>
+                                class="input-label rounded-lg" required>
                         </div>
                         <div>
                             <x-label class="form-label">Método de pago</x-label>
-                            <select name="payment_method" class="rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm" required>
+                            <select name="payment_method" class="input-label rounded-lg" required>
                                 <option value="Efectivo">Efectivo</option>
                                 <option value="Transferencia">Transferencia</option>
                                 <option value="QR">QR</option>

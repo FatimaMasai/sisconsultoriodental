@@ -15,7 +15,7 @@
                 Categoria de servicio
             </x-label>
 
-            <x-select name="service_category_id" class="w-full">
+            <x-select name="service_category_id" class="input-label rounded-lg w-full">
 
                 @foreach ($serviceCategories as $serviceCategorie)
                     <option value="{{$serviceCategorie->id}}"
@@ -35,7 +35,7 @@
                 Servicio
             </x-label>
 
-            <x-input name="name" value="{{old('name', $service->name)}}" class="w-full mb-5" placeholder="Ingrese nombre de la categoria">
+            <x-input name="name" value="{{old('name', $service->name)}}" class="input-label rounded-lg w-full mb-5" placeholder="Ingrese nombre de la categoria">
 
             </x-input>
 
@@ -43,7 +43,7 @@
                 Precio
             </x-label>
 
-            <x-input name="price" value="{{old('price', $service->price)}}" class="w-full mb-5" placeholder="Ingrese un precio">
+            <x-input name="price" value="{{old('price', $service->price)}}" class="input-label rounded-lg w-full mb-5" placeholder="Ingrese un precio">
 
             </x-input>
 
@@ -53,7 +53,7 @@
 
  
             <!-- select  activar o desactivar el servicio -->
-            <x-select name="status" class="w-full mb-5">
+            <x-select name="status" class="input-label rounded-lg w-full mb-5">
                 <option value="1" @selected($service->status == 1)>Alta</option>
                 <option value="0" @selected($service->status == 0)>Baja</option>
             </x-select>

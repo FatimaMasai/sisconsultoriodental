@@ -131,6 +131,7 @@ Route::put('recetas/{receta}', [ExpedienteController::class, 'updateReceta'])->n
 Route::delete('recetas/{receta}', [ExpedienteController::class, 'destroyReceta'])->name('recetas.destroy');
 Route::get('recetas/{receta}/pdf', [ExpedienteController::class, 'pdfReceta'])->name('recetas.pdf');
 Route::get('expedientes/{expediente}/odontograma', [ExpedienteController::class, 'odontograma'])->name('expedientes.odontograma.index');
+Route::get('expedientes/{expediente}/odontograma/pdf', [ExpedienteController::class, 'odontogramaPdf'])->name('expedientes.odontograma.pdf');
 Route::post('expedientes/{expediente}/tooth-treatments', [ExpedienteController::class, 'storeToothTreatment'])->name('expedientes.tooth-treatments.store');
 Route::put('tooth-treatments/{toothTreatment}', [ExpedienteController::class, 'updateToothTreatment'])->name('tooth-treatments.update');
 Route::delete('tooth-treatments/{toothTreatment}', [ExpedienteController::class, 'destroyToothTreatment'])->name('tooth-treatments.destroy');

@@ -11,7 +11,7 @@
         <div class="grid gap-6 mb-6 md:grid-cols-2">
             <div>
                 <x-label class="form-label">Paciente</x-label>
-                <x-select name="patient_id" class="w-full">
+                <x-select name="patient_id" class="input-label rounded-lg w-full">
                     <option value="">Seleccione un paciente</option>
                     @foreach ($patients as $patient)
                         <option value="{{ $patient->id }}" @selected(old('patient_id') == $patient->id)>
@@ -23,7 +23,7 @@
 
             <div>
                 <x-label class="form-label">Doctor</x-label>
-                <x-select name="doctor_id" class="w-full">
+                <x-select name="doctor_id" class="input-label rounded-lg w-full">
                     <option value="">Seleccione un doctor</option>
                     @foreach ($doctors as $doctor)
                         <option value="{{ $doctor->id }}" @selected(old('doctor_id') == $doctor->id)>
@@ -34,7 +34,7 @@
             </div>
             <div>
                 <x-label class="form-label">service</x-label>
-                <x-select name="service_id" class="w-full">
+                <x-select name="service_id" class="input-label rounded-lg w-full">
                     <option value="">Seleccione un service</option>
                     @foreach ($services as $service)
                         <option value="{{ $service->id }}" @selected(old('service_id') == $service->id)>

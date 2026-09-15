@@ -33,7 +33,7 @@ class ExpedienteController extends Controller
         // Reutilizamos las mismas habilidades de "Historial Médico": es la
         // misma área funcional, solo cambia cómo se organiza la información.
         $this->middleware('can:admin.histories.index')->only('index');
-        $this->middleware('can:admin.histories.show')->only('show', 'pdfConsulta', 'recetasHistorial', 'pdfReceta', 'odontograma');
+        $this->middleware('can:admin.histories.show')->only('show', 'pdfConsulta', 'recetasHistorial', 'pdfReceta', 'odontograma', 'odontogramaPdf');
         $this->middleware('can:admin.histories.create')->only('create', 'store', 'storeConsulta', 'editConsulta', 'updateConsulta');
         $this->middleware('can:admin.histories.addNote')->only('addNote');
         $this->middleware('can:admin.histories.photos.store')->only('storePhoto');
@@ -581,6 +581,45 @@ class ExpedienteController extends Controller
         $services = Service::where('status', 1)->orderBy('name')->get();
 
         return view('admin.expedientes.odontograma', compact('expediente', 'treatments', 'ultimaPorDiente', 'pendientes', 'services'));
+    }
+
+    /**
+     * PDF del plan de tratamiento del odontograma, para entregarle al
+     * paciente: qué se le diagnosticó/recomendó en cada pieza, qué ya se
+     * hizo y el total (con el desglose de lo ya cobrado y lo pendiente).
+     */
+    public function odontogramaPdf(Expediente $expediente)
+    {
+        $this->authorizeAccess($expediente);
+        $this->authorizeOdontograma($expediente);
+
+        $expediente->load(['patient.person', 'speciality']);
+
+        $treatments = $expediente->toothTreatments()->with('sale')->get();
+
+        // Mismo criterio que en la pantalla del odontograma: "pendiente de
+        // cobro" es que todavía no esté ligado a ninguna venta.
+        $totalPendienteCobro = $treatments->whereNull('sale_id')->sum(fn ($t) => (float) ($t->price ?? 0));
+        $totalRegistrado = $treatments->sum(fn ($t) => (float) ($t->price ?? 0));
+        $totalCobrado = $totalRegistrado - $totalPendienteCobro;
+
+        // El odontograma no liga cada tratamiento a un doctor puntual (no
+        // depende de una Consulta). Si quien exporta es un doctor, se
+        // muestra a él; si no (recepción/admin), se usa el doctor de la
+        // consulta más reciente del expediente, si existe alguna.
+        $doctor = auth()->user()?->doctor
+            ?? optional($expediente->consultas()->with('doctor.person')->first())->doctor;
+
+        $pdf = PDF::loadView('admin.expedientes.odontograma_pdf', compact(
+            'expediente',
+            'treatments',
+            'totalRegistrado',
+            'totalCobrado',
+            'totalPendienteCobro',
+            'doctor'
+        ))->setPaper('a4', 'portrait');
+
+        return $pdf->stream('plan_tratamiento_' . $expediente->id . '.pdf');
     }
 
     /**

@@ -81,7 +81,7 @@
             <div class="grid gap-4 md:grid-cols-2">
                 <div>
                     <x-label class="form-label">Paciente</x-label>
-                    <x-select name="patient_id" class="rounded-lg w-full" required>
+                    <x-select name="patient_id" class="input-label rounded-lg w-full" required>
                         @foreach ($patients as $patient)
                             <option value="{{ $patient->id }}" @selected(old('patient_id', $appointment->patient_id) == $patient->id)>
                                 {{ $patient->person->name }} {{ $patient->person->last_name_father }} {{ $patient->person->last_name_mother }}
@@ -92,7 +92,7 @@
 
                 <div>
                     <x-label class="form-label">Doctor</x-label>
-                    <x-select name="doctor_id" class="rounded-lg w-full" required>
+                    <x-select name="doctor_id" class="input-label rounded-lg w-full" required>
                         @foreach ($doctors as $doctor)
                             <option value="{{ $doctor->id }}" @selected(old('doctor_id', $appointment->doctor_id) == $doctor->id)>
                                 {{ $doctor->person->name }} {{ $doctor->person->last_name_father }} {{ $doctor->person->last_name_mother }}
@@ -103,7 +103,7 @@
 
                 <div>
                     <x-label class="form-label">Servicio (opcional)</x-label>
-                    <x-select name="service_id" class="rounded-lg w-full">
+                    <x-select name="service_id" class="input-label rounded-lg w-full">
                         <option value="">Sin especificar</option>
                         @foreach ($services as $service)
                             <option value="{{ $service->id }}" @selected(old('service_id', $appointment->service_id) == $service->id)>
@@ -130,7 +130,7 @@
                 <div>
                     <x-label class="form-label">Duración</x-label>
                     @php $currentDuration = $appointment->starts_at->diffInMinutes($appointment->ends_at); @endphp
-                    <x-select name="duration_minutes" class="rounded-lg w-full">
+                    <x-select name="duration_minutes" class="input-label rounded-lg w-full">
                         <option value="15" @selected(old('duration_minutes', $currentDuration) == 15)>15 minutos</option>
                         <option value="30" @selected(old('duration_minutes', $currentDuration) == 30)>30 minutos</option>
                         <option value="45" @selected(old('duration_minutes', $currentDuration) == 45)>45 minutos</option>
