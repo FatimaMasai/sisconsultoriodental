@@ -87,7 +87,7 @@
                     </div>
                 </div>
                 <div>
-                    <x-label class="form-label">Email <span class="text-red-500">*</span></x-label>
+                    <x-label class="form-label">Email</x-label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 text-sm">
                             <i class="fa-solid fa-envelope"></i>

@@ -79,7 +79,10 @@ class PatientController extends Controller
                 'gender' => 'required',
                 'civil_status' => 'nullable|in:' . implode(',', Person::CIVIL_STATUSES),
                 'phone' => 'required|numeric',
-                'email' => 'required|email',
+                // Sin "required": hay pacientes (adultos mayores, sobre todo)
+                // que no tienen o no saben su correo. Queda opcional, pero
+                // si se carga uno tiene que ser válido.
+                'email' => 'nullable|email',
                 'address' => 'required',
             ]);
 
@@ -94,7 +97,6 @@ class PatientController extends Controller
                 'gender.required' => 'Debe seleccionar el sexo.',
                 'phone.required' => 'El celular es obligatorio.',
                 'phone.numeric' => 'El celular solo debe contener números.',
-                'email.required' => 'El email es obligatorio.',
                 'email.email' => 'Ingrese un email válido.',
                 'address.required' => 'La dirección es obligatoria.',
             ]);
@@ -186,7 +188,10 @@ class PatientController extends Controller
             'gender' => 'required',
             'civil_status' => 'nullable|in:' . implode(',', Person::CIVIL_STATUSES),
             'phone' => 'required|numeric',
-            'email' => 'required|email',
+            // Sin "required": hay pacientes (adultos mayores, sobre todo)
+            // que no tienen o no saben su correo. Queda opcional, pero si
+            // se carga uno tiene que ser válido.
+            'email' => 'nullable|email',
             'address' => 'required',
 
             'allergy' => 'nullable',
@@ -206,7 +211,6 @@ class PatientController extends Controller
             'gender.required' => 'Debe seleccionar el sexo.',
             'phone.required' => 'El celular es obligatorio.',
             'phone.numeric' => 'El celular solo debe contener números.',
-            'email.required' => 'El email es obligatorio.',
             'email.email' => 'Ingrese un email válido.',
             'address.required' => 'La dirección es obligatoria.',
 

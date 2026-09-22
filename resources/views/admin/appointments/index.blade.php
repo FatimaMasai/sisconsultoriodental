@@ -53,6 +53,57 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6/index.global.min.css">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6/index.global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6/locales/es.global.min.js"></script>
+
+    {{-- FullCalendar trae sus propios colores fijos (pensados para fondo
+         blanco) y no sabe nada del modo oscuro del sistema, por eso en
+         oscuro el nombre de los días (dom, lun, mar...), los números y los
+         botones quedaban con texto oscuro sobre fondo oscuro = invisibles.
+         Se pisan acá sus variables CSS y algunos textos puntuales solo
+         cuando está activo .dark. --}}
+    <style>
+        .dark #calendar {
+            --fc-border-color: #374151;
+            --fc-page-bg-color: transparent;
+            --fc-neutral-bg-color: #1f2937;
+            --fc-neutral-text-color: #d1d5db;
+            --fc-list-event-hover-bg-color: #374151;
+            --fc-today-bg-color: rgba(45, 212, 191, 0.12);
+        }
+
+        .dark #calendar .fc-col-header-cell-cushion,
+        .dark #calendar .fc-daygrid-day-number,
+        .dark #calendar .fc-toolbar-title,
+        .dark #calendar .fc-list-day-text,
+        .dark #calendar .fc-list-day-side-text,
+        .dark #calendar .fc-list-event-title a,
+        .dark #calendar .fc-list-event-time,
+        .dark #calendar .fc-timegrid-slot-label-cushion,
+        .dark #calendar .fc-timegrid-axis-cushion {
+            color: #e5e7eb;
+        }
+
+        .dark #calendar .fc-list-empty {
+            background-color: #1f2937;
+            color: #9ca3af;
+        }
+
+        .dark #calendar .fc-button {
+            background-color: #374151;
+            border-color: #4b5563;
+            color: #e5e7eb;
+        }
+
+        .dark #calendar .fc-button:hover {
+            background-color: #4b5563;
+        }
+
+        .dark #calendar .fc-button-primary:not(:disabled).fc-button-active {
+            background-color: var(--brand-primary, #0d9488);
+            border-color: var(--brand-primary, #0d9488);
+            color: #fff;
+        }
+    </style>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const calendarEl = document.getElementById('calendar');

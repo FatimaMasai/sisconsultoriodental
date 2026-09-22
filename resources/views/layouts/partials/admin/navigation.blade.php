@@ -10,17 +10,21 @@
                     <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
                 </svg>
             </button>
-            @php $logoUrl = \App\Models\ClinicSetting::instance()->logoUrl(); @endphp
-            {{-- El logo tiene fondo transparente, el texto "wellness" en
-                 turquesa y el subtítulo "CENTRO INTEGRAL" en blanco. Por
-                 eso va en una "chapita" negra fija (no cambia con el tema):
-                 así el subtítulo blanco se lee bien, con un borde turquesa
-                 (el mismo color de marca) para que la insignia se distinga
-                 del menú de alrededor. --}}
+            @php
+                $clinicSetting = \App\Models\ClinicSetting::instance();
+                $logoUrl = $clinicSetting->logoUrl();
+            @endphp
+            {{-- El logo actual (Mi Consulta) ya viene pensado para fondo
+                 claro: el ícono y "MI CONSULTA" en azul/turquesa y el
+                 subtítulo "Control para tu Consultorio" en gris, todo
+                 legible sobre blanco. Por eso la "chapita" es blanca fija
+                 (no cambia con el tema), con un borde turquesa (el mismo
+                 color de marca) para que la insignia se distinga del menú
+                 de alrededor. --}}
             <a href="{{ route('admin.dashboard')}}"
                 class="brand-badge flex items-center ms-2 md:me-6 px-3 py-1.5">
-                <img src="{{ $logoUrl }}" alt="Wellness Centro Integral" class="brand-logo-full" style="height: 40px; width: auto;">
-                <img src="{{ $logoUrl }}" alt="Wellness Centro Integral" class="brand-logo-icon" style="height: 28px; width: auto; display: none;">
+                <img src="{{ $logoUrl }}" alt="{{ $clinicSetting->systemName() ?? 'Logo' }}" class="brand-logo-full" style="height: 40px; width: auto;">
+                <img src="{{ $logoUrl }}" alt="{{ $clinicSetting->systemName() ?? 'Logo' }}" class="brand-logo-icon" style="height: 28px; width: auto; display: none;">
             </a>
             </div>
 
@@ -36,7 +40,7 @@
                      siempre, sin depender de si el bundle de Tailwind ya
                      se recompiló con esta combinación en particular. --}}
                 .brand-badge {
-                    background-color: #000;
+                    background-color: #fff;
                     border: 2px solid #2dd4bf;
                     border-radius: 12px;
                     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
