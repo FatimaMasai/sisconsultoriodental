@@ -34,7 +34,7 @@
             <ul class="text-sm text-gray-700 dark:text-gray-300 space-y-1 mb-2">
                 @foreach ($pendingToothTreatments as $pending)
                     <li>
-                        Pieza {{ $pending->tooth_number }} — {{ $pending->treatment }}
+                        {{ $pending->tooth_number ? 'Pieza ' . $pending->tooth_number . ' — ' : '' }}{{ $pending->treatment }}
                         @if ($pending->price !== null)
                             <span class="text-gray-500 dark:text-gray-400">(Bs {{ $formatMoney($pending->price) }})</span>
                         @endif

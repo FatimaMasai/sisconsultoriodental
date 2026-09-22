@@ -631,19 +631,23 @@ class ExpedienteController extends Controller
         $this->authorizeOdontograma($expediente);
 
         $request->validate([
-            'tooth_number' => 'required|string|max:5',
+            // Sin "required": hay tratamientos que no van sobre una pieza
+            // puntual (ej. "Limpieza general", "Fluorización") y antes el
+            // formulario obligaba a marcar un diente igual para poder
+            // guardar. Queda opcional; si se elige uno, se sigue validando
+            // el formato.
+            'tooth_number' => 'nullable|string|max:5',
             'treatment' => 'required|string|max:255',
             'price' => 'nullable|numeric|min:0',
             'date' => 'nullable|date|before_or_equal:today',
         ], [
-            'tooth_number.required' => 'Debe seleccionar una pieza dental.',
             'treatment.required' => 'Debe indicar el diagnóstico o tratamiento.',
             'price.numeric' => 'El precio debe ser un número.',
             'date.before_or_equal' => 'La fecha no puede ser futura.',
         ]);
 
         $expediente->toothTreatments()->create([
-            'tooth_number' => $request->tooth_number,
+            'tooth_number' => $request->filled('tooth_number') ? $request->tooth_number : null,
             'treatment' => $request->treatment,
             'price' => $request->price,
             'completed' => $request->boolean('completed'),
@@ -668,19 +672,19 @@ class ExpedienteController extends Controller
         $this->authorizeOdontograma($toothTreatment->expediente);
 
         $request->validate([
-            'tooth_number' => 'required|string|max:5',
+            // Mismo criterio que al crear: la pieza es opcional.
+            'tooth_number' => 'nullable|string|max:5',
             'treatment' => 'required|string|max:255',
             'price' => 'nullable|numeric|min:0',
             'date' => 'nullable|date|before_or_equal:today',
         ], [
-            'tooth_number.required' => 'Debe seleccionar una pieza dental.',
             'treatment.required' => 'Debe indicar el diagnóstico o tratamiento.',
             'price.numeric' => 'El precio debe ser un número.',
             'date.before_or_equal' => 'La fecha no puede ser futura.',
         ]);
 
         $toothTreatment->update([
-            'tooth_number' => $request->tooth_number,
+            'tooth_number' => $request->filled('tooth_number') ? $request->tooth_number : null,
             'treatment' => $request->treatment,
             'price' => $request->price,
             'completed' => $request->boolean('completed'),

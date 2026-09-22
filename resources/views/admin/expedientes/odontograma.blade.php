@@ -201,10 +201,17 @@
 
                 <p class="text-sm mb-3">
                     Pieza seleccionada:
-                    <span id="pieza-seleccionada-label" class="font-semibold text-gray-900 dark:text-white">Ninguna, hacé click arriba</span>
+                    <span id="pieza-seleccionada-label" class="font-semibold text-gray-900 dark:text-white">Ninguna</span>
+                    <button type="button" id="quitar-pieza-btn" onclick="quitarPieza()" class="hidden text-xs text-red-500 hover:underline ml-1">Quitar</button>
+                    <span class="text-gray-400 dark:text-gray-500">— opcional, dejala así para un tratamiento general (ej. limpieza) que no sea de una pieza puntual.</span>
                 </p>
 
-                <input type="hidden" name="tooth_number" id="tooth_number_input" required>
+                {{-- Sin "required": antes esto bloqueaba el envío del
+                     formulario entero (un campo oculto obligatorio no se
+                     puede validar en el navegador) si no se hacía click en
+                     un diente primero, aunque el tratamiento no fuera de
+                     una pieza puntual. --}}
+                <input type="hidden" name="tooth_number" id="tooth_number_input">
 
                 <div class="grid gap-4 sm:grid-cols-4">
                     <div class="sm:col-span-2">
@@ -287,7 +294,7 @@
             <tbody>
                 @foreach ($treatments as $treatment)
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700" id="tooth-treatment-view-{{ $treatment->id }}">
-                        <td data-label="Pieza" class="px-4 py-3 font-semibold">{{ $treatment->tooth_number }}</td>
+                        <td data-label="Pieza" class="px-4 py-3 font-semibold">{{ $treatment->tooth_number ?: 'General' }}</td>
                         <td data-label="Diagnóstico / Tratamiento" class="px-4 py-3">{{ $treatment->treatment }}</td>
                         <td data-label="Precio" class="px-4 py-3">{{ $treatment->price !== null ? number_format((float) $treatment->price, 2) : '—' }}</td>
                         <td data-label="Fecha" class="px-4 py-3">{{ $treatment->date ? $treatment->date->format('d/m/Y') : '—' }}</td>
@@ -339,8 +346,8 @@
 
                                     <div class="grid gap-4 sm:grid-cols-4">
                                         <div>
-                                            <x-label class="form-label">Pieza</x-label>
-                                            <x-input name="tooth_number" value="{{ $treatment->tooth_number }}" class="input-label rounded-lg w-full" />
+                                            <x-label class="form-label">Pieza (opcional)</x-label>
+                                            <x-input name="tooth_number" value="{{ $treatment->tooth_number }}" class="input-label rounded-lg w-full" placeholder="Vacío = general" />
                                         </div>
                                         <div class="sm:col-span-2">
                                             <x-label class="form-label">Diagnóstico / Tratamiento</x-label>
@@ -409,10 +416,25 @@
         function seleccionarPieza(pieza) {
             const input = document.getElementById('tooth_number_input');
             const label = document.getElementById('pieza-seleccionada-label');
+            const quitarBtn = document.getElementById('quitar-pieza-btn');
             if (!input || !label) return;
 
             input.value = pieza;
             label.textContent = pieza;
+            quitarBtn?.classList.remove('hidden');
+        }
+
+        // Por si se hizo click en un diente por error y en realidad el
+        // tratamiento es general (no va sobre una pieza puntual).
+        function quitarPieza() {
+            const input = document.getElementById('tooth_number_input');
+            const label = document.getElementById('pieza-seleccionada-label');
+            const quitarBtn = document.getElementById('quitar-pieza-btn');
+            if (!input || !label) return;
+
+            input.value = '';
+            label.textContent = 'Ninguna';
+            quitarBtn?.classList.add('hidden');
         }
 
         // Muestra/oculta el formulario para corregir un tratamiento ya

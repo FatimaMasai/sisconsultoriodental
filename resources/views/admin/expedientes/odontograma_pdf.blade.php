@@ -201,7 +201,7 @@
             <tbody>
                 @foreach ($treatments->sortBy('tooth_number') as $treatment)
                     <tr>
-                        <td>{{ $treatment->tooth_number }}</td>
+                        <td>{{ $treatment->tooth_number ?: 'General' }}</td>
                         <td>{{ $treatment->treatment }}</td>
                         <td>{{ $treatment->date ? \Carbon\Carbon::parse($treatment->date)->format('d/m/Y') : '—' }}</td>
                         <td class="precio">{{ $treatment->price !== null ? 'Bs. ' . number_format((float) $treatment->price, 2) : '—' }}</td>
